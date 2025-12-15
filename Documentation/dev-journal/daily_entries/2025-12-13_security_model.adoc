@@ -1,0 +1,62 @@
+= Smartbook Project Development Journal (Architecture Decision Record Log)
+:author: Gemini AI Assistant
+:revdate: 2025-12-14
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+
+== ADR 001: Adoption of Multi-Window Architecture
+
+[cols=">1, 5"]
+|===
+| **Status** | Accepted
+| **Date** | 2025-12-09
+| **Decision Driver** | Requirement FR-2.1.1 (Multi-Window Capability) and the need for process isolation.
+| **Decision** | The application architecture will be comprised of a single **Library Manager** process and multiple, isolated **Reader View Instances** (one per open cartridge).
+| **Consequences** | Requires IPC (e.g., Qt Signals/Slots, WebChannel) between the Library Manager and its instances. Enforces strict isolation rules for database access.
+|===
+
+== ADR 002: Core Persistence Engine Selection
+
+[cols=">1, 5"]
+|===
+| **Status** | Accepted
+| **Date** | 2025-12-10
+| **Decision Driver** | Requirement FR-2.1.2 (Form Data Persistence), need for secure, containerized data.
+| **Decision** | **SQLite** will be used as the core persistence engine. Data will be stored in two separate databases: the **Cartridge File** (content, form schema, user data) and the **Local Reader Database** (manifest, trust registry).
+| **Consequences** | Requires two distinct C++ connector classes. Ensures the user data is packaged with the content.
+|===
+
+== ADR 003: Database Connector Pattern Enforcement
+
+[cols=">1, 5"]
+|===
+| **Status** | Accepted
+| **Date** | 2025-12-13
+| **Decision Driver** | Enforcing architectural isolation (FR-2.1.1) versus managing global resources.
+| **Decision** | The **Singleton Pattern** will be used for the **`LocalDBManager`** (accessing the global manifest/trust registry). The **`CartridgeDBConnector`** will use a **Per-Instance Pattern**, instantiated uniquely for each `ReaderViewInstance`.
+| **Consequences** | Guarantees a single, safe access point for the global library data. Prevents cross-contamination of user data between simultaneously open cartridges.
+|===
+
+== ADR 004: Performance Requirement Formalization
+
+[cols=">1, 5"]
+|===
+| **Status** | Accepted
+| **Date** | 2025-12-13
+| **Decision Driver** | Ensuring a professional user experience and satisfying the NFR-3.1 requirement.
+| **Decision** | The **Non-Functional Requirement (NFR-3.1)** for Library Load Performance has been formally set: all metadata for 100+ cartridges **MUST** load and display within **500 milliseconds**.
+| **Consequences** | Strictly mandates that the Library Manager UI must rely *only* on the cached data in the `Local_Library_Manifest` table, bypassing slow runtime file parsing.
+|===
+
+== ADR 005: Trust Revocation and Deletion Atomicity
+
+[cols=">1, 5"]
+|===
+| **Status** | Accepted
+| **Date** | 2025-12-13
+| **Decision Driver** | Requirement FR-2.5.5 (Atomic Deletion) and ensuring data integrity and security compliance.
+| **Decision** | Trust Revocation and Cartridge Deletion MUST be handled via a single **atomic database transaction** involving simultaneous removal/update of records from the `Local_Library_Manifest` AND the `Local_Trust_Registry`.
+| **Consequences** | Eliminates the risk (R-UI-2) of orphaned database records that could lead to inconsistent UI state or lingering security policies.
+|===

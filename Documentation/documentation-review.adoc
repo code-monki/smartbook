@@ -1,0 +1,437 @@
+= Smartbook Documentation Review - Gaps and Issues Analysis
+:author: AI Assistant
+:revdate: 2025-12-14
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+
+== Executive Summary
+
+The documentation is generally well-structured and comprehensive for the Reader application, but several significant gaps exist, particularly around the Creator Tool, embedded applications, error handling, and some cross-document inconsistencies. This review identifies these issues for resolution.
+
+== CRITICAL GAPS
+
+=== Creator Tool Specifications [OK] RESOLVED (Subject to Review)
+
+**Issue:** The Creator Tool is mentioned in Product Concept and has a packaging algorithm in DDD, but lacks comprehensive requirements and design specifications.
+
+**Status:** [OK] **RESOLVED** - A comprehensive Creator Tool requirements section (FR-CT-3.1 through FR-CT-3.73) has been added to the SRS document, covering:
+* Functional Requirements: 73 requirements covering content authoring, page management, stylesheet management, JavaScript/embedded apps, form definitions, metadata, resources, search, cartridge creation/export, auto-save, draft/publishing, templates, import, version history, error recovery, accessibility, and multi-language support
+* Workflow Specifications: Cartridge creation, editing, validation, signing, and export workflows specified
+* Certificate Management: Requirements for managing certificates and signing at three trust levels (FR-CT-3.32, FR-CT-3.33)
+* Export/Publish Process: Complete export and publishing workflow specified (FR-CT-3.34, FR-CT-3.40-3.43)
+* Error Handling: Error recovery and data integrity requirements specified (FR-CT-3.58-3.62)
+
+**Note:** Requirements are comprehensive but may be refined or expanded during detailed analysis and design phases. UI/UX design details will be specified in the DDD.
+
+**Recommendation:** ~~Create a dedicated "Creator Tool SRS" document or add a comprehensive section to the existing SRS.~~ **COMPLETED** - Requirements added to main SRS. Review during design phase recommended.
+
+=== Embedded Applications Schema and Execution (HIGH PRIORITY)
+
+**Issue:** Inconsistent references to embedded app storage and execution mechanism.
+
+**Problems Identified:**
+
+. **Schema Mismatch:**
++
+* Product Concept mentions `Embedded_Apps` table with columns: `app_id`, `app_name`, `entry_html`, `js_code`, `css_code`
+* DDD defines `Embedded_App_Manifest` JSON structure with different fields: `appId`, `name`, `description`, `entryFile`, `requiredScripts`, `requiredStyles`
+* SRS mentions `manifest.json` but doesn't specify where/how it's stored
+
+. **Missing Database Schema:** The DDD does not define the `Embedded_Apps` table schema that should exist in the cartridge SQLite file
+
+. **Execution Flow:** Unclear how embedded apps are:
++
+* Loaded from the cartridge
+* Injected into the web view
+* Executed in relation to content pages
+* Isolated from each other
+
+**Recommendation:**
+* Define the complete `Embedded_Apps` table schema in DDD Section 3
+* Clarify the relationship between `Embedded_App_Manifest` JSON and the database table
+* Specify the app loading and execution algorithm in DDD
+
+=== Error Handling Specifications (MEDIUM-HIGH PRIORITY)
+
+**Issue:** Error handling is not comprehensively specified across the system.
+
+**Missing Elements:**
+
+**WebChannel API Errors:**
+* What happens when `saveFormData` is called with invalid `formId`?
+* What happens when `loadFormData` is called for non-existent form?
+* How are validation errors communicated back to JavaScript?
+* What happens if database operations fail?
+* Callback error handling patterns
+
+**Reader Application Errors:**
+* Cartridge file corruption detection and handling
+* Database connection failures
+* Signature verification failures (beyond "Rejected")
+* Network errors (for Phase 2 preparation)
+* File system errors (permissions, disk full, etc.)
+
+**Creator Tool Errors:**
+* Content validation failures
+* Signing failures
+* Export failures
+
+**Recommendation:** Add comprehensive error handling sections to:
+* WebChannel API Specification
+* DDD (Reader error handling)
+* Creator Tool specifications
+
+== INCONSISTENCIES AND CONTRADICTIONS
+
+=== Document Version Conflicts [OK] RESOLVED
+
+**Issue:** Two different SRS documents exist with different revision dates:
+* `srs.adoc` - FINAL REVISED (2025-12-14)
+* `srs-addendum-1.adoc` - FINAL REVISION (2025-12-13)
+
+**Problem:** It's unclear which is the authoritative version or how they relate.
+
+**Status:** [OK] **RESOLVED** - The addendum content has been merged into the main `srs.adoc` document. The addendum (`srs-addendum-1.adoc`) has been deleted. The main SRS now contains all requirements with enhanced formatting (rationale columns in NFR section).
+
+**Recommendation:** [line-through]#Consolidate into a single SRS document or clearly document the relationship (e.g., addendum supersedes base, or vice versa).# **COMPLETED**
+
+=== Metadata Schema Differences
+
+**Issue:** Product Concept shows different metadata fields than DDD:
+
+**Product Concept:**
+* `publisher` field mentioned
+* `cover_image_path` (path reference)
+
+**DDD:**
+* No `publisher` field
+* `cover_image_path` exists but relationship to `cover_image_data` in manifest unclear
+
+**Recommendation:** Align schemas across all documents.
+
+=== Settings Table Missing
+
+**Issue:** Product Concept mentions a `Settings` table for book-specific rendering defaults, but:
+* Not defined in DDD cartridge schema
+* Not referenced in Reader requirements
+* No specification for how settings are used
+
+**Recommendation:** Either remove from Product Concept or fully specify in DDD.
+
+== INCOMPLETE SPECIFICATIONS
+
+=== Form Rendering and Display
+
+**Issue:** Form Definition JSON Schema is defined, but:
+* No specification for how forms are rendered in the Reader
+* No specification for how forms are embedded in content pages
+* No specification for form validation error display
+* No specification for form state management (auto-save, draft, etc.)
+
+**Recommendation:** Add form rendering and interaction specifications to DDD or Reader SRS.
+
+=== Content Navigation
+
+**Issue:** Content navigation is mentioned but not detailed:
+* How users navigate between pages
+* Table of contents generation/display
+* Bookmarking functionality
+* Reading position persistence
+* Page numbering vs. chapter/section navigation
+
+**Recommendation:** Add detailed navigation requirements to SRS.
+
+=== Search Functionality
+
+**Issue:** Product Concept mentions full-text search, but:
+* No detailed requirements in SRS
+* No specification for search UI
+* No specification for search result display
+* No specification for search indexing (when/how)
+
+**Recommendation:** Add comprehensive search requirements to SRS.
+
+=== Theming System
+
+**Issue:** Product Concept mentions theming (Light, Dark, Sepia, custom), but:
+* No requirements in SRS
+* No specification for theme storage
+* No specification for theme application
+* No specification for custom theme creation/editing
+
+**Recommendation:** Add theming requirements to SRS and design to DDD.
+
+=== Print Functionality
+
+**Issue:** Product Concept mentions print support, but:
+* No requirements in SRS
+* No specification for print formatting
+* No specification for what can be printed (page, document, selection)
+
+**Recommendation:** Add print requirements to SRS.
+
+=== Text Selection and Highlighting
+
+**Issue:** Product Concept mentions text selection, copy, and highlight, but:
+* No requirements in SRS
+* No specification for highlight persistence
+* No specification for highlight storage location
+* No specification for highlight colors/styles
+
+**Recommendation:** Add text interaction requirements to SRS.
+
+== SECURITY GAPS
+
+=== Certificate Management
+
+**Issue:** Security model references CA-signed and self-signed certificates, but:
+* No specification for certificate storage/management in Reader
+* No specification for certificate revocation checking
+* No specification for certificate expiration handling
+* No specification for trusted CA list management
+
+**Recommendation:** Add certificate management specifications to DDD security section.
+
+=== Public Key Distribution
+
+**Issue:** DDD mentions `public_key_fingerprint` but:
+* No specification for how public keys are distributed
+* No specification for public key storage in Reader
+* No specification for key rotation/updates
+
+**Recommendation:** Add public key management specifications.
+
+=== Content Hash Algorithm Details
+
+**Issue:** References to H1 and H2 hashes, but:
+* Exact hash algorithm not specified (DDD says "e.g., SHA-256")
+* Which tables are included in "critical content tables" not fully specified
+* Hash calculation order/process not detailed
+
+**Recommendation:** Specify exact hash algorithm and detailed calculation process in DDD.
+
+=== JavaScript Sandboxing
+
+**Issue:** Embedded JavaScript execution is mentioned, but:
+* No specification for JavaScript security sandbox
+* No specification for what APIs are available/restricted
+* No specification for CSP (Content Security Policy) if applicable
+* No specification for preventing access to file system, network, etc.
+
+**Recommendation:** Add JavaScript security sandbox specifications to DDD.
+
+== DATA AND PERSISTENCE GAPS
+
+=== User Data Versioning
+
+**Issue:** Form data persistence is specified, but:
+* No handling for form schema changes (what if form definition changes?)
+* No migration strategy for user data
+* No versioning of saved form data
+
+**Recommendation:** Add data versioning and migration specifications.
+
+=== Manifest Update Triggers
+
+**Issue:** DDD mentions manifest updates, but:
+* When exactly is manifest updated? (on import, on open, on change?)
+* What happens if manifest update fails?
+* How are duplicate cartridge_guid handled?
+
+**Recommendation:** Clarify manifest update lifecycle in DDD.
+
+=== Database Migration
+
+**Issue:** No specification for:
+* Cartridge format version migration
+* Reader database schema migration
+* Handling older format cartridges
+
+**Recommendation:** Add migration strategy to DDD.
+
+== UI/UX GAPS
+
+=== Library Manager Import Process
+
+**Issue:** Import is mentioned but not detailed:
+* How users import cartridges (drag-drop, file dialog, etc.)
+* Import validation and error messages
+* Import progress indication
+* Handling duplicate imports
+
+**Recommendation:** Add import workflow specification to SRS.
+
+=== Reader View Window Management
+
+**Issue:** Multi-window architecture is specified, but:
+* How users open new windows
+* Window closing behavior
+* Window state persistence (size, position)
+* Minimize/restore behavior
+
+**Recommendation:** Add window management specifications to DDD UI section.
+
+=== Integrity Warning Display
+
+**Issue:** Integrity warnings for L2/L3 are mentioned, but:
+* Exact warning text/content not specified
+* Warning dismissal behavior (if any)
+* Warning styling/positioning details
+
+**Recommendation:** Add detailed warning UI specifications to DDD.
+
+=== Consent Dialog Details
+
+**Issue:** Consent dialog is specified, but:
+* Exact dialog text/templates not provided
+* Dialog size/positioning
+* Accessibility requirements
+* Internationalization considerations
+
+**Recommendation:** Add detailed dialog specifications with example text.
+
+== TESTING GAPS
+
+=== Creator Tool Testing
+
+**Issue:** Test Plan focuses on Reader, but:
+* No test cases for Creator Tool
+* No test cases for cartridge creation/export
+* No test cases for form definition creation
+* No test cases for signing process
+
+**Recommendation:** Add Creator Tool test cases to Test Plan.
+
+=== Error Scenario Testing
+
+**Issue:** Test Plan has limited error scenario coverage:
+* No tests for corrupted cartridge files
+* No tests for invalid signatures
+* No tests for database failures
+* No tests for file system errors
+
+**Recommendation:** Add error scenario test cases.
+
+=== Performance Testing
+
+**Issue:** Only library load performance is specified:
+* No performance requirements for:
+** Cartridge opening
+** Form data save/load
+** Content rendering
+** Search operations
+
+**Recommendation:** Add comprehensive performance requirements and tests.
+
+== PHASE 2 PREPARATION GAPS
+
+=== User Identity
+
+**Issue:** Phase 2 mentions multi-user, but Phase 1:
+* `User_Data` table has `user_id` field mentioned in Product Concept but not in DDD
+* No user identity model for Phase 1
+* Unclear if Phase 1 is truly single-user or just local-only
+
+**Recommendation:** Clarify user model for Phase 1 and Phase 2 transition.
+
+=== Remote Library Integration
+
+**Issue:** `location_status` field exists but:
+* No specification for how it's used in Phase 1
+* No specification for Phase 2 remote library API
+* No specification for sync mechanisms
+
+**Recommendation:** Document Phase 1 usage and Phase 2 requirements.
+
+== TECHNICAL SPECIFICATION GAPS
+
+=== Qt WebEngine Configuration
+
+**Issue:** Qt WebEngine is mentioned but:
+* No specification for WebEngine settings/configuration
+* No specification for JavaScript engine version
+* No specification for HTML/CSS standards compliance level
+
+**Recommendation:** Add WebEngine configuration specifications to DDD.
+
+=== SQLite Configuration
+
+**Issue:** SQLite is used but:
+* No specification for SQLite version requirements
+* No specification for SQLite configuration (WAL mode, etc.)
+* No specification for database optimization
+
+**Recommendation:** Add SQLite configuration specifications to DDD.
+
+=== Platform-Specific Considerations
+
+**Issue:** Cross-platform is mentioned but:
+* No platform-specific requirements documented
+* No platform-specific UI guidelines
+* No platform-specific security considerations
+
+**Recommendation:** Add platform-specific considerations document or section.
+
+== DOCUMENTATION STRUCTURE ISSUES
+
+=== Missing Glossary
+
+**Issue:** Technical terms are used throughout but:
+* No centralized glossary
+* Terms like "cartridge", "H1", "H2", "L1/L2/L3" not defined in one place
+
+**Recommendation:** Add glossary to main documentation.
+
+=== Missing Architecture Diagrams
+
+**Issue:** Architecture is described textually but:
+* No visual architecture diagrams
+* No data flow diagrams
+* No sequence diagrams for key processes
+
+**Recommendation:** Add visual diagrams to HLD and DDD.
+
+=== Missing API Examples
+
+**Issue:** WebChannel API is specified but:
+* No complete JavaScript usage examples
+* No error handling examples
+* No integration examples
+
+**Recommendation:** Add comprehensive API usage examples to WebChannel API spec.
+
+== SUMMARY OF PRIORITIES
+
+=== Must Fix Before Implementation:
+
+. [line-through]#Creator Tool specifications# [OK] **RESOLVED** (73 requirements added; may be refined during design)
+. Embedded Applications schema and execution details
+. [line-through]#Consolidate SRS documents# [OK] **RESOLVED**
+. Error handling specifications
+
+=== Should Fix Soon:
+
+. Form rendering specifications
+. Content navigation details
+. Certificate management details
+. JavaScript sandboxing specifications
+
+=== Nice to Have:
+
+. Visual diagrams
+. API usage examples
+. Platform-specific considerations
+. Comprehensive glossary
+
+== RECOMMENDATIONS
+
+. [line-through]#**Create Creator Tool SRS:** Dedicated requirements document for the Creator Tool# **COMPLETED** - Comprehensive requirements added to main SRS (73 requirements)
+. **Resolve Schema Conflicts:** Align all schema definitions across documents
+. **Add Error Handling:** Comprehensive error handling specifications
+. **Complete Embedded Apps:** Full schema and execution flow
+. **Enhance Test Plan:** Add Creator Tool and error scenario tests
+. **Add Visual Aids:** Architecture and data flow diagrams
+. **Create Glossary:** Centralized definitions of all terms
+

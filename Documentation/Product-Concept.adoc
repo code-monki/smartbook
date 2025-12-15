@@ -1,0 +1,96 @@
+= Smartbook Project Concept and Specification
+:author: Gemini AI Assistant
+:revdate: 2025-12-13
+:doctype: book
+:toc: left
+:toclevels: 2
+:experimental:
+
+// Document Overview: A richer, interactive digital publishing format.
+
+== Executive Summary
+
+The "Smartbook" project aims to overcome the current limitations of the standard ePub format, specifically its inability to natively support rich interaction, persistence of user data, and the seamless integration of functional mini-applications and fillable forms.
+
+This new format will utilize a single-file SQLite container to bundle all content, metadata, and application logic, providing a robust, portable, and "smarter" user experience. The primary implementation will be based on the cross-platform **Qt** framework.
+
+== Core Technology Stack
+
+The project will adhere to the following core technology choices for cross-platform stability and performance:
+
+* **Application Framework:** Qt (C++)
+* **UI/Widgets:** Qt Widgets utilizing the Qt Fusion Style for a modern, themeable look.
+* **Database/Format:** SQLite for the single-file Smartbook container and application data management.
+* **Content Rendering:** Qt WebEngine (Chromium-based) for rendering HTML, CSS, and executing JavaScript.
+
+== Phase 1: Single-User Application Development
+
+Phase 1 focuses on creating the fundamental tools: the Reader Application for consumption and the Creator Tool for authoring the new format.
+
+=== Smartbook Reader Application
+
+This application serves as the primary interface for consuming the new "Smartbook" format.
+
+==== Core Functionality
+
+1.  **Smartbook Loading:** Capability to load and securely render content from the proprietary SQLite-based Smartbook container.
+2.  **Cross-Platform UI:** Built with Qt Widgets, leveraging the Qt Fusion style.
+3.  **Theming:** Provides three immutable, built-in themes:
+    * Light
+    * Dark
+    * Sepia
+    * Facility for users to create and save custom themes.
+4.  **Navigation & Search:**
+    * Full-text search (utilizing SQLite FTS).
+    * Title, Author, and Tags/Subject search capabilities.
+    * Browse library in List View or Bookshelf Gallery View.
+5.  **Interaction & Output:**
+    * Standard text selection, copy, and highlight functionality.
+    * Print support for the current page, full document, or selected text block.
+    * Handling user interactions with embedded forms and applications.
+
+=== "Smart" ePub Creator Tool (Authoring)
+
+This tool defines and creates the proprietary Smartbook format, packaged as a single SQLite file.
+
+==== Authoring Features
+
+1.  **Rich HTML Editing:** A powerful WYSIWYG editor (likely an embedded web editor via Qt WebEngine) for creating and formatting core content.
+2.  **Smart Content Integration:** Tools to define and insert special interactive elements:
+    * **Fillable Forms:** Structured fields for user data input, with data persisting within the Smartbook's SQLite container.
+    * **Embedded Applications:** Support for embedding mini-applications written in HTML/CSS/JavaScript.
+3.  **Resource Management:** Tools for managing embedded resources:
+    * Custom CSS files associated with the content.
+    * JavaScript and image assets for forms and embedded apps.
+4.  **Format Output:** Final content compiled and stored within the SQLite file structure, defining the new Smartbook format.
+5.  **Localization:** Multi-language support for the Creator Tool's user interface (Qt i18n).
+
+== Phase 2: Multi-User System
+
+Phase 2 expands the format and application to a shared, collaborative environment.
+
+=== Server and Library Management
+
+1.  **Centralized Library Server:** A dedicated backend service to manage and serve a shared library of Smartbook documents.
+2.  **Security and Access:**
+    * Role-Based Access Control (RBAC) implementation.
+    * Secure user credentials management (authentication and authorization).
+3.  **Administration Console:** A web or desktop interface for server administrators to manage:
+    * User accounts and permissions.
+    * Library content uploading, updating, and removal.
+    * Server monitoring and logging.
+
+== Smartbook Format Specification (SQLite Schema Draft)
+
+The core structure of the Smartbook (the SQLite file) is defined by the following preliminary tables:
+
+[cols="1,1,1", options="headers"]
+|===
+^.^| Table Name ^.^| Purpose ^.^| Key Fields
+
+| `Metadata` | Book-level identifying information | `title`, `author`, `publisher`, `tags` (JSON array), `cover_image_path`
+| `Content_Pages` | The primary HTML content | `page_id` (PK), `page_order`, `chapter_title`, `html_content`, `associated_css_file`
+| `User_Data` | Stores user input from fillable forms | `data_id` (PK), `user_id` (for Phase 2), `form_key`, `timestamp`, `serialized_data` (JSON/BLOB)
+| `Embedded_Apps` | Resources for interactive components | `app_id` (PK), `app_name`, `entry_html`, `js_code` (BLOB), `css_code` (BLOB)
+| `Settings` | Book-specific rendering defaults | `setting_key` (e.g., `default_font_size`), `setting_value`
+|===

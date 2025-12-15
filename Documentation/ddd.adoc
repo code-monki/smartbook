@@ -1,0 +1,391 @@
+= Smartbook Project Detailed Design Document (DDD) - Complete and Final Document
+:author: Gemini AI Assistant
+:revdate: 2025-12-13
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+
+== Introduction and Scope
+
+This Detailed Design Document (DDD) specifies the internal structure, data formats, exact interfaces, and core algorithms for the key components of the Smartbook Reader and Creator tools, ensuring synchronized documentation for implementation.
+
+== Data Structure Specification
+
+This section defines the precise structure for the data persisted within the Smartbook Cartridge.
+
+=== Form Definition JSON Schema (form_schema_json)
+
+The JSON schema defining form fields and validation rules, stored in the `Form_Definitions` table.
+
+==== Top-Level Schema Structure
+
+[cols="2, ^1, 4, ^1, 2"]
+|===
+^.^| Key ^.^| Type ^.^| Description ^.^| Required? ^.^| Example Value
+
+| `schemaVersion` | String | Versioning for the form schema. | Yes | `1.0`
+| `formId` | String | A unique, permanent identifier for the form. | Yes | `character_sheet_v3`
+| `formTitle` | String | The human-readable title of the form. | Yes | `D&D 5e Character Sheet`
+| `fields` | Array | An ordered array containing field definitions. | Yes | `[...]`
+|===
+
+// NOTE: Detailed Field Object Definition and Validation Rules follow in implementation documentation.
+
+== Initial Smartbook Cartridge SQLite Schema
+
+The following tables define the structure of the Smartbook Cartridge (`.sqlite` file).
+
+=== `Metadata` Table (UPDATED)
+
+[cols="2, ^1,^ 3, 4"]
+|===
+^.^| Column Name ^.^| SQLite Type ^.^| Constraints ^.^| Description
+
+| `id` | INTEGER | PRIMARY KEY | Internal primary key.
+| **`cartridge_guid`** | **TEXT** | **NOT NULL, UNIQUE** | **A UUID Version 4 string. The definitive, immutable unique identifier for the content edition (NFR-3.2).**
+| `title` | TEXT | NOT NULL | Human-readable title of the Smartbook.
+| `author` | TEXT | NOT NULL | Author/Publisher name.
+| `version` | TEXT | NOT NULL | Content Edition/Revision (e.g., "2.0").
+| **`publication_year`** | **TEXT** | **NOT NULL** | **The year the content was first published (e.g., "2025").**
+| `tags_json` | TEXT | | JSON array of descriptive tags/subjects.
+| `cover_image_path` | TEXT | | Relative path to the front cover image file.
+| `schema_version` | TEXT | NOT NULL | Smartbook Format Specification version (e.g., "1.0").
+|===
+
+=== `Content_Pages` Table
+
+[cols="2, ^1, ^3, 4"]
+|===
+^.^| Column Name ^.^| SQLite Type ^.^| Constraints ^.^| Description
+
+| `page_id` | INTEGER | PRIMARY KEY | Unique ID for the page.
+| `page_order` | INTEGER | NOT NULL, UNIQUE | Order of the page in the book structure.
+| `chapter_title` | TEXT | | Title of the chapter/section this page belongs to.
+| `html_content` | TEXT | NOT NULL | The primary HTML body content.
+| `associated_css` | TEXT | | Inline CSS or reference to a style sheet.
+|===
+
+=== `Form_Definitions` Table
+
+[cols="2, ^1, ^3, 4"]
+|===
+^.^| Column Name ^.^| SQLite Type ^.^| Constraints ^.^| Description
+
+| `form_id` | TEXT | PRIMARY KEY | Unique identifier referenced by the WebChannel API.
+| `form_schema_json` | TEXT | NOT NULL | The complete JSON schema defining the form fields and validation.
+|===
+
+=== `User_Data` Table
+
+[cols="2, 1, 3, 4"]
+|===
+^.^| Column Name ^.^| SQLite Type ^.^| Constraints ^.^| Description
+
+| `data_id` | INTEGER | PRIMARY KEY | Unique ID for the saved data entry.
+| `form_key` | TEXT | NOT NULL | The `form_id` that this data belongs to.
+| `timestamp` | INTEGER | NOT NULL | UNIX timestamp of when the data was saved.
+| `serialized_data` | TEXT | NOT NULL | The final, validated JSON string of user inputs.
+|===
+
+=== `Cartridge_Security` Table
+
+[cols="2, ^1, ^3, 4"]
+|===
+^.^| Column Name ^.^| SQLite Type ^.^| Constraints ^.^| Description
+
+| `digest_type` | TEXT | NOT NULL | Hash algorithm used (e.g., "SHA-256").
+| `hash_digest` | BLOB | NOT NULL | The binary hash of the critical content tables (H1).
+| `digital_signature` | BLOB | NOT NULL | The H1 hash signed by the author's private key.
+| `public_key_fingerprint` | TEXT | NOT NULL | Fingerprint of the public key used for verification.
+|===
+
+== Reader Local Persistence Schema
+
+These tables exist in a separate, local SQLite database maintained by the Reader Application for user preferences, security, and library management.
+
+=== `Local_Library_Manifest` Table (UPDATED)
+
+[cols="2, ^1, ^3, 4", options="headers"]
+|===
+^.^| Column Name ^.^| SQLite Type ^.^| Constraints ^.^| Description
+
+| `manifest_id` | INTEGER | | Internal primary key.
+| `cartridge_guid` | TEXT | NOT NULL, UNIQUE (FK) | The unique ID (UUID v4) of the cartridge.
+| `cartridge_hash` | BLOB | NOT NULL | The content hash (H2) for integrity checking.
+| `local_path` | TEXT | NOT NULL | Full file path on the user's system.
+| `title` | TEXT | NOT NULL | Extracted Title.
+| `author` | TEXT | NOT NULL | Extracted Author.
+| `version` | TEXT | | Extracted Content Version.
+| **`publication_year`** | **TEXT** | **NOT NULL** | **Cached publication year for fast List-View display.**
+| `cover_image_data` | BLOB | | The binary data of the cover image for fast browsing.
+| `last_opened` | INTEGER | | Timestamp of last access.
+| `location_status` | TEXT | | **Phase 2:** Tracks local/remote status (`local_only`, `remote_only`, `both`).
+|===
+
+=== `Local_Trust_Registry` Table
+
+[cols="2, ^1, ^3, 4", options="headers"]
+|===
+^.^| Column Name ^.^| SQLite Type ^.^| Constraints ^.^| Description
+
+| `trust_id` | INTEGER | PRIMARY KEY | Unique ID for the trust entry.
+| `cartridge_guid` | TEXT | NOT NULL, UNIQUE (FK) | The unique ID of the cartridge.
+| `trust_level` | TEXT | NOT NULL | The initial signature trust level (Level 1, 2, or 3).
+| `app_trust_policy` | TEXT | NOT NULL | User's decision: `PERSISTENT`, `SESSION`, or `REVOKED`.
+| `timestamp` | INTEGER | NOT NULL | When the trust decision was made.
+|===
+
+== Component Interface Specification
+
+=== WebChannel Bridge API (SmartbookBridge)
+
+==== Core API Methods Summary
+
+[cols="2, 3, ^2, 4", options="headers"]
+|===
+^.^| C++ Method Name ^.^| JS Method Signature ^.^| Return Type (JS) ^.^| Purpose
+
+| `saveFormData` | `saveFormData(formId, dataJson, callback)` | Boolean | Persists user data from a form into the `User_Data` table.
+| `loadFormData` | `loadFormData(formId, callback)` | JSON String | Retrieves the most recent serialized data for a specific form ID.
+| `logMessage` | `logMessage(level, message)` | void | Sends debug/error messages to the native C++ logging system.
+| `requestAppConsent`| `requestAppConsent(appId, callback)` | Boolean | Triggers the native modal dialog for embedded app security consent.
+|===
+
+==== Persistence Layer Interactions (Reader Core)
+
+[cols="2, 2, 4", options="headers"]
+|===
+^.^| Core Operation ^.^| Database Operation ^.^| Rationale
+
+| **`loadFormData`** | `SELECT` from `User_Data` | Retrieves the *latest* data record: `ORDER BY timestamp DESC LIMIT 1`
+| **`saveFormData`** | `INSERT` into `User_Data` | Creates a new, immutable record.
+| **Integrity Check** | `SELECT` from `Cartridge_Security` | Read security parameters upon cartridge load.
+| **Content Loading** | `SELECT` from `Content_Pages` | Retrieves HTML/CSS based on navigation requests.
+| **Form Rendering** | `SELECT` from `Form_Definitions` | Retrieves `form_schema_json`.
+|===
+
+== Cartridge Signature Verification Process Algorithm
+
+=== Phase 1: Integrity Check and Identity Establishment
+
+[cols="2, 2, 4", option="headers"]
+|===
+^.^| Step ^.^| Action by Reader C++ Core ^.^| Output/Result
+
+| **1. Extract IDs & Security Data** | Read `cartridge_guid` from `Metadata`. Read security parameters (H1, Signature) from `Cartridge_Security`. | `cartridge_guid`, H1, Signature 
+| **2. Recalculate Content Hash** | Read the binary content of critical tables. Calculate H2. | H2 (Recalculated Content Hash)
+| **3. Verify Digital Signature** | Use Public Key to decrypt `digital_signature` and verify it matches the stored H1. | Signature Status: `VALID`, `INVALID`, or `UNVERIFIED`.
+| **4. Check Tampering (Content vs. Signature)** | Compare H1 vs. H2. | Integrity Status: `MATCH` or `MISMATCH`.
+|===
+
+=== Phase 2: Trust Level Assignment
+
+[cols="2, 2, 4", option="headers"]
+|===
+^.^| Condition ^.^| Initial Trust Level ^.^| Required Action
+
+| Signature Invalid OR Hash Mismatch. | **Rejected** | Halt loading. Block all execution.
+| Signature Valid (CA-Signed). | **Level 1: Commercial Trust** | Whitelist apps by default.
+| Signature Valid (Self-Signed). | **Level 2: Self-Signed Trust** | Apps require consent.
+| No Signature. | **Level 3: No Signature** | Apps require consent.
+|===
+
+=== Phase 3: Local Trust Registry and Policy Enforcement
+
+1.  **Check Local Persistent Trust:** Query the `Local_Trust_Registry` using the `cartridge_guid`.
+2.  **Tampering Check on Trusted Files:** If persistent trust exists, compare **H2** against the hash in the **`Local_Library_Manifest`**. A mismatch sets policy to **Rejected (Tampered)**.
+3.  **Final Policy:** Policy is `WHITELISTED` if Level 1 OR Persistent Trust exists and is valid. Otherwise, the policy requires explicit consent.
+4.  **Update Manifest:** Update the `Local_Library_Manifest` using the current `cartridge_guid` and H2.
+
+=== Phase 4: Embedded Application Execution Policy
+
+[cols="2, 2", options="headers"]
+|===
+^.^| Policy Status ^.^| Native Application Response
+
+| **WHITELISTED** | Return `TRUE`. Execute app.
+| **Level 2 / Level 3** | Display the Consent Dialog.
+| **Rejected (Tampered/Invalid)** | Return `FALSE`. Block app execution.
+|===
+
+== Custom JSON Structure for Embedded Applications
+
+=== Top-Level Schema (`Embedded_App_Manifest`)
+
+[cols="1, ^1, 3"]
+|===
+^.^| Key ^.^| Type ^.^| Description
+
+| `appId` | String | Unique identifier for this application instance.
+| `name` | String | Human-readable name displayed in the consent prompt.
+| `description` | String | Brief explanation of the app's function.
+| `entryFile` | String | Relative path to the primary HTML file.
+| `requiredScripts` | Array | List of external JavaScript files.
+| `requiredStyles` | Array | List of external CSS files.
+| `permissions` | Array | Reserved for future granular permission requests.
+|===
+
+== Application Architecture and Window Management
+
+=== Multi-Window Design
+
+The Smartbook Reader SHALL implement a Multi-Window Architecture: a single **Library Manager** and multiple, independent **Reader View** instances, allowing simultaneous viewing of multiple cartridges.
+
+=== Component Isolation
+
+* **Database Isolation:** Each Reader View is isolated to its single cartridge file.
+* **WebChannel Scope:** The `SmartbookBridge` is uniquely instantiated per Reader View instance.
+
+== Creator Tool's Cartridge Packaging Algorithm
+
+=== Phase 1: Content Assembly and GUID Generation
+
+[cols="1,1,1", options="header", grid="all"]
+|===
+^.^| Step ^.^| Action by Creator Tool ^.^| Output
+
+| **1. Initialize Database** | Create a new, empty SQLite file and define all required table schemas. | Empty Cartridge DB
+| **2. Generate GUID** | Generate a new, globally unique **UUID Version 4** string. | `cartridge_guid`
+| **3. Populate Metadata** | Insert `cartridge_guid`, `title`, and other metadata (including `publication_year`) into `Metadata`. | Metadata Table Populated
+| **4. Insert Content** | Insert all content data into `Content_Pages`, `Form_Definitions`, etc. | Content Tables Populated
+|===
+=== Phase 2: Hash Calculation and Security Preparation
+
+[cols="1,1,1", options="header", grid="all"]
+|===
+^.^| Step ^.^| Action by Creator Tool ^.^| Output 
+
+| **1. Serialize Critical Tables** | Export the binary representation of the critical tables. | Binary Content Blob
+| **2. Calculate Content Hash (H1)** | Calculate the hash (e.g., SHA-256) of the Binary Content Blob. | H1 (Content Hash) 
+| **3. Determine Signing Method** | Prompt author to choose signing method (Level 1, 2, or 3). | Signing Intent 
+|===
+
+=== Phase 3: Signature Application and Finalization
+
+[cols="1,1,1", options="header", grid="all"]
+|===
+^.^| Step ^.^| Action by Creator Tool ^.^| Output 
+
+| **1. Apply Signature** | *If Level 1/2 selected:* Use Private Key to sign H1, creating the `digital_signature`. | `digital_signature` 
+| **2. Extract Key Info** | Extract the `digest_type` and the `public_key_fingerprint`. | Key Info 
+| **3. Populate Security Table** | Insert one row into the `Cartridge_Security` table with H1, `digital_signature`, and key info. *If Level 3 selected, this table remains empty.* | `Cartridge_Security` Table Populated 
+| **4. Finalize Cartridge** | Close and optimize the SQLite database connection. Export the final `.sqlite` file. | Final, Secured Cartridge File 
+|===
+
+== C++ Class Hierarchy and Data Flow (Implementation Design)
+
+=== Core Application Management Classes
+
+[cols="1, 1, 3, 2", options="header", grid="all"]
+|===
+^.^| Class Name ^.^| Inheritance ^.^| Responsibility ^.^| Dependencies
+
+| **`SmartbookApp`** | `QApplication` | Manages the application lifecycle, initialization of the local DB, and the set of active `ReaderViewInstance` windows. | `LocalDBManager`
+| **`LocalDBManager`** | `QObject` | Manages connections to the `Local_Library_Manifest` and `Local_Trust_Registry`. Provides centralized trust/metadata lookup. | SQLite API
+|===
+
+=== Reader View Instance Classes (Per Cartridge)
+
+[cols="1, ^1, 3, 2"]
+|===
+^.^| Class Name ^.^| Inheritance ^.^| Responsibility ^.^| Dependencies
+
+| **`ReaderViewInstance`** | `QMainWindow` | **Primary Session Container.** Owns the WebEngine, Bridge, and DB Connector for a single cartridge. Executes the final load based on Policy. | `QWebEngineView`, `SignatureVerifier`, `SmartbookBridge`
+| **`CartridgeDBConnector`** | `QObject` | Manages the SQLite connection to the active cartridge file. Executes all persistence CRUD operations (`User_Data`). | SQLite API
+| **`SignatureVerifier`** | `QObject` | Executes the 4-phase Verification Algorithm (Sec 6). Outputs the **Effective Trust Policy**. | `LocalDBManager` (read access)
+| **`SmartbookBridge`** | `QObject` | Exposes C++ methods to JS via **Qt WebChannel**. Checks the internal trust policy before triggering the native consent dialog. | `ReaderViewInstance` (parent), `QWebChannel`
+|===
+
+// Removed Image placeholder
+
+== User Interface (UI) Design Specification (FINAL)
+
+The UI is divided into two primary windows, adhering to the Multi-Window Architecture.
+
+=== Window 1: Library Manager (The Hub) - Dual View (FINAL)
+
+The Library Manager MUST allow the user to toggle between two modes: the visual **Bookshelf View** and the detailed **List-View**.
+
+==== Bookshelf View (Visual Mode)
+
+[cols="1, 1, 1", options="header", grid="all"]
+|===
+^.^| Element ^.^| Specification Detail ^.^| Visual/Interaction Focus
+
+| **Layout** | Responsive grid simulating a bookshelf (3-4 columns). | Prioritizes visual browsing speed (NFR-3.1).
+| **Cartridge Tile Content** | Prominent **Cover Image** (`cover_image_data`). If null, a generic image must be used with the **Title** centered. | Minimal text to maintain visual focus.
+| **Security Status Badge** | Color-coded icon (L1/L2/L3) in the tile's corner. | Visual indication of trust level.
+| **Location Status Icon** | Dedicated icon for local/remote status (Cloud/Checkmark). | **Phase 2 requirement.**
+| **Delete Action** | Context Menu entry on the tile. | Triggers native confirmation dialog (FR-2.5.5).
+|===
+// Removed Image placeholder
+
+==== List-View (Data Grid Mode)
+
+[cols="1, 1, 1", options="header", grid="all"]
+|===
+^.^| Element ^.^| Specification Detail ^.^| Visual/Interaction Focus
+
+| **Layout** | Sortable, filterable tabular data grid (`QTableView`). | Prioritizes data management and sorting.
+| **Mandatory Columns** | **Title, Author, Edition/Version, Year of Publication.** | Sourced from `Local_Library_Manifest`.
+| **Delete Action** | Context Menu and **Delete** keyboard shortcut. | Triggers native confirmation dialog (FR-2.5.5).
+| **Trust Management** | Dedicated button or right-click context menu entry. | Access point for **Trust Revocation** (FR-2.4.3).
+|===
+// Removed Image placeholder
+
+=== Window 2: Reader View (The Content)
+
+[cols="1, 2, 2", options="header", grid="all"]
+|===
+^.^| Element ^.^| Component / Function ^.^| Security Display Requirement
+
+| **Integrity Warning Bar** | Persistent, non-dismissible colored banner fixed above content. | Must be visible for Level 2 and Level 3 cartridges.
+| **App Consent Dialog** | Native modal window triggered by `requestAppConsent`. | Detailed requirements in 11.2.1.
+|===
+
+==== Native App Consent Dialog Requirements
+
+[cols="1, 2, 2", options="header", grid="all"]
+|===
+^.^| Element ^.^| Specification Detail ^.^| Required Functionality
+
+| **Appearance** | Must be a native OS modal dialog. | Conveys security authority to the user.
+| **Required Content** | Cartridge Security Level, App Name, App Description. | Clear presentation of risk and function.
+| **Trust Options (FR-2.4.2)** | Three mutually exclusive radio button choices: a|
+. Trust for this session.
+. **Always trust this cartridge.**
+. Block execution.
+|===
+// Removed Image placeholder
+
+== Test Suite Requirements and Acceptance Criteria (EXPANDED)
+
+This suite ensures validation of all critical security, trust persistence, and architectural isolation requirements from the SRS.
+
+=== Security and Trust Verification
+
+[cols="1, 2, 4", options="header", grid="all"]
+|===
+^.^| Test Case ID ^.^| Requirement ^.^| Acceptance Criteria (AC)
+
+| **T-SEC-01** | Commercial Trust (FR-2.3.1) | Load an L1 (CA-Signed) cartridge. **AC:** The content renders immediately, and the `requestAppConsent` call returns TRUE without displaying the native dialog.
+| **T-SEC-02** | Initial Consent (FR-2.3.2/2.3.3) | Load an L2 (Self-Signed) or L3 (Unsigned) cartridge. **AC:** The content renders, and the first `requestAppConsent` call triggers the native modal dialog defined in DDD 11.2.1.
+| **T-SEC-03** | Persistent Trust (FR-2.4.1) | Execute T-SEC-02. Select "Always Trust this cartridge." **AC:** A new record is written to `Local_Trust_Registry` with `app_trust_policy: PERSISTENT`. Subsequent loads skip the dialog.
+| **T-SEC-04** | Tampering Detection (FR-2.4.4) | Load a persistently trusted cartridge, manually corrupt the file (changing content tables). **AC:** Verification Phase 3 (H1 vs. H2 check) fails, the load is blocked, and an "Rejected (Tampered)" error is displayed *before* any content rendering or application execution.
+| **T-SEC-05** | Trust Revocation (FR-2.4.3) | Revoke persistent trust for a cartridge via the UI. **AC:** The corresponding entry in `Local_Trust_Registry` is updated to `app_trust_policy: REVOKED`. The next load forces the user to re-consent (T-SEC-02).
+|===
+
+=== Architectural and Persistence Validation
+
+[cols="1, 2, 4", options="header", grid="all"]
+|===
+^.^| Test Case ID ^.^| Requirement ^.^| Acceptance Criteria (AC)
+
+| **T-PERS-01** | Manifest Creation (FR-2.5.1) | Import a new cartridge file. **AC:** A new entry is created in `Local_Library_Manifest` containing the correct `cartridge_guid`, `cartridge_hash`, `title`, and the newly required `publication_year`.
+| **T-PERS-02** | Multi-Window Isolation (FR-2.1.1) | Open Cartridge A and Cartridge B simultaneously. Save form data in B, then load data in A. **AC:** Data saved in B is isolated to B's `User_Data` table and does not corrupt or appear in A's session. Both Reader View Instances remain fully responsive.
+| **T-PERS-03** | Cartridge Deletion (FR-2.5.5) | Delete a cartridge via the List-View context menu. **AC:** The cartridge file is deleted from the file system. Its records are removed from both the `Local_Library_Manifest` and the `Local_Trust_Registry`.
+| **T-UI-01** | Library Performance (NFR-3.1) | Open the Library Manager containing 100 cartridges. **AC:** The Library View (Bookshelf or List) loads and displays all required metadata fields within 500 milliseconds, demonstrating reliance on the manifest data, not file parsing.
+| **T-UI-02** | UI Dual View (DDD 11.1) | Toggle between the Bookshelf and List-View. **AC:** Both views load instantly. The List-View displays the required columns: Title, Author, Edition/Version, and Year of Publication, sourced correctly from the manifest.
+|===
+

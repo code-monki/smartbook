@@ -1,0 +1,64 @@
+= Smartbook Project High-Level Design (HLD) - FINAL REVISED
+:author: Gemini AI Assistant
+:revdate: 2025-12-14
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+
+== Introduction and Goals
+
+This document outlines the macro-architecture, key components, data flow, and architectural constraints for the Smartbook Reader application, ensuring all SRS requirements are addressed at a high level.
+
+== Architectural Overview: Multi-Window Isolation
+
+The system employs a Multi-Window Architecture to guarantee separation of concerns and security isolation. The application is divided into a single **Library Manager** and multiple, independent **Reader View Instances**.
+
+
+=== Key Components and Responsibilities
+
+[cols="2, 4, ^2, 4", options="headers"]
+|===
+^.^| Component ^.^| Responsibility ^.^| Pattern ^.^| Key Constraint / Security
+
+| **Library Manager (The Hub)** | Handles application launch, library browsing, import/delete, and Trust Revocation. | Main Application | **MUST** rely exclusively on the Manifest for fast loading (NFR-3.1).
+| **Reader View Instance** | Container for a single opened cartridge. Owns the web view and data connector. | Per-Cartridge Process | Enforces security policy and data isolation (FR-2.1.1).
+| **WebChannel Bridge** | IPC layer between embedded JS and native C++ code. | Per-Instance | Exposes restricted API (`saveFormData`, `requestAppConsent`).
+| **Signature Verifier** | Executes the 4-Phase Verification Algorithm (DDD 6). | Utility Class | Determines the final **Effective Trust Policy** before content execution.
+|===
+
+== Data Management Layer (DML) Specification
+
+The DML handles all persistence and is partitioned into global and per-instance components.
+
+=== DML Components and Patterns
+
+[cols="2, 4, ^3, 5"]
+|===
+^.^| Component ^.^| Database Target ^.^| Pattern ^.^| Function
+
+| **LocalDBManager** | `local_reader.sqlite` (Manifest, Trust Registry) | **Singleton (Global)** | Manages the single connection to the global manifest and trust registry. Used by the Library Manager and the Signature Verifier.
+| **CartridgeDBConnector** | `*.sqlite` (Cartridge file) | **Per-Instance** | Manages the connection and transactional persistence for one specific cartridge's content and `User_Data`.
+|===
+
+=== Data Flow Constraints
+
+* **Library Load Performance (NFR-3.1 Constraint):** The **Library Manager** component **MUST** retrieve all library display data (Title, Year, Cover Image) by querying the `Local_Library_Manifest` table via the **Singleton `LocalDBManager`**. It is forbidden from parsing cartridge files at runtime to maintain the < 500ms load time.
+* **Isolation (FR-2.1.1 Constraint):** Each **Reader View Instance** is guaranteed data isolation because its `CartridgeDBConnector` is unique to that instance and only connects to its specific cartridge file, never to the global `Local Reader Database`.
+
+== Security and Trust Flow
+
+The core security logic is centralized in the `SignatureVerifier` utility class.
+
+=== Trust Policy Determination
+
+1.  **Identity:** The `SignatureVerifier` reads the `cartridge_guid` and security data (H1) from the cartridge.
+2.  **Integrity Check:** The verifier recalculates H2 (content hash) and compares H1 vs. H2 (Tampering Detection, FR-2.4.4).
+3.  **Local Trust Check:** The verifier queries the **Singleton `LocalDBManager`** to check the `Local_Trust_Registry` for a user-granted `PERSISTENT` policy.
+4.  **Final Policy:** A final **Effective Trust Policy** is determined: `WHITELISTED`, `CONSENT_REQUIRED`, or `REJECTED`.
+
+=== Embedded Application Execution
+
+When embedded JavaScript calls `requestAppConsent()`, the **WebChannel Bridge** checks the **Effective Trust Policy**:
+* If `WHITELISTED` (L1 or Persistent Trust, and H1=H2): The native dialog is skipped.
+* If `CONSENT_REQUIRED` (L2 or L3): The native consent dialog is displayed (FR-2.3.2/2.3.3).

@@ -1,0 +1,292 @@
+= Creator Tool Main Interface Wireframe Description
+:author: AI Assistant
+:revdate: 2025-12-14
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+
+== Overview
+
+This document describes the wireframe for the Creator Tool main interface, showing the layout and key components for authoring Smartbook cartridges.
+
+== Layout Structure
+
+The interface is divided into three main vertical sections:
+
+[1] Left Sidebar (200px width) - Page Management
+[2] Center Area (800px width) - Main Editing Area  
+[3] Right Sidebar (200px width) - Properties/Resources Panel
+
+Plus horizontal sections:
+* Menu Bar (30px height)
+* Toolbar (40px height)
+* Status Bar (at bottom, if needed)
+
+== Component Descriptions
+
+=== Menu Bar
+
+Located at the top of the window (30px height), contains standard application menus:
+
+* **File:** New, Open, Save, Save As, Export, Publish, Recent Files, Exit
+* **Edit:** Undo, Redo, Cut, Copy, Paste, Find/Replace, Preferences
+* **View:** Show/Hide sidebars, Preview mode, Zoom controls, Theme selection (Light/Dark/Sepia/Custom)
+* **Insert:** Page, Chapter, Form, Embedded App, Image, Link, HTML Fragment
+* **Format:** Text formatting, Paragraph styles, Lists, Alignment
+* **Tools:** Form Builder, Template Manager, Certificate Manager, Import, Validation
+* **Help:** Documentation, Keyboard Shortcuts, About
+
+**Status Indicator:** Right side shows auto-save status (e.g., "Auto-save: 2 min ago")
+
+=== Toolbar
+
+Located below menu bar (40px height), contains frequently used editing tools:
+
+**Text Formatting:**
+* Bold (B), Italic (I), Underline (U) buttons
+* Separator
+
+**Content Insertion:**
+* List button
+* Link button
+* Separator
+* Insert Form button
+* Insert Embedded App button
+* Separator
+
+**Actions:**
+* Preview button (toggles preview pane)
+* Search button (opens search dialog)
+
+**Status Indicators:**
+* Draft/Published status badge (left side)
+* Theme selector dropdown (in View menu area) - shows current theme with dropdown for Light/Dark/Sepia/Custom themes
+* Save | Export | Publish buttons (right side)
+
+=== Left Sidebar - Page Management Panel
+
+**Header Section (30px):**
+* Title: "Pages"
+* Add Page button (+) - green, creates new page
+
+**Page List:**
+* Hierarchical tree view showing:
+** Chapters (with expand/collapse)
+** Pages within chapters
+* Current page highlighted with blue border and "[CURRENT]" label
+* Chapter headers use light blue background
+* Pages indented under chapters
+* Click to select page for editing
+* Right-click context menu for: Rename, Delete, Duplicate, Move Up/Down
+
+**Features:**
+* Drag-and-drop reordering
+* Visual indication of page order
+* Chapter organization support
+
+=== Center Area - Main Editing Area
+
+**Tab Bar (30px):**
+Multiple tabs for different editing modes:
+* **Editor** (active) - WYSIWYG editing
+* **Preview** - Live/manual preview of rendered content
+* **HTML Source** - Direct HTML editing
+* **CSS** - Stylesheet editor
+* **JavaScript** - JavaScript code editor
+
+**WYSIWYG Editor (Qt WebEngineView):**
+* Full editing area (780px × 650px)
+* Renders HTML content as it will appear in Reader
+* Supports rich text editing:
+** Text formatting (bold, italic, underline)
+** Paragraph styles
+** Lists (ordered, unordered)
+** Links
+** Images
+** Form placeholders
+** Embedded app placeholders
+* Direct HTML insertion mode
+* Content area with visual boundaries
+* Scrollable for long content
+
+**Preview Tab:**
+* Shows rendered content as Reader will display it
+* Can be live (real-time updates) or manual refresh
+* Toggle button in toolbar
+* Uses same Qt WebEngineView component
+
+**HTML Source Tab:**
+* Raw HTML editor
+* Syntax highlighting
+* Validation feedback
+* Format/beautify option
+
+**CSS Tab:**
+* Stylesheet editor
+* Syntax highlighting
+* CSS validation
+* Preview integration
+
+**JavaScript Tab:**
+* JavaScript code editor
+* Syntax highlighting
+* Code validation
+* Multiple script management
+
+=== Right Sidebar - Properties Panel
+
+**Tab Bar (30px):**
+Three tabs for different property categories:
+* **Metadata** (active) - Document metadata
+* **Resources** - Asset management
+* **Forms** - Form definitions
+
+**Metadata Tab Content:**
+* **Title:** Text input field
+* **Author:** Text input field
+* **Year:** Number input (4 digits)
+* **Version:** Text input (e.g., "1.0")
+* **Cover Image:** 
+** Preview area (180px × 80px)
+** Browse button to select image
+** Drag-and-drop support
+* **Tags:** Multi-select or comma-separated input
+* **GUID:** Display only (auto-generated, read-only)
+* **Schema Version:** Display only (read-only)
+
+**Resources Tab Content:**
+* List of embedded resources:
+** Images
+** Fonts
+** Other media files
+* Add/Remove buttons
+* Resource properties (name, path, size)
+* Preview for image resources
+
+**Forms Tab Content:**
+* List of form definitions in cartridge
+* Add Form button (opens Form Builder)
+* Edit/Delete buttons
+* Form preview
+* Form schema viewer
+
+== Interaction Patterns
+
+=== Page Selection
+
+* Click page in left sidebar to load into editor
+* Current page highlighted
+* Unsaved changes warning if switching pages
+
+=== Editing Workflow
+
+1. Select page from sidebar
+2. Content loads into WYSIWYG editor
+3. Edit using toolbar buttons or direct HTML
+4. Switch to Preview tab to see rendered result
+5. Switch to HTML/CSS/JavaScript tabs for advanced editing
+6. Changes auto-saved periodically
+7. Manual save via File menu or toolbar
+
+=== Form Insertion
+
+1. Click "Insert Form" button in toolbar
+2. Dialog shows available forms
+3. Select form to insert
+4. Form placeholder inserted at cursor position
+5. Form properties editable in right sidebar
+
+=== Embedded App Insertion
+
+1. Click "Insert App" button in toolbar
+2. Dialog shows available embedded apps
+3. Select app to insert
+4. App placeholder inserted at cursor position
+5. App properties editable in right sidebar
+
+== Responsive Considerations
+
+* Sidebars can be collapsed/hidden via View menu
+* Minimum editor width: 400px
+* Toolbar buttons can wrap on smaller screens
+* Tab bar scrolls if too many tabs
+
+== Theming Support
+
+=== Theme Selector
+
+* Located in View menu area (or as dropdown button in menu bar)
+* Shows current active theme
+* Dropdown menu provides access to:
+** Light theme (default)
+** Dark theme
+** Sepia theme
+** Custom Themes submenu (for user-created themes)
+
+=== Theme Features
+
+* Immediate application to entire interface
+* Theme selection persists across sessions
+* Custom theme creation/editing via Tools menu → Theme Manager
+* Theme preview before applying
+* Theme export/import for sharing
+
+=== Theme Application
+
+* Applies to all UI elements: menu bar, toolbar, sidebars, editor area
+* Maintains readability and contrast in all themes
+* Custom themes can modify colors, fonts, and styling
+* High contrast themes available for accessibility
+
+== Accessibility Features
+
+* Full keyboard navigation support
+* Screen reader compatible (ARIA labels)
+* Keyboard shortcuts displayed in Help menu
+* High contrast mode support (via custom themes)
+* Font scaling support
+
+== Design Notes
+
+* Color scheme: Light theme (default, can be changed via theming)
+* Qt Fusion style for consistent look
+* Icons: Standard Qt icons or custom icon set
+* Font: System default or configurable
+* Spacing: Consistent 5-10px margins/padding
+* **Theming:** Full theme support with Light/Dark/Sepia built-in themes and custom theme creation/management
+* **Status Bar:** Not included in initial design (may be added later if needed)
+
+== Related Requirements
+
+This wireframe addresses the following SRS requirements:
+
+* FR-CT-3.1: HTML Content Authoring
+* FR-CT-3.2: Rich Text Editing
+* FR-CT-3.3: Direct HTML Editing
+* FR-CT-3.4: Standard Edit Operations
+* FR-CT-3.5: Preview Functionality
+* FR-CT-3.6: Page Selection
+* FR-CT-3.7: Page CRUD Operations
+* FR-CT-3.8: Page Ordering
+* FR-CT-3.9: Chapter Organization
+* FR-CT-3.10: CSS Stylesheet Attachment
+* FR-CT-3.11: Stylesheet Editing
+* FR-CT-3.12: Custom JavaScript Storage
+* FR-CT-3.15: Form Creation
+* FR-CT-3.18: Form Integration
+* FR-CT-3.19: Document Metadata
+* FR-CT-3.20: Cover Image Management
+* FR-CT-3.23: Asset Management
+* FR-CT-3.36: Auto-Save Functionality
+* FR-CT-3.40: Draft Mode
+* FR-CT-3.63: Keyboard Navigation
+* FR-CT-3.64: Screen Reader Support
+* FR-CT-3.74: Built-in Themes
+* FR-CT-3.75: Theme Selection
+* FR-CT-3.76: Custom Theme Creation
+* FR-CT-3.77: Custom Theme Management
+* FR-CT-3.78: Theme Application
+* FR-CT-3.79: Theme Preview
+* FR-CT-3.80: Theme Export/Import
+

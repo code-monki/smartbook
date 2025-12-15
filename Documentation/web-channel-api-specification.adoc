@@ -1,0 +1,94 @@
+= Smartbook Reader WebChannel API Specification
+:author: Gemini AI Assistant
+:revdate: 2025-12-13
+:doctype: article
+:toc: left
+:toclevels: 3
+
+== Introduction and Scope
+
+This document defines the application programming interface (API) exposed by the native Smartbook Reader application (C++ core) to the embedded content (JavaScript/WebEngine) via the **Qt WebChannel** mechanism. This interface, named `SmartbookBridge` in the JavaScript context, is the sole secure channel for data persistence and application control.
+
+=== Security and Naming Conventions
+
+* **Object Name:** The exposed C++ object will be available in JavaScript as `window.SmartbookBridge`.
+* **Security Protocol:** The C++ core is the final authority. It **must** re-validate and sanitize all data received via the bridge before database interaction, regardless of client-side validation.
+* **Asynchronous:** All data persistence methods are conceptually asynchronous from the JavaScript perspective, relying on callback functions for status feedback.
+
+== Core API Methods Summary
+
+The following table summarizes the methods available to the embedded JavaScript:
+
+[cols="2, 3, 2, 4", options="headers"]
+|===
+^.^| C++ Method Name ^.^| JS Method Signature ^.^| Return Type (JS) ^.^| Purpose
+
+| `saveFormData` | `saveFormData(formId, dataJson, callback)` | Boolean | Securely persists user data from a form into the `User_Data` table.
+| `loadFormData` | `loadFormData(formId, callback)` | JSON String | Retrieves the most recent serialized data for a specific form ID.
+| `logMessage` | `logMessage(level, message)` | void | Allows the embedded JS to send debug or error messages to the native C++ logging system.
+| `requestAppConsent`| `requestAppConsent(appId, callback)` | Boolean | Triggers the native modal dialog to ask the user for consent to run an embedded application.
+|===
+
+== Detailed Method Specification
+
+=== `saveFormData`
+
+* **Function:** Saves the validated form data received from the WebEngine into the local cartridge's `User_Data` table.
+* **C++ Logic:**
+    1.  Verifies the `formId` exists in the `Form_Definitions` table.
+    2.  Sanitizes and validates the `dataJson` string (prevents injection/malformed data).
+    3.  Persists data: Insert/Update row in `User_Data` with the `formId`, `dataJson`, and `timestamp`.
+    4.  Invokes the JS `callback` with a success/failure status.
+
+[cols="2, ^1, 4", options="headers"]
+|===
+^.^| Parameter ^.^ Type ^.^| Description
+
+| `formId` | String | The unique ID of the form being saved.
+| `dataJson` | String | The entire serialized form data (JSON string), ready for storage.
+| `callback` | Function | JS function to execute upon completion (`callback(success: bool)`).
+|===
+
+=== `loadFormData`
+
+* **Function:** Retrieves the most recently saved data for a given form ID to allow forms to retain their state when revisited.
+* **C++ Logic:**
+    1.  Queries the `User_Data` table for the latest row matching the `formId`.
+    2.  Invokes the JS `callback` with the retrieved JSON string. Returns empty JSON object (`{}`) if no data exists.
+
+[cols="2, ^1, 4", options="headers"]
+|===
+^.^| Parameter ^.^| Type ^.^| Description
+
+| `formId` | String | The unique ID of the form whose data is being requested.
+| `callback` | Function | JS function to execute with the retrieved data (`callback(data: string)`).
+|===
+
+=== `requestAppConsent` (Security Gate)
+
+* **Function:** Initiates the critical security check required before running any embedded, complex JavaScript app defined in the `Embedded_Apps` table.
+* **C++ Logic:**
+    1.  Checks the cartridge's signature status against a local "Trusted Authors" list.
+    2.  If author is untrusted, presents a native modal dialog to the user for explicit permission.
+    3.  The user's decision is returned via the callback.
+
+[cols="2, ^1, 4", options="headers"]
+|===
+^.^| Parameter ^.^| Type ^.^| Description
+
+| `appId` | String | The unique ID of the embedded app requesting consent.
+| `callback` | Function | JS function to execute with the result (`callback(consentGranted: bool)`).
+|===
+
+=== `logMessage` (Debugging/Telemetry)
+
+* **Function:** Allows the sandboxed content to communicate non-critical debug or error messages back to the native application's logging infrastructure.
+
+[cols="2, ^1, 4", options="headers"]
+|===
+^.^| Parameter ^.^| Type ^.^| Description
+
+| `level` | String | Severity level (e.g., `DEBUG`, `INFO`, `WARN`, `ERROR`).
+| `message` | String | The log message string.
+|===
+

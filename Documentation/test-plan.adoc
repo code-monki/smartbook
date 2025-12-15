@@ -1,0 +1,69 @@
+= Smartbook Project Test Plan - FINAL REVISED
+:author: Gemini AI Assistant
+:revdate: 2025-12-14
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+
+== Introduction
+
+This Test Plan defines the scope, approach, and specific test cases required to validate the core security, persistence, and architectural requirements for Phase 1, derived directly from the SRS and DDD Acceptance Criteria (AC).
+
+== Test Scope and Environment
+
+[cite_start]The scope covers all functional and non-functional requirements (FR/NFR) related to security, persistence, UI behavior, and multi-window isolation[cite: 2]. [cite_start]Testing shall be performed on the compiled C++ application[cite: 3].
+
+== Test Cases: Security and Trust Validation
+
+[cols="1, 2, 4, 3", options="headers"]
+|===
+^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
+
+| **T-SEC-01** | FR-2.3.1 (L1 Commercial Trust) a|
+. Import a CA-Signed (L1) cartridge.
+. Open the Reader View.
+. [cite_start]Call `SmartbookBridge.requestAppConsent()` from the embedded JS[cite: 5, 6]. | **AC:** The call returns `TRUE` immediately. [cite_start]No native modal dialog is displayed[cite: 6].
+| **T-SEC-02** | FR-2.3.2/2.3.3 (Initial Consent) a|
+. Import an L2 or L3 cartridge.
+. Open the Reader View.
+. [cite_start]Call `SmartbookBridge.requestAppConsent()`[cite: 7, 8]. | [cite_start]**AC:** The native security dialog (DDD 11.2.1) is displayed, clearly showing the App Name and the three consent options[cite: 8].
+| **T-SEC-03** | FR-2.4.1 (Persistent Trust) a|
+. Execute T-SEC-02.
+. [cite_start]Select **"Always trust this cartridge"** in the dialog[cite: 9].
+. Close and immediately re-open the cartridge. 4. [cite_start]Call `requestAppConsent()`[cite: 10]. | [cite_start]**AC:** A `PERSISTENT` record is written to `Local_Trust_Registry`[cite: 10]. [cite_start]The second load skips the dialog, and the consent call returns `TRUE`[cite: 11].
+| **T-SEC-04** | FR-2.4.4, NFR-3.3 (Tampering Detection) a|
+. Complete T-SEC-03.
+. [cite_start]**Manually alter the cartridge file data** (e.g., change one byte in the Content tables)[cite: 12].
+. [cite_start]Attempt to load the cartridge[cite: 13]. | **AC:** The `SignatureVerifier` blocks the load. [cite_start]An "Rejected (Tampered)" error is displayed[cite: 13]. [cite_start]Content is **not rendered** and the `requestAppConsent()` returns `FALSE`[cite: 14].
+| **T-SEC-05** | FR-2.4.3 (Trust Revocation) a|
+. [cite_start]Verify persistent trust exists (T-SEC-03)[cite: 15].
+. Use the Library Manager UI control to revoke trust.
+. [cite_start]Close and re-open the cartridge[cite: 16]. | [cite_start]**AC:** The `Local_Trust_Registry` record is set to `app_trust_policy: REVOKED`[cite: 16]. [cite_start]The next load forces the user to re-consent (T-SEC-02)[cite: 17].
+|===
+
+== Test Cases: Architectural and Persistence Validation
+
+[cols="1, 2, 4, 3"]
+|===
+^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
+
+| **T-PERS-01** | FR-2.5.1 (Manifest Creation) a|
+. Import a new cartridge file.
+. [cite_start]Examine the `Local_Library_Manifest` table[cite: 19]. | [cite_start]**AC:** A new entry exists containing the correct `cartridge_guid`, `cartridge_hash` (H2), `local_path`, and the required `publication_year`[cite: 20].
+| **T-PERS-02** | FR-2.1.1 (Multi-Window Isolation) a|
+. [cite_start]Open Cartridge A and Cartridge B simultaneously in separate windows[cite: 21].
+. [cite_start]Save data to Form X in A.
+. Immediately save different data to Form X in B[cite: 22]. | **AC:** Both windows remain responsive. [cite_start]Data saved in B is isolated to B's `User_Data` table, confirming the per-instance nature of `CartridgeDBConnector`[cite: 23, 24].
+| **T-PERS-03** | FR-2.5.5 (Atomic Deletion) a|
+. [cite_start]Delete a cartridge via the List-View context menu[cite: 24].
+. [cite_start]Check the file system and local databases[cite: 25]. | [cite_start]**AC:** The cartridge file is deleted[cite: 25]. [cite_start]The corresponding rows are removed atomically from **both** `Local_Library_Manifest` and `Local_Trust_Registry`[cite: 26].
+| **T-UI-01** | NFR-3.1 (Library Performance) a|
+. [cite_start]Open the Library Manager containing 100 cartridges[cite: 27].
+. [cite_start]Measure the time until all metadata is displayed[cite: 27]. | [cite_start]**AC:** The Library View loads and displays all required metadata fields (Title, Author, Year, etc.) within **500 milliseconds**[cite: 28].
+| **T-UI-02** | DDD 11.1 (UI Dual View) a|
+. [cite_start]Open the Library Manager[cite: 29].
+. [cite_start]Toggle between the Bookshelf and List-View repeatedly[cite: 30]. | [cite_start]**AC:** Both views load instantly[cite: 30]. [cite_start]The List-View displays the required columns (Title, Author, Edition/Version, Year of Publication) sourced from the manifest[cite: 31].
+|===
+
+---

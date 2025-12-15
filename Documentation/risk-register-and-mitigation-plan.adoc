@@ -1,0 +1,51 @@
+= Smartbook Project Risk Register and Mitigation Plan
+:author: Gemini AI Assistant
+:revdate: 2025-12-13
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+
+== Introduction and Scope
+
+This document identifies potential threats to the successful completion of Phase 1 of the Smartbook Reader project, assesses their criticality, and defines concrete mitigation strategies based on the finalized design (SRS, HLD, DDD). This is a living document, subject to periodic review.
+
+== Risk Scoring and Assessment Framework
+
+Risks are scored based on the following matrix:
+
+=== Scoring Factors
+
+[cols="1,1,1,1", options="headers"]
+|===
+^| Factor ^| Low (1) ^| Medium (2) ^| High (3)
+| **Likelihood (L)** | Rarely expected (Likely 10-25% chance of occurrence) | Likely to occur (Likely 25-60% chance of occurrence) | Almost certain (Likely >60% chance of occurrence)
+| **Impact (I)** | Minor schedule delay / cosmetic bug (Low development cost) | Significant re-architecture / critical bug (Medium development cost) | Project failure / severe security breach (High development cost)
+|===
+
+=== 2.2. Criticality Calculation
+
+Criticality (C) is calculated as the product of Likelihood and Impact: $C = L \times I$.
+
+* **1-3:** Low Risk (Monitor)
+* **4-6:** Medium Risk (Address during development sprints)
+* **7-9:** High Risk (Critical Action Required immediately)
+
+== 3. Risk Register and Mitigation Strategy
+
+[cols="1, 1, 1, ^1, ^1, ^1, 1, ^1"]
+|===
+^.^| ID ^.^| Risk Description ^.^| Consequence ^.^| L ^.^| I ^.^| C ^.^| Mitigation Strategy ^.^| Residual Risk (C') 
+
+| **R-SEC-1** | **Tampered Trusted Cartridge** | Execution of malicious code due to failure to detect alteration in a previously trusted file (FR-2.4.4). | 3 | 3 | **9** | **Mandatory Integrity Check:** Implement the 4-Phase Verification Algorithm (DDD 6.3) to compare the current H2 hash against the hash stored in `Local_Library_Manifest` *before* loading and enforcing persistent trust. **AC:** T-SEC-04. | 1 
+| **R-SEC-2** | **Failed Trust Revocation** | User cannot remove persistent app execution permission, leading to a lingering security vulnerability (FR-2.4.3). | 2 | 2 | **4** | **Database Transaction:** Ensure the UI deletion/revocation action executes a transactional SQL UPDATE operation on the `Local_Trust_Registry` to set `app_trust_policy: REVOKED` (T-SEC-05). | 1
+| **R-PERF-1** | **Library Load Performance** | Opening the Library Manager is slow due to loading metadata for many files (NFR-3.1). | 2 | 3 | **6** | **Manifest Dependency:** Strictly enforce that the Library Manager UI loads ALL data (including `cover_image_data`, `publication_year`) exclusively from the local `Local_Library_Manifest` database. Use SQLite BLOBs for images. **AC:** T-UI-01. | 2
+| **R-DATA-1** | **Form Data Corruption** | User data is not persisted correctly to the cartridge's `User_Data` table, leading to user data loss. | 3 | 2 | **6** | **Transactional Persistence:** Implement form saving via the `CartridgeDBConnector` using a full SQLite transaction. Data must be sanitized in the C++ core *after* transfer from the WebChannel bridge. | 1 
+| **R-ARCH-1** | **Phase 2 Technical Debt** | Incomplete planning for Phase 2 remote integration (`location_status`) causes major structural rework. | 2 | 2 | **4** | **Pre-Wired Data Model:** The `location_status` field is already added to `Local_Library_Manifest` (DDD 4.1). Developers must include this field in all manifest INSERT/UPDATE statements, even if defaulted to `local_only` in Phase 1. | 1 
+| **R-UI-1** | **UI Isolation Failure** | Embedded JavaScript attempts to interact with another open Reader View instance or the Library Manager. | 1 | 3 | **3** | **Strict Instantiation:** Enforce the Multi-Window Architecture (DDD 8) where the `SmartbookBridge` is uniquely instantiated per `ReaderViewInstance`, strictly limited to IPC with its own dedicated `CartridgeDBConnector`. | 1 
+| **R-UI-2** | **Cartridge Deletion Failure** | Cartridge file is deleted, but manifest/trust records remain, leading to orphaned UI entries (FR-2.5.5). | 2 | 2 | **4** | **Atomic Deletion Process:** The Delete action (Context Menu/Del Key) must execute a single, coordinated transaction removing the file and the corresponding rows from **both** `Local_Library_Manifest` and `Local_Trust_Registry`. **AC:** T-PERS-03. | 1 
+|===
+
+== 4. Mitigation Action Tracking
+
+This section will be used by the project manager to track the status of mitigation activities throughout the development lifecycle (e.g., Status: IN PROGRESS, COMPLETE, DEFERRED).

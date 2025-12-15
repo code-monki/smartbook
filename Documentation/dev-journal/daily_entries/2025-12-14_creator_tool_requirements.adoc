@@ -1,0 +1,152 @@
+= Creator Tool Requirements Specification and Documentation Consolidation
+:author: AI Assistant
+:revdate: 2025-12-14
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+
+== ADR 006: Creator Tool Requirements Specification Approach
+
+[cols=">1, 5"]
+|===
+| **Status** | Accepted
+| **Date** | 2025-12-14
+| **Decision Driver** | Need for comprehensive Creator Tool specifications to enable Phase 1 development. Initial focus was on Reader application; Creator Tool requirements were identified as a critical gap.
+| **Decision** | Creator Tool requirements SHALL be documented in the main SRS document alongside Reader requirements, rather than in a separate document. A comprehensive set of 73 functional requirements (FR-CT-3.1 through FR-CT-3.73) has been added covering all major Creator Tool functionality.
+| **Consequences** | 
+* Single source of truth for Phase 1 requirements
+* Easier cross-referencing between Reader and Creator Tool requirements
+* Requirements may be refined during detailed design phase
+* Document structure remains manageable (~250+ lines)
+|===
+
+== ADR 007: SRS Document Consolidation
+
+[cols=">1, 5"]
+|===
+| **Status** | Accepted
+| **Date** | 2025-12-14
+| **Decision Driver** | Two SRS documents existed (`srs.adoc` and `srs-addendum-1.adoc`) with unclear relationship and potential for confusion.
+| **Decision** | The addendum content has been merged into the main `srs.adoc` document, and `srs-addendum-1.adoc` has been deleted. The main SRS now contains all requirements with enhanced formatting (rationale columns in NFR section).
+| **Consequences** | 
+* Single authoritative SRS document
+* No ambiguity about which document is current
+* Improved NFR section formatting with rationale columns
+* All requirements consolidated in one location
+|===
+
+== Creator Tool Requirements Scope
+
+The following major functional areas have been specified for the Creator Tool:
+
+=== Core Authoring Capabilities
+
+* **Content Authoring (FR-CT-3.1-3.5):** WYSIWYG HTML editing using Qt WebEngineView, rich text editing tools, direct HTML editing capability, standard edit operations (cut/copy/paste/undo/redo), and preview functionality (live or manual refresh - design decision pending).
+
+* **Page Management (FR-CT-3.6-3.9):** Page selection, CRUD operations, page ordering, and chapter organization.
+
+* **Stylesheet Management (FR-CT-3.10-3.11):** CSS stylesheet attachment and editing capabilities.
+
+* **JavaScript and Embedded Applications (FR-CT-3.12-3.14):** Custom JavaScript storage, embedded application definition using `Embedded_App_Manifest` structure, and JavaScript management interface.
+
+* **Form Definition Management (FR-CT-3.15-3.18):** Form creation using Form Definition JSON Schema, visual form builder interface, form schema validation, and form integration into content pages.
+
+=== Document and Resource Management
+
+* **Metadata Management (FR-CT-3.19-3.22):** Document-level metadata (title, author, publication year, version, tags, cover image), cover image management, automatic UUID v4 GUID generation, and schema version management.
+
+* **Resource Management (FR-CT-3.23-3.24):** Asset management for embedded resources (images, fonts, media) and resource storage within cartridge.
+
+* **Search Functionality (FR-CT-3.25-3.26):** Content search across entire smartbook or current page, with search result navigation.
+
+=== Cartridge Lifecycle
+
+* **Cartridge Creation and Export (FR-CT-3.27-3.35):** New cartridge creation, opening existing cartridges, saving, content validation, hash calculation (H1), cartridge signing at three trust levels (CA-signed, self-signed, unsigned), certificate management, export process following DDD Section 7 algorithm, and export validation.
+
+=== Enhanced Features
+
+* **Auto-Save and Recovery (FR-CT-3.36-3.39):** Configurable auto-save intervals, visual indicators, and crash recovery.
+
+* **Draft and Publishing States (FR-CT-3.40-3.43):** Draft mode, published state distinction, state management, and publish workflow.
+
+* **Content Templates (FR-CT-3.44-3.47):** Template creation, template library, template application, and template management.
+
+* **Import Capabilities (FR-CT-3.48-3.52):** Markdown, DOCX, and HTML import with validation and configurable options.
+
+* **Version History (FR-CT-3.53-3.57):** Version tracking, version snapshots, version comparison, version restoration, and version metadata.
+
+* **Error Recovery and Data Integrity (FR-CT-3.58-3.62):** Corruption detection, incomplete save recovery, backup creation, data validation, and transaction safety.
+
+* **Accessibility (FR-CT-3.63-3.68):** Keyboard navigation, screen reader support, high contrast mode, font scaling, WCAG 2.1 Level AA compliance, and keyboard shortcuts documentation.
+
+* **Multi-Language Support (FR-CT-3.69-3.73):** UI localization using Qt i18n, language selection, content language support including RTL, language pack management, and metadata localization.
+
+* **Theming Support (FR-CT-3.74-3.80):** Built-in themes (Light, Dark, Sepia), theme selection and persistence, custom theme creation and management, theme preview, and theme export/import.
+
+== ADR 008: Creator Tool Theming Requirements
+
+[cols=">1, 5"]
+|===
+| **Status** | Accepted
+| **Date** | 2025-12-14
+| **Decision Driver** | Multiple user requests for theming support in Creator Tool. Theming was already specified for Reader application in Product Concept but was missing from Creator Tool requirements.
+| **Decision** | Creator Tool SHALL support theming with three built-in themes (Light, Dark, Sepia) plus custom theme creation/management capabilities. Seven new requirements (FR-CT-3.74 through FR-CT-3.80) have been added to specify theming functionality.
+| **Consequences** | 
+* Creator Tool will match Reader's theming capabilities
+* Users can customize interface appearance
+* Custom themes can be shared via export/import
+* Theme selection persists across sessions
+* High contrast themes support accessibility requirements
+|===
+
+== ADR 009: Creator Tool Wireframe Design Decisions
+
+[cols=">1, 5"]
+|===
+| **Status** | Accepted
+| **Date** | 2025-12-14
+| **Decision Driver** | Need for visual design reference for Creator Tool main interface. Initial wireframe created to guide implementation.
+| **Decision** | 
+* Creator Tool main interface wireframe created using SVG format with detailed AsciiDoc description
+* Three-panel layout: Page Management (left), Main Editor (center), Properties Panel (right)
+* Theme selector added to View menu area as dropdown
+* Status bar excluded from initial design (may be added later if needed)
+* Tabbed editor interface for Editor/Preview/HTML Source/CSS/JavaScript
+| **Consequences** | 
+* Visual reference available for development team
+* Layout decisions documented
+* Theme selector placement established
+* Status bar deferred to future iteration
+|===
+
+== Design Decisions Pending
+
+The following items require design decisions during detailed design phase:
+
+* **HTML Storage Format:** Whether to store content as full HTML pages or HTML fragments (FR-CT-3.1). *Recommendation: HTML fragments for portability.*
+
+* **Preview Implementation:** Whether to implement live preview (real-time updates) or manual refresh preview (FR-CT-3.5). *Recommendation: Start with manual refresh, consider live preview if performance allows.*
+
+== Documentation Updates
+
+* **SRS Document:** 
+** Updated to include Creator Tool requirements (initially 73, now 80 requirements: FR-CT-3.1 through FR-CT-3.80)
+** Added theming requirements (FR-CT-3.74 through FR-CT-3.80) based on user feedback
+* **Wireframes:** 
+** Created Creator Tool main interface wireframe (SVG format)
+** Created detailed wireframe description document (AsciiDoc)
+** Added theme selector to wireframe design
+** Excluded status bar from initial design
+* **Documentation Review:** Updated to mark Creator Tool specifications gap as resolved, with note that requirements may be refined during design phase
+* **Introduction:** Updated to clarify that both Reader and Creator Tool are documented in single SRS, with rationale for unified approach
+
+== Next Steps
+
+* Proceed with detailed design of Creator Tool based on specified requirements
+* Resolve pending design decisions (HTML format, preview implementation)
+* Begin addressing remaining documentation gaps (Embedded Applications schema, Error Handling specifications)
+* Consider UI/UX design specifications for Creator Tool in DDD
+* Implement theming system matching Reader's theming capabilities
+* Review wireframe with stakeholders and refine as needed
+

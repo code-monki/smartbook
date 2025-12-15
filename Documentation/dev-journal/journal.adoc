@@ -1,0 +1,20 @@
+= Smartbook Project Developer Journal
+:author: [Team Members/Gemini]
+:revdate: {localdate}
+:doctype: article
+:toc: left
+:toclevels: 2
+:sectnums:
+
+== 1. Overview and Scope
+
+This journal serves as the official record for design decisions, technical implementation challenges, and progress milestones for the Smartbook Project.
+
+== 2. Daily Entries
+
+// This section includes the daily files in chronological order.
+
+include::daily_entries/2025-12-13_security_model.adoc[]
+include::daily_entries/2025-12-14_creator_tool_requirements.adoc[]
+// Add subsequent include lines here as new files are created.
+// include::daily_entries/YYYY-MM-DD_topic.adoc[]

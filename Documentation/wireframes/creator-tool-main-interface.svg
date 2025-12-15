@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="800" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="800" fill="#f5f5f5" stroke="#ccc" stroke-width="2"/>
+  
+  <!-- Title -->
+  <text x="600" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Creator Tool - Main Interface Wireframe</text>
+  
+  <!-- Menu Bar -->
+  <rect x="0" y="30" width="1200" height="30" fill="#e0e0e0" stroke="#999" stroke-width="1"/>
+  <text x="10" y="50" font-family="Arial, sans-serif" font-size="12">File</text>
+  <text x="50" y="50" font-family="Arial, sans-serif" font-size="12">Edit</text>
+  <text x="90" y="50" font-family="Arial, sans-serif" font-size="12">View</text>
+  <rect x="125" y="35" width="50" height="20" fill="#fff" stroke="#999" rx="2" opacity="0.3"/>
+  <text x="150" y="48" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#666">Theme ▼</text>
+  <text x="130" y="50" font-family="Arial, sans-serif" font-size="12">Insert</text>
+  <text x="180" y="50" font-family="Arial, sans-serif" font-size="12">Format</text>
+  <text x="240" y="50" font-family="Arial, sans-serif" font-size="12">Tools</text>
+  <text x="300" y="50" font-family="Arial, sans-serif" font-size="12">Help</text>
+  <text x="1100" y="50" font-family="Arial, sans-serif" font-size="11" fill="#666">[Auto-save: 2 min ago]</text>
+  
+  <!-- Toolbar -->
+  <rect x="0" y="60" width="1200" height="40" fill="#e8e8e8" stroke="#999" stroke-width="1"/>
+  <!-- Toolbar buttons -->
+  <rect x="10" y="68" width="30" height="24" fill="#fff" stroke="#999" rx="2"/>
+  <text x="25" y="84" text-anchor="middle" font-family="Arial, sans-serif" font-size="10">B</text>
+  <rect x="45" y="68" width="30" height="24" fill="#fff" stroke="#999" rx="2"/>
+  <text x="60" y="84" text-anchor="middle" font-family="Arial, sans-serif" font-size="10">I</text>
+  <rect x="80" y="68" width="30" height="24" fill="#fff" stroke="#999" rx="2"/>
+  <text x="95" y="84" text-anchor="middle" font-family="Arial, sans-serif" font-size="10">U</text>
+  <line x1="120" y1="68" x2="120" y2="92" stroke="#999" stroke-width="1"/>
+  <rect x="130" y="68" width="30" height="24" fill="#fff" stroke="#999" rx="2"/>
+  <text x="145" y="84" text-anchor="middle" font-family="Arial, sans-serif" font-size="9">List</text>
+  <rect x="165" y="68" width="30" height="24" fill="#fff" stroke="#999" rx="2"/>
+  <text x="180" y="84" text-anchor="middle" font-family="Arial, sans-serif" font-size="9">Link</text>
+  <line x1="200" y1="68" x2="200" y2="92" stroke="#999" stroke-width="1"/>
+  <rect x="210" y="68" width="60" height="24" fill="#fff" stroke="#999" rx="2"/>
+  <text x="240" y="84" text-anchor="middle" font-family="Arial, sans-serif" font-size="10">Insert Form</text>
+  <rect x="275" y="68" width="60" height="24" fill="#fff" stroke="#999" rx="2"/>
+  <text x="305" y="84" text-anchor="middle" font-family="Arial, sans-serif" font-size="10">Insert App</text>
+  <line x1="340" y1="68" x2="340" y2="92" stroke="#999" stroke-width="1"/>
+  <rect x="350" y="68" width="50" height="24" fill="#fff" stroke="#999" rx="2"/>
+  <text x="375" y="84" text-anchor="middle" font-family="Arial, sans-serif" font-size="10">Preview</text>
+  <rect x="405" y="68" width="50" height="24" fill="#fff" stroke="#999" rx="2"/>
+  <text x="430" y="84" text-anchor="middle" font-family="Arial, sans-serif" font-size="10">Search</text>
+  <text x="500" y="84" font-family="Arial, sans-serif" font-size="10" fill="#666">[Draft]</text>
+  <text x="1000" y="84" font-family="Arial, sans-serif" font-size="10" fill="#666">Save | Export | Publish</text>
+  
+  <!-- Left Sidebar - Page Management -->
+  <rect x="0" y="100" width="200" height="700" fill="#fff" stroke="#999" stroke-width="1"/>
+  <rect x="0" y="100" width="200" height="30" fill="#d0d0d0" stroke="#999" stroke-width="1"/>
+  <text x="10" y="120" font-family="Arial, sans-serif" font-size="12" font-weight="bold">Pages</text>
+  <rect x="170" y="108" width="20" height="14" fill="#4CAF50" stroke="#999" rx="2"/>
+  <text x="180" y="118" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="white">+</text>
+  
+  <!-- Page List -->
+  <rect x="5" y="135" width="190" height="25" fill="#e3f2fd" stroke="#999" rx="2"/>
+  <text x="10" y="152" font-family="Arial, sans-serif" font-size="11">Chapter 1: Introduction</text>
+  <rect x="5" y="165" width="190" height="25" fill="#fff" stroke="#999" rx="2"/>
+  <text x="10" y="182" font-family="Arial, sans-serif" font-size="11">  Page 1.1: Overview</text>
+  <rect x="5" y="195" width="190" height="25" fill="#fff4e6" stroke="#2196F3" stroke-width="2" rx="2"/>
+  <text x="10" y="212" font-family="Arial, sans-serif" font-size="11" font-weight="bold">  Page 1.2: Getting Started [CURRENT]</text>
+  <rect x="5" y="225" width="190" height="25" fill="#fff" stroke="#999" rx="2"/>
+  <text x="10" y="242" font-family="Arial, sans-serif" font-size="11">  Page 1.3: Examples</text>
+  <rect x="5" y="255" width="190" height="25" fill="#fff" stroke="#999" rx="2"/>
+  <text x="10" y="272" font-family="Arial, sans-serif" font-size="11">Chapter 2: Advanced Topics</text>
+  <rect x="5" y="280" width="190" height="25" fill="#fff" stroke="#999" rx="2"/>
+  <text x="10" y="297" font-family="Arial, sans-serif" font-size="11">  Page 2.1: Forms</text>
+  
+  <!-- Right Sidebar - Properties/Resources -->
+  <rect x="1000" y="100" width="200" height="700" fill="#fff" stroke="#999" stroke-width="1"/>
+  
+  <!-- Tabs -->
+  <rect x="1000" y="100" width="200" height="30" fill="#d0d0d0" stroke="#999" stroke-width="1"/>
+  <rect x="1005" y="105" width="60" height="20" fill="#fff" stroke="#999" rx="2"/>
+  <text x="1035" y="118" text-anchor="middle" font-family="Arial, sans-serif" font-size="10">Metadata</text>
+  <rect x="1070" y="105" width="60" height="20" fill="#e0e0e0" stroke="#999" rx="2"/>
+  <text x="1100" y="118" text-anchor="middle" font-family="Arial, sans-serif" font-size="10">Resources</text>
+  <rect x="1135" y="105" width="60" height="20" fill="#e0e0e0" stroke="#999" rx="2"/>
+  <text x="1165" y="118" text-anchor="middle" font-family="Arial, sans-serif" font-size="10">Forms</text>
+  
+  <!-- Metadata Panel Content -->
+  <text x="1010" y="150" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Title:</text>
+  <rect x="1010" y="155" width="180" height="20" fill="#fff" stroke="#999" rx="2"/>
+  <text x="1015" y="169" font-family="Arial, sans-serif" font-size="9" fill="#666">My Smartbook</text>
+  
+  <text x="1010" y="190" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Author:</text>
+  <rect x="1010" y="195" width="180" height="20" fill="#fff" stroke="#999" rx="2"/>
+  
+  <text x="1010" y="230" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Year:</text>
+  <rect x="1010" y="235" width="80" height="20" fill="#fff" stroke="#999" rx="2"/>
+  
+  <text x="1100" y="230" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Version:</text>
+  <rect x="1100" y="235" width="90" height="20" fill="#fff" stroke="#999" rx="2"/>
+  
+  <text x="1010" y="270" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Cover Image:</text>
+  <rect x="1010" y="275" width="180" height="80" fill="#f0f0f0" stroke="#999" stroke-dasharray="3,3" rx="2"/>
+  <text x="1100" y="315" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#666">[Cover Image]</text>
+  <rect x="1010" y="360" width="85" height="20" fill="#2196F3" stroke="#999" rx="2"/>
+  <text x="1055" y="373" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="white">Browse...</text>
+  
+  <!-- Main Editing Area -->
+  <rect x="200" y="100" width="800" height="700" fill="#fff" stroke="#999" stroke-width="1"/>
+  
+  <!-- Editor Tabs -->
+  <rect x="200" y="100" width="800" height="30" fill="#e8e8e8" stroke="#999" stroke-width="1"/>
+  <rect x="205" y="105" width="100" height="20" fill="#fff" stroke="#999" stroke-width="2" rx="2"/>
+  <text x="255" y="118" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Editor</text>
+  <rect x="310" y="105" width="100" height="20" fill="#e0e0e0" stroke="#999" rx="2"/>
+  <text x="360" y="118" text-anchor="middle" font-family="Arial, sans-serif" font-size="10">Preview</text>
+  <rect x="415" y="105" width="100" height="20" fill="#e0e0e0" stroke="#999" rx="2"/>
+  <text x="465" y="118" text-anchor="middle" font-family="Arial, sans-serif" font-size="10">HTML Source</text>
+  <rect x="520" y="105" width="100" height="20" fill="#e0e0e0" stroke="#999" rx="2"/>
+  <text x="570" y="118" text-anchor="middle" font-family="Arial, sans-serif" font-size="10">CSS</text>
+  <rect x="625" y="105" width="100" height="20" fill="#e0e0e0" stroke="#999" rx="2"/>
+  <text x="675" y="118" text-anchor="middle" font-family="Arial, sans-serif" font-size="10">JavaScript</text>
+  
+  <!-- WYSIWYG Editor Area (Qt WebEngineView) -->
+  <rect x="210" y="140" width="780" height="650" fill="#fafafa" stroke="#ccc" stroke-width="1" stroke-dasharray="5,5"/>
+  <text x="600" y="200" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#666">WYSIWYG Editor (Qt WebEngineView)</text>
+  
+  <!-- Simulated content area -->
+  <rect x="230" y="230" width="740" height="400" fill="#fff" stroke="#ddd" stroke-width="1"/>
+  <text x="250" y="260" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Getting Started</text>
+  <text x="250" y="290" font-family="Arial, sans-serif" font-size="12">This is the main content editing area where users can create and edit HTML content using rich text formatting tools.</text>
+  <text x="250" y="320" font-family="Arial, sans-serif" font-size="12">The editor supports:</text>
+  <text x="270" y="350" font-family="Arial, sans-serif" font-size="11">• Rich text formatting (bold, italic, underline)</text>
+  <text x="270" y="375" font-family="Arial, sans-serif" font-size="11">• Lists, links, and paragraphs</text>
+  <text x="270" y="400" font-family="Arial, sans-serif" font-size="11">• Direct HTML insertion</text>
+  <text x="270" y="425" font-family="Arial, sans-serif" font-size="11">• Form and embedded app insertion</text>
+  
+  <!-- Theme Selector Dropdown (shown on hover/click) -->
+  <rect x="125" y="60" width="120" height="90" fill="#fff" stroke="#999" stroke-width="2" rx="2" opacity="0.95"/>
+  <text x="135" y="80" font-family="Arial, sans-serif" font-size="11" fill="#333">Light</text>
+  <text x="135" y="100" font-family="Arial, sans-serif" font-size="11" fill="#333">Dark</text>
+  <text x="135" y="120" font-family="Arial, sans-serif" font-size="11" fill="#333">Sepia</text>
+  <line x1="125" y1="130" x2="245" y2="130" stroke="#ccc" stroke-width="1"/>
+  <text x="135" y="145" font-family="Arial, sans-serif" font-size="11" fill="#2196F3">Custom Themes...</text>
+  <text x="250" y="75" font-family="Arial, sans-serif" font-size="9" fill="#999" font-style="italic">[dropdown]</text>
+  
+  <!-- Labels and Annotations -->
+  <text x="100" y="95" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#666">[1] Page Management</text>
+  <text x="600" y="95" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#666">[2] Main Editor</text>
+  <text x="1100" y="95" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#666">[3] Properties</text>
+</svg>
+
