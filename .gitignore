@@ -1,0 +1,177 @@
+# Build directories
+build/
+build-*/
+*/build/
+*/build-*/
+*.pro.user
+*.pro.user.*
+
+# Qt Creator
+*.autosave
+*.creator
+*.creator.user
+*.creator.user.*
+*.includes
+*.files
+*.config
+*.creator.user
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+*.cmake
+!CMakeLists.txt
+Makefile
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+
+# Compiled Object files
+*.o
+*.obj
+*.lo
+*.slo
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+*.bin
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Qt specific
+*.moc
+moc_*.cpp
+moc_*.h
+qrc_*.cpp
+ui_*.h
+*.qmlc
+*.jsc
+*.qmlcache
+*.qm
+
+# Qt Creator session files
+*.session
+
+# IDE - Visual Studio Code
+.vscode/
+*.code-workspace
+
+# IDE - CLion
+.idea/
+*.iml
+
+# IDE - Xcode
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+DerivedData/
+
+# IDE - Qt Creator
+*.creator
+*.creator.user
+*.creator.user.*
+
+# OS Files
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+.*.sw?
+
+# Database files (test/development)
+*.sqlite
+*.sqlite3
+*.db
+!Documentation/**/*.sqlite
+
+# Log files
+*.log
+
+# Coverage reports
+*.gcov
+*.gcda
+*.gcno
+coverage/
+*.info
+
+# Test artifacts
+test-results/
+*.test
+
+# Documentation build artifacts
+Documentation/html/
+Documentation/pdf/
+Documentation/_build/
+.asciidoctor/
+
+# Package files
+*.tar.gz
+*.zip
+*.7z
+*.rar
+
+# Environment files
+.env
+.env.local
+*.local
+
+# Certificates and keys (DO NOT COMMIT)
+*.pem
+*.key
+*.crt
+*.cert
+*.p12
+*.pfx
+!Documentation/**/*.pem
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
