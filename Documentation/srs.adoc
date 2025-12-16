@@ -18,16 +18,204 @@ Both applications are documented in a single SRS document as they are tightly co
 
 * **FR-2.1.1 (Multi-Window Capability):** The Reader application SHALL support opening and managing multiple independent cartridges simultaneously, with each cartridge residing in its own isolated Reader View Window.
 
+* **FR-2.1.2 (Window Opening):** The Reader SHALL allow users to open a cartridge in a new Reader View Window via:
+  a. **Double-click:** Double-clicking the cartridge title in List View or the cartridge cover in Grid View
+  b. **Context Menu:** Right-clicking the cartridge title or cover to display a context menu with an "Open" option
+  c. The opening behavior SHALL follow platform conventions similar to other e-book applications (e.g., Calibre, Apple Books)
+
+* **FR-2.1.3 (Window State Persistence):** The Reader SHALL persist the following window state information for each cartridge when a Reader View Window is closed:
+  a. Window size (width and height in pixels)
+  b. Window position (X and Y coordinates on screen)
+  c. Window maximized state (whether window was maximized)
+  d. Reading position (page_id, anchor_id, scroll_position) - as specified in FR-2.8.6
+
+* **FR-2.1.4 (Window State Restoration):** When a cartridge is reopened, the Reader SHALL restore:
+  a. Window size and position from the last session
+  b. Reading position from the last session (as specified in FR-2.8.6)
+  c. If no previous window state exists, use default window size and position
+
+* **FR-2.1.5 (Window Minimize/Restore):** The Reader SHALL follow standard operating system conventions for window minimize and restore behavior, consistent with other applications on the platform.
+
+* **FR-2.8.1 (Forward/Backward Navigation):** The Reader SHALL provide forward and backward navigation controls (arrow buttons or similar) that allow users to navigate sequentially through pages based on the `page_order` field in the `Content_Pages` table. Navigation SHALL wrap around (forward from last page goes to first page, backward from first page goes to last page) or disable buttons at boundaries, as configured.
+
+* **FR-2.8.2 (Table of Contents Generation):** The Reader SHALL generate a table of contents (TOC) from the cartridge's content structure. The TOC SHALL be generated from:
+  a. `chapter_title` field in `Content_Pages` table (primary structure)
+  b. HTML heading elements (`<h1>`, `<h2>`, `<h3>`, etc.) within content pages (secondary structure)
+  c. The TOC SHALL support configurable depth (1-3 heading levels) with a default of 2 levels
+
+* **FR-2.8.3 (Table of Contents Display):** The Reader SHALL display the table of contents in a dedicated pane. The TOC pane SHALL be part of a tabbed interface, with tabs for "Table of Contents" and "Search Results". The TOC SHALL be collapsible/expandable to show/hide nested sections and SHALL allow users to click on TOC entries to navigate directly to the corresponding page or heading anchor.
+
+* **FR-2.8.4 (Internal Link Navigation):** The Reader SHALL honor internal links within content pages that reference other pages in the cartridge. Links SHALL support:
+  a. Page-to-page navigation using page IDs or page order references
+  b. Anchor links to specific headings or elements within pages (e.g., `#section-id`)
+  c. Links SHALL be processed and navigated within the Reader view, not opened in external browsers
+
+* **FR-2.8.5 (Bookmarking):** The Reader SHALL provide bookmarking functionality that allows users to mark specific pages or positions within pages for quick navigation. Bookmarks SHALL:
+  a. Be stored in the Reader's local database, scoped per cartridge (`cartridge_guid`)
+  b. Include page ID, optional anchor/position identifier, and user-provided label/name
+  c. Be accessible via a bookmarks menu or panel
+  d. Allow users to add, remove, and navigate to bookmarks
+
+* **FR-2.8.6 (Last Reading Position Persistence):** The Reader SHALL persist the last reading position for each cartridge, including:
+  a. The current page ID (`page_id` from `Content_Pages` table)
+  b. Optional scroll position or anchor identifier within the page
+  c. Timestamp of last access
+  d. When a cartridge is reopened, the Reader SHALL automatically navigate to the last reading position
+
+* **FR-2.8.7 (Navigation History):** The Reader SHALL maintain a navigation history stack for each Reader View Window, allowing users to navigate backward and forward through their browsing history using browser-style back/forward controls or keyboard shortcuts.
+
+* **FR-2.8.8 (Page Numbering - Deferred):** Page numbering SHALL NOT be implemented in Phase 1. Page numbers are not essential for electronic publications and are challenging to implement correctly for print given variable paper sizes. This feature MAY be considered for future phases if user demand warrants it.
+
+=== Print Functionality
+
+* **FR-2.11.1 (Print Capabilities):** The Reader SHALL provide functionality to print content via the system print dialog, supporting:
+  a. Print entire document (all pages)
+  b. Print current page only
+  c. Print selected text/content (if text is selected in the Reader view)
+
+* **FR-2.11.2 (System Print Dialog):** The Reader SHALL use the native system print dialog (Qt `QPrintDialog`) to allow users to configure print settings including: printer selection, page range, number of copies, paper size, orientation, and other standard print options.
+
+* **FR-2.11.3 (Print Media CSS):** The Reader SHALL support custom CSS stylesheets for print media using `@media print` rules. The Reader SHALL provide built-in print stylesheets optimized for common paper sizes:
+  a. US Letter (8.5" × 11")
+  b. A4 (210mm × 297mm)
+  c. Additional paper sizes MAY be supported based on system capabilities
+
+* **FR-2.11.4 (Print CSS Application):** When printing, the Reader SHALL apply print-specific CSS rules that:
+  a. Optimize content layout for the selected paper size
+  b. Remove or hide non-printable elements (navigation controls, interactive elements, etc.)
+  c. Adjust margins, spacing, and font sizes for print readability
+  d. Handle page breaks appropriately (avoid breaking content awkwardly)
+  e. Preserve author-defined structural CSS while applying print optimizations
+
+* **FR-2.11.5 (Offscreen Rendering):** The Reader SHALL render content offscreen for printing if required by Qt's printing implementation. The Reader SHALL ensure that offscreen rendering accurately represents the on-screen content, including all formatting, images, and styling.
+
+* **FR-2.11.6 (Print Preview):** The Reader SHALL provide a print preview capability that shows how content will appear when printed, allowing users to verify layout, page breaks, and formatting before printing.
+
+* **FR-2.11.7 (Print Quality):** The Reader SHALL ensure that printed output maintains high quality, including:
+  a. Clear text rendering at appropriate resolutions
+  b. Proper image scaling and quality
+  c. Accurate color representation (when printing to color printers)
+  d. Appropriate handling of backgrounds and transparency
+
+* **FR-2.11.8 (Print Keyboard Shortcut):** The Reader SHALL provide a keyboard shortcut (Ctrl+P / Cmd+P) to open the print dialog, following platform conventions.
+
+=== Text Selection and Copy Functionality
+
+* **FR-2.12.1 (Text Selection):** The Reader SHALL allow users to select text within content pages using standard text selection methods (mouse drag, keyboard selection, double-click for word, triple-click for paragraph). Text selection SHALL work with all rendered content including headings, paragraphs, lists, and table cells.
+
+* **FR-2.12.1a (Select All):** The Reader SHALL provide a "Select All" function that selects all text on the current page, accessible via standard keyboard shortcut (Ctrl+A / Cmd+A) or context menu option. When a form field is focused, Select All SHALL select all text within that form field only.
+
+* **FR-2.12.2 (Copy to Clipboard):** The Reader SHALL provide functionality to copy selected text to the system clipboard using standard keyboard shortcuts (Ctrl+C / Cmd+C) or context menu options. The copied text SHALL be plain text without formatting. Copy functionality SHALL be available when text is selected or when a form field has selected text.
+
+* **FR-2.12.3 (Background Removal on Copy):** When copying text to the clipboard, the Reader SHALL remove any background colors or styling from the copied text, ensuring that only the text content is copied without background formatting that could interfere with pasting into external documents or forms.
+
+* **FR-2.12.4 (Paste into Forms):** The Reader SHALL allow users to paste copied text (from within the Reader or from external sources) into form fields within the smartbook content. Paste functionality SHALL work with standard keyboard shortcuts (Ctrl+V / Cmd+V) or context menu options when a form field is focused.
+
+* **FR-2.12.5 (Paste into External Documents):** Text copied from the Reader SHALL be pasteable into external applications (word processors, text editors, email clients, etc.) as plain text without background formatting or styling.
+
+* **FR-2.12.6 (Copy Context Menu):** The Reader SHALL provide a context menu (right-click menu) when text is selected, offering "Copy", "Select All", and other relevant options. The context menu SHALL follow platform conventions and SHALL be non-intrusive.
+
+* **FR-2.12.7 (Standard Keyboard Shortcuts):** The Reader SHALL provide standard keyboard shortcuts for all text selection and copy operations:
+  a. **Select All:** Ctrl+A / Cmd+A (selects all text on current page, or all text in focused form field)
+  b. **Copy:** Ctrl+C / Cmd+C (copies selected text to clipboard)
+  c. **Paste:** Ctrl+V / Cmd+V (pastes text into focused form field or external application)
+  d. **Cut:** Ctrl+X / Cmd+X (cuts selected text from form fields only, not from content pages)
+  e. All keyboard shortcuts SHALL follow platform conventions and SHALL work consistently across all Reader View Windows.
+  f. Keyboard shortcuts SHALL be provided to ensure WCAG 2.1 compliance, allowing users to perform all essential functions without requiring a mouse or pointing device.
+
+=== Document Search Functionality
+
+* **FR-2.9.1 (Document Search Modal):** The Reader SHALL provide a document search modal dialog accessible via menu item or keyboard shortcut (Ctrl+F / Cmd+F). The search modal SHALL include:
+  a. A search input field for entering search terms
+  b. A case sensitivity toggle button ("Aa" button) to enable/disable case-sensitive matching
+  c. A search type dropdown menu with options: "Normal", "Boolean", "Fuzzy", and "Regex"
+  d. A "Search" button to execute the search
+  e. A close button (X) to dismiss the modal
+
+* **FR-2.9.2 (Normal Search):** The Reader SHALL support normal text search that finds exact matches of the search term within the cartridge content, with optional case sensitivity.
+
+* **FR-2.9.3 (Boolean Search):** The Reader SHALL support boolean search operators (AND, OR, NOT) to allow users to construct complex search queries (e.g., "character AND sheet", "weapon OR armor", "magic NOT spell").
+
+* **FR-2.9.4 (Fuzzy Search):** The Reader SHALL support fuzzy search that finds approximate matches, accounting for typos, misspellings, and variations in the search term.
+
+* **FR-2.9.5 (Regex Search):** The Reader SHALL support regular expression (regex) search for advanced users, allowing pattern-based searching. The Reader SHALL provide clear indication that this is an advanced feature and SHALL handle invalid regex patterns gracefully with error messages.
+
+* **FR-2.9.6 (Search Results Display):** The Reader SHALL display search results in the "Search Results" tab of the tabbed pane (shared with Table of Contents). Search results SHALL be presented in a format similar to Adobe Reader, including:
+  a. Page/chapter title for each result
+  b. Context snippet showing surrounding text with search terms highlighted
+  c. Result count (e.g., "Found 15 matches")
+  d. Clickable results that navigate to the matching location
+
+* **FR-2.9.7 (Search Scope):** Document search SHALL search across all pages in the cartridge, including HTML content from the `Content_Pages` table. Search SHALL exclude metadata and structural data (form definitions, embedded app code, etc.) unless explicitly included.
+
+* **FR-2.9.8 (Search Performance):** Document search SHALL complete within reasonable time limits (target: < 2 seconds for cartridges with 100+ pages). The Reader MAY implement search indexing or caching to improve performance.
+
+=== In-Page Search Functionality
+
+* **FR-2.10.1 (Find-in-Page Dialog):** The Reader SHALL provide a find-in-page search dialog similar to Google Chrome's find functionality, accessible via keyboard shortcut (Ctrl+F / Cmd+F when no document search modal is open, or F3). The find dialog SHALL:
+  a. Be displayed as a compact bar or overlay within the Reader view (not a modal)
+  b. Include a search input field
+  c. Provide navigation buttons (Previous/Next) to move between matches
+  d. Display a result count (e.g., "1 of 15")
+  e. Include a close button
+
+* **FR-2.10.2 (Term Highlighting):** The Reader SHALL highlight all instances of the search term within the current page using visual highlighting (e.g., yellow background). Highlighting SHALL update dynamically as the user types in the search field.
+
+* **FR-2.10.3 (Match Navigation):** The Reader SHALL allow users to navigate between highlighted matches using:
+  a. Previous/Next buttons in the find dialog
+  b. Keyboard shortcuts (F3 for next, Shift+F3 for previous, or Enter/Shift+Enter)
+  c. The currently active match SHALL be highlighted differently (e.g., different color or border) to distinguish it from other matches
+
+* **FR-2.10.4 (Result Count):** The Reader SHALL display the total number of matches found on the current page and the current match position (e.g., "3 of 12 matches").
+
+* **FR-2.10.5 (Case Sensitivity):** The find-in-page search SHALL support case-sensitive matching, toggled via a checkbox or button in the find dialog.
+
+* **FR-2.10.6 (Auto-Scroll to Match):** When navigating between matches, the Reader SHALL automatically scroll the page to bring the active match into view, ensuring the match is visible to the user.
+
+* **FR-2.10.7 (Search Persistence):** The find-in-page search term SHALL persist when navigating between pages, allowing users to continue searching across multiple pages using the same search term.
+
 === Interactive Forms and Persistence
 
 * **FR-2.1.2 (Form Data Persistence):** The Reader SHALL provide an API to allow embedded applications (JS) to save and retrieve structured user data securely within the cartridge file.
+
+=== Form Rendering and Interaction
+
+* **FR-2.7.1 (HTML Form Rendering):** The Reader SHALL render forms using standard HTML form elements (`<form>`, `<input>`, `<textarea>`, `<select>`, etc.) based on the form definition JSON schema stored in the `Form_Definitions` table. Forms SHALL be seamlessly integrated into content pages as part of the document flow, not as separate overlays or popups.
+
+* **FR-2.7.2 (Form Embedding in Content):** Forms SHALL be embedded within content pages using a special HTML element or data attribute (e.g., `<div data-form-id="form_id">` or `<smartbook-form form-id="form_id">`). The Reader SHALL detect these markers and render the corresponding form definition as an HTML form within the content flow.
+
+* **FR-2.7.3 (Form Validation):** The Reader SHALL perform client-side validation of form inputs according to the validation rules defined in the form schema JSON. Validation errors SHALL be displayed inline with the form fields using standard HTML5 validation patterns and custom error messages.
+
+* **FR-2.7.4 (Form Data Persistence to Cartridge):** The Reader SHALL allow users to save form data to the cartridge's `User_Data` table using the WebChannel API `saveFormData` method. Saved form data SHALL persist across sessions and SHALL be associated with the specific form ID.
+
+* **FR-2.7.5 (Form Data Persistence to Sandbox):** The Reader SHALL allow users to save form data to the embedded app's sandbox file system using the WebChannel API `saveSandboxFile` method, enabling embedded applications to access and process form data.
+
+* **FR-2.7.5a (Sandbox File Picker):** The Reader SHALL provide a file picker dialog limited to the sandbox directory when users need to select a file for loading form data from the sandbox or when choosing a filename for saving form data to the sandbox. The file picker SHALL only display files within the sandbox directory and SHALL prevent navigation outside the sandbox.
+
+* **FR-2.7.6 (Form Data Loading):** The Reader SHALL automatically load previously saved form data when a form is rendered, populating form fields with the most recent saved values from either the `User_Data` table or the sandbox file system, as appropriate. When loading from sandbox, the Reader SHALL provide the option to use the sandbox file picker to select a specific file.
+
+* **FR-2.7.7 (Form Printing):** The Reader SHALL provide functionality to print the current form, including all visible form fields and their current values. The print output SHALL exclude form input controls and SHALL display field labels and values in a print-friendly format.
+
+* **FR-2.7.8 (Form Auto-Save):** The Reader SHALL optionally auto-save form data at configurable intervals (default: every 30 seconds) or when form fields lose focus, preventing data loss during form completion.
+
+* **FR-2.7.9 (Form Reset):** The Reader SHALL provide functionality to reset a form to its default values (as defined in the form schema) or to clear all form fields, discarding unsaved changes.
+
+* **FR-2.7.10 (Multiple Form Instances):** The Reader SHALL support multiple instances of the same form on different pages, with each instance maintaining its own independent data state.
+
+* **FR-2.7.11 (Form Field Undo/Redo):** The Reader SHALL support undo and redo operations for form field inputs, allowing users to undo/redo text entry and edits within form fields using standard keyboard shortcuts (Ctrl+Z / Cmd+Z for undo, Ctrl+Y or Ctrl+Shift+Z / Cmd+Shift+Z for redo). Undo/redo history SHALL be maintained per form field and SHALL be cleared when the form field loses focus or when form data is saved.
 * **FR-2.2.1 (HTML/CSS Rendering):** The Reader SHALL render the primary content of the cartridge using a standards-compliant web view, utilizing the internal HTML and CSS.
-* **FR-2.2.2 (Embedded Application Support):** The Reader SHALL be able to load and execute embedded JavaScript applications (`manifest.json` defined in the cartridge) within the web view, subject to the security policy.
+* **FR-2.2.2 (Embedded Application Support):** The Reader SHALL be able to load and execute embedded JavaScript applications (Single Page Applications or similar interactive components) defined in the `Embedded_Apps` table within the web view, subject to the security policy. Embedded applications SHALL operate **locally only** with **no network access** and SHALL have access only to a sandboxed local file system.
+* **FR-2.2.3 (Cartridge Settings Support):** The Reader SHALL read rendering settings from the `Settings` table in the cartridge and apply them as initial display preferences. The Reader SHALL allow users to override these settings, but SHALL preserve the original cartridge defaults to enable resetting to the author's intended appearance.
+* **FR-2.2.4 (Settings Reset):** The Reader SHALL provide functionality to reset rendering settings to the cartridge's original defaults, restoring the author-defined initial values.
 
 === Embedded Application Execution
 
-* **FR-2.3.1 (Level 1: Commercial Trust):** Cartridges signed by a publicly-trusted Certificate Authority (CA) SHALL be loaded with default trust, permitting the execution of embedded applications without user consent.
+* **FR-2.3.1 (Level 1: Commercial Trust):** Cartridges signed by a publicly-trusted Certificate Authority (CA) with a valid, non-expired certificate SHALL be loaded with default trust, permitting the execution of embedded applications without user consent. Certificate validation SHALL be performed against the system's trusted root CA store (see DDD Certificate Validation Implementation).
+
+* **FR-2.3.1a (Expired CA Certificate Handling):** Cartridges signed by an expired CA-signed certificate SHALL be downgraded to Level 2 (Self-Signed Trust) and SHALL require user consent for embedded application execution. The Reader SHALL display an integrity warning indicating that the certificate has expired.
+
 * **FR-2.3.2 (Level 2: Self-Signed Trust):** Cartridges signed by a self-signed certificate SHALL be loaded only after displaying an integrity warning to the user. Embedded applications SHALL require explicit user consent via a native opt-in dialog triggered by the `requestAppConsent` API call.
+
 * **FR-2.3.3 (Level 3: No Signature):** Unsigned cartridges SHALL be loaded with a persistent, visible integrity warning. Embedded applications SHALL require explicit user consent via a native opt-in dialog triggered by the `requestAppConsent` API call.
 
 === Trust Persistence and Revocation
@@ -40,10 +228,68 @@ Both applications are documented in a single SRS document as they are tightly co
 === Library and Manifest Management
 
 * **FR-2.5.1 (Manifest Creation):** The Reader SHALL maintain a separate local database (`Local_Library_Manifest`) to store browsing metadata for all imported cartridges. This manifest SHALL be populated upon the cartridge's initial import.
+
 * **FR-2.5.2 (Mandatory Metadata):** The manifest SHALL store, at a minimum: `cartridge_guid`, `title`, `author`, `local_path`, and the compressed binary data of the `cover_image_data`.
+
 * **FR-2.5.3 (Manifest Update):** The Reader SHALL update the manifest entry if a cartridge with a known `cartridge_guid` is detected at a new `local_path`, or if the content has changed (new hash).
+
 * **FR-2.5.4 (Registry Storage):** The Reader SHALL maintain a separate local database (`Local_Trust_Registry`) to persist user trust decisions, linking the decision to the unique `cartridge_guid`.
+
 * **FR-2.5.5 (Cartridge Deletion):** The Reader SHALL provide a mechanism, accessible via the UI, to delete a cartridge's local file, and simultaneously remove its records from the `Local_Library_Manifest` and `Local_Trust_Registry`.
+
+=== Cartridge Import Process
+
+* **FR-2.5.6 (Import Mechanisms):** The Reader SHALL support importing cartridges via:
+  a. **Drag-and-Drop:** Users can drag cartridge files (`.sqlite` files) from the file system and drop them onto the Library Manager window
+  b. **File Picker Dialog:** Users can select "Import" from the menu or toolbar, which opens a native file picker dialog to select one or more cartridge files
+
+* **FR-2.5.7 (Import Storage Location):** The Reader SHALL store imported cartridges in a user-configurable library directory. The default location SHALL follow operating system standards:
+  a. **Windows:** `%USERPROFILE%\Documents\SmartBook\Library\`
+  b. **macOS:** `~/Documents/SmartBook/Library/`
+  c. **Linux:** `~/Documents/SmartBook/Library/`
+  d. Users SHALL be able to configure a custom library directory via application settings
+  e. The library directory preference SHALL persist across application sessions
+
+* **FR-2.5.8 (Import Progress Indication):** The Reader SHALL display a progress dialog during cartridge import operations, showing:
+  a. Current operation (e.g., "Copying file...", "Validating cartridge...", "Updating manifest...")
+  b. Progress percentage or file count (e.g., "1 of 3 files")
+  c. Current file being processed
+  d. Cancel button to abort the import operation
+
+* **FR-2.5.9 (Duplicate Detection):** The Reader SHALL detect duplicate cartridges by comparing `cartridge_guid` values. If a cartridge with the same `cartridge_guid` already exists in the library:
+  a. The Reader SHALL display a confirmation dialog asking the user whether to:
+     * Replace the existing cartridge (delete old file, import new file)
+     * Skip the duplicate (abort import for this cartridge)
+     * Keep both (rename new file to avoid conflict)
+  b. The dialog SHALL display information about both cartridges (title, author, file paths, file sizes, modification dates)
+  c. The dialog SHALL allow the user to make a choice for each duplicate cartridge when importing multiple files
+
+* **FR-2.5.10 (Import Validation):** The Reader SHALL validate imported cartridges before adding them to the library:
+  a. Verify file is a valid SQLite database
+  b. Verify required tables exist (`Metadata`, `Content_Pages`, etc.)
+  c. Verify `cartridge_guid` is present and valid (UUID v4 format)
+  d. Verify `schema_version` is supported by the Reader
+  e. If validation fails, display error dialog and skip the cartridge
+
+* **FR-2.5.11 (Import Completion):** Upon successful import, the Reader SHALL:
+  a. Copy the cartridge file to the library directory (if not already there)
+  b. Extract metadata (title, author, publication_year, cover_image_data)
+  c. Calculate content hash (H2)
+  d. Create manifest entry in `Local_Library_Manifest` table
+  e. Refresh the library view to display the newly imported cartridge
+  f. Display success notification (optional, can be dismissed)
+
+=== Rendering Settings and Preferences
+
+* **FR-2.6.1 (Author-Defined Settings):** The Reader SHALL read and apply author-defined rendering settings from the `Settings` table in the cartridge. These settings SHALL provide initial default values for rendering preferences such as font size, font family, theme, margins, and line spacing.
+
+* **FR-2.6.2 (User Preference Override):** The Reader SHALL allow users to override author-defined settings with their own preferences. User preferences SHALL be stored in the Reader's local database and SHALL apply to the specific cartridge.
+
+* **FR-2.6.3 (Settings Reset):** The Reader SHALL provide functionality to reset cartridge rendering settings to the original author-defined defaults, discarding user overrides.
+
+* **FR-2.6.4 (Settings Persistence):** User preference overrides SHALL persist across application sessions and SHALL be scoped per cartridge (identified by `cartridge_guid`).
+
+* **FR-2.6.5 (Settings Application):** When loading a cartridge, the Reader SHALL apply settings in the following priority: 1) User preference override (if exists), 2) Author-defined default (from `Settings` table), 3) Application default.
 
 == Creator Tool Functional Requirements (FR-CT)
 
@@ -55,7 +301,7 @@ Both applications are documented in a single SRS document as they are tightly co
 
 * **FR-CT-3.3 (Direct HTML Editing):** The Creator Tool SHALL allow users to insert and edit raw HTML directly into the document to achieve complex formatting or functionality not available through the WYSIWYG interface.
 
-* **FR-CT-3.4 (Standard Edit Operations):** The Creator Tool SHALL support standard edit functionality including cut, copy, paste, undo, and redo operations.
+* **FR-CT-3.4 (Standard Edit Operations):** The Creator Tool SHALL support standard edit functionality including cut, copy, paste, undo, redo, and select all operations. All operations SHALL be accessible via standard keyboard shortcuts (Ctrl+X/Cmd+X for cut, Ctrl+C/Cmd+C for copy, Ctrl+V/Cmd+V for paste, Ctrl+Z/Cmd+Z for undo, Ctrl+Y or Ctrl+Shift+Z/Cmd+Shift+Z for redo, Ctrl+A/Cmd+A for select all).
 
 * **FR-CT-3.5 (Preview Functionality):** The Creator Tool SHALL provide preview capabilities to display content as it will appear in the Reader. The tool SHALL support either a live preview pane (updated in real-time as content is edited) or a manual refresh preview, with the implementation approach determined during design based on performance and practicality considerations.
 
@@ -71,49 +317,59 @@ Both applications are documented in a single SRS document as they are tightly co
 
 === Stylesheet Management
 
-* **FR-CT-3.10 (CSS Stylesheet Attachment):** The Creator Tool SHALL allow users to attach a custom CSS stylesheet to the smartbook document. This stylesheet SHALL be stored within the cartridge and SHALL be solely responsible for controlling the appearance of rendered content.
+* **FR-CT-3.10 (CSS Stylesheet Attachment):** The Creator Tool SHALL allow users to attach a custom CSS stylesheet to the smartbook document. This stylesheet SHALL be stored within the cartridge and SHALL be responsible for controlling the **structure** of rendered content (layout, positioning, spacing, margins, borders, etc.). The CSS stylesheet SHALL be separate from and complementary to content themes, which control colors and fonts. This separation allows authors to maintain control over page structure while enabling users to customize visual appearance (colors, fonts) to their preferences, providing a balanced middle ground between author intent and user customization.
 
-* **FR-CT-3.11 (Stylesheet Editing):** The Creator Tool SHALL provide an interface for editing the attached CSS stylesheet, either through a dedicated CSS editor or by importing an external CSS file.
+* **FR-CT-3.11 (Stylesheet Editing):** The Creator Tool SHALL provide an interface for editing the attached CSS stylesheet, either through a dedicated CSS editor or by importing an external CSS file. The CSS editor SHALL focus on structural styling (layout, positioning, spacing) rather than color/font styling, which is managed through the Content Theme Manager.
+
+=== Rendering Settings Management
+
+* **FR-CT-3.12a (Settings Definition):** The Creator Tool SHALL provide functionality for authors to define rendering settings in the `Settings` table, including: default font size, default font family, default theme, page margins, line spacing, and text alignment.
+
+* **FR-CT-3.12b (Settings Editor):** The Creator Tool SHALL provide a settings editor interface that allows authors to configure rendering defaults with appropriate input controls (number inputs for sizes, dropdowns for themes, etc.).
+
+* **FR-CT-3.12c (Settings Validation):** The Creator Tool SHALL validate setting values according to their `setting_type` (string, integer, float, boolean, json) before saving to the cartridge.
+
+* **FR-CT-3.12d (Settings Preview):** The Creator Tool SHALL allow authors to preview how settings will affect content rendering in the preview pane.
 
 === JavaScript and Embedded Applications
 
-* **FR-CT-3.12 (Custom JavaScript Storage):** The Creator Tool SHALL allow users to store custom JavaScript code as part of the document to enable specific functionality required by embedded applications.
+* **FR-CT-3.13 (Custom JavaScript Storage):** The Creator Tool SHALL allow users to store custom JavaScript code as part of the document to enable specific functionality required by embedded applications.
 
-* **FR-CT-3.13 (Embedded Application Definition):** The Creator Tool SHALL provide functionality for defining embedded applications, including specification of entry points, required scripts, required stylesheets, and application metadata (name, description, appId) as defined in the `Embedded_App_Manifest` structure.
+* **FR-CT-3.14 (Embedded Application Definition):** The Creator Tool SHALL provide functionality for defining embedded applications, including specification of entry points, required scripts, required stylesheets, and application metadata (name, description, appId) as defined in the `Embedded_App_Manifest` structure.
 
-* **FR-CT-3.14 (JavaScript Management):** The Creator Tool SHALL provide an interface for managing JavaScript code, including editing, validation, and organization of script resources.
+* **FR-CT-3.15 (JavaScript Management):** The Creator Tool SHALL provide an interface for managing JavaScript code, including editing, validation, and organization of script resources.
 
 === Form Definition Management
 
-* **FR-CT-3.15 (Form Creation):** The Creator Tool SHALL provide functionality for creating and editing form definitions using the Form Definition JSON Schema (see DDD Section 2.1).
+* **FR-CT-3.16 (Form Creation):** The Creator Tool SHALL provide functionality for creating and editing form definitions using the Form Definition JSON Schema (see DDD Section 2.1).
 
-* **FR-CT-3.16 (Form Builder Interface):** The Creator Tool SHALL provide a visual form builder interface that allows users to create forms by adding fields, configuring validation rules, and organizing fields into groups without requiring direct JSON editing.
+* **FR-CT-3.17 (Form Builder Interface):** The Creator Tool SHALL provide a visual form builder interface that allows users to create forms by adding fields, configuring validation rules, and organizing fields into groups without requiring direct JSON editing.
 
-* **FR-CT-3.17 (Form Schema Validation):** The Creator Tool SHALL validate form definitions against the Form Definition JSON Schema before allowing them to be saved to the cartridge.
+* **FR-CT-3.18 (Form Schema Validation):** The Creator Tool SHALL validate form definitions against the Form Definition JSON Schema before allowing them to be saved to the cartridge.
 
-* **FR-CT-3.18 (Form Integration):** The Creator Tool SHALL allow users to insert form references into content pages, linking the form definition to the page content.
+* **FR-CT-3.19 (Form Integration):** The Creator Tool SHALL allow users to insert form references into content pages, linking the form definition to the page content.
 
 === Metadata Management
 
-* **FR-CT-3.19 (Document Metadata):** The Creator Tool SHALL provide an interface for managing document-level metadata including: title, author, publication year, version, tags, and cover image.
+* **FR-CT-3.20 (Document Metadata):** The Creator Tool SHALL provide an interface for managing document-level metadata including: title, author, publication year, version, tags, and cover image.
 
-* **FR-CT-3.20 (Cover Image Management):** The Creator Tool SHALL allow users to select, import, and manage the cover image for the smartbook, storing it both in the `Metadata` table (`cover_image_path`) and ensuring it is available for the manifest.
+* **FR-CT-3.21 (Cover Image Management):** The Creator Tool SHALL allow users to select, import, and manage the cover image for the smartbook, storing it both in the `Metadata` table (`cover_image_path`) and ensuring it is available for the manifest.
 
-* **FR-CT-3.21 (GUID Generation):** The Creator Tool SHALL automatically generate a UUID Version 4 `cartridge_guid` when creating a new smartbook cartridge (NFR-3.2). The GUID SHALL be immutable once generated.
+* **FR-CT-3.22 (GUID Generation):** The Creator Tool SHALL automatically generate a UUID Version 4 `cartridge_guid` when creating a new smartbook cartridge (NFR-3.2). The GUID SHALL be immutable once generated.
 
-* **FR-CT-3.22 (Schema Version Management):** The Creator Tool SHALL maintain and set the `schema_version` field in the Metadata table to indicate the Smartbook Format Specification version.
+* **FR-CT-3.23 (Schema Version Management):** The Creator Tool SHALL maintain and set the `schema_version` field in the Metadata table to indicate the Smartbook Format Specification version.
 
 === Resource Management
 
-* **FR-CT-3.23 (Asset Management):** The Creator Tool SHALL provide functionality for managing embedded resources such as images, fonts, and other media assets referenced by the content.
+* **FR-CT-3.24 (Asset Management):** The Creator Tool SHALL provide functionality for managing embedded resources such as images, fonts, and other media assets referenced by the content.
 
-* **FR-CT-3.24 (Resource Storage):** The Creator Tool SHALL store all resources within the cartridge database or maintain references to external resources, ensuring portability of the cartridge file.
+* **FR-CT-3.25 (Resource Storage):** The Creator Tool SHALL store all resources within the cartridge database or maintain references to external resources, ensuring portability of the cartridge file.
 
 === Search Functionality
 
-* **FR-CT-3.25 (Content Search):** The Creator Tool SHALL provide search functionality that can search across the entire smartbook document or limit search to the current page being edited.
+* **FR-CT-3.26 (Content Search):** The Creator Tool SHALL provide search functionality that can search across the entire smartbook document or limit search to the current page being edited.
 
-* **FR-CT-3.26 (Search Results):** The Creator Tool SHALL display search results and allow users to navigate to matching content locations within the document.
+* **FR-CT-3.27 (Search Results):** The Creator Tool SHALL display search results and allow users to navigate to matching content locations within the document.
 
 === Cartridge Creation and Export
 
@@ -140,114 +396,212 @@ Both applications are documented in a single SRS document as they are tightly co
 
 === Auto-Save and Recovery
 
-* **FR-CT-3.36 (Auto-Save Functionality):** The Creator Tool SHALL automatically save the current cartridge at configurable intervals (default: every 5 minutes) to prevent data loss.
+* **FR-CT-3.37 (Auto-Save Functionality):** The Creator Tool SHALL automatically save the current cartridge at configurable intervals (default: every 5 minutes) to prevent data loss.
 
-* **FR-CT-3.37 (Auto-Save Configuration):** The Creator Tool SHALL allow users to configure the auto-save interval or disable auto-save functionality.
+* **FR-CT-3.38 (Auto-Save Configuration):** The Creator Tool SHALL allow users to configure the auto-save interval or disable auto-save functionality.
 
-* **FR-CT-3.38 (Auto-Save Indication):** The Creator Tool SHALL provide visual indication when auto-save is in progress and when the last auto-save completed successfully.
+* **FR-CT-3.39 (Auto-Save Indication):** The Creator Tool SHALL provide visual indication when auto-save is in progress and when the last auto-save completed successfully.
 
-* **FR-CT-3.39 (Recovery on Startup):** The Creator Tool SHALL detect and offer to recover unsaved changes if the application was closed unexpectedly or crashed, restoring the most recent auto-saved state.
+* **FR-CT-3.40 (Recovery on Startup):** The Creator Tool SHALL detect and offer to recover unsaved changes if the application was closed unexpectedly or crashed, restoring the most recent auto-saved state.
 
 === Draft and Publishing States
 
-* **FR-CT-3.40 (Draft Mode):** The Creator Tool SHALL support a draft mode where cartridges can be saved and edited without being finalized or signed.
+* **FR-CT-3.41 (Draft Mode):** The Creator Tool SHALL support a draft mode where cartridges can be saved and edited without being finalized or signed.
 
-* **FR-CT-3.41 (Publishing State):** The Creator Tool SHALL distinguish between draft cartridges and published cartridges. Published cartridges SHALL be finalized, validated, and optionally signed.
+* **FR-CT-3.42 (Publishing State):** The Creator Tool SHALL distinguish between draft cartridges and published cartridges. Published cartridges SHALL be finalized, validated, and optionally signed.
 
-* **FR-CT-3.42 (State Management):** The Creator Tool SHALL track and display the current state (draft/published) of a cartridge and prevent certain operations (e.g., signing) on draft cartridges until they are ready for publication.
+* **FR-CT-3.43 (State Management):** The Creator Tool SHALL track and display the current state (draft/published) of a cartridge and prevent certain operations (e.g., signing) on draft cartridges until they are ready for publication.
 
-* **FR-CT-3.43 (Publish Workflow):** The Creator Tool SHALL provide a publish workflow that guides users through validation, signing (if applicable), and finalization before marking a cartridge as published.
+* **FR-CT-3.44 (Publish Workflow):** The Creator Tool SHALL provide a publish workflow that guides users through validation, signing (if applicable), and finalization before marking a cartridge as published.
 
 === Content Templates
 
-* **FR-CT-3.44 (Template Creation):** The Creator Tool SHALL allow users to create and save content templates that include page structure, styling, form definitions, and embedded application configurations.
+* **FR-CT-3.45 (Template Creation):** The Creator Tool SHALL allow users to create and save content templates that include page structure, styling, form definitions, and embedded application configurations.
 
-* **FR-CT-3.45 (Template Library):** The Creator Tool SHALL maintain a library of templates that users can browse, preview, and apply when creating new cartridges or pages.
+* **FR-CT-3.46 (Template Library):** The Creator Tool SHALL maintain a library of templates that users can browse, preview, and apply when creating new cartridges or pages.
 
-* **FR-CT-3.46 (Template Application):** The Creator Tool SHALL allow users to apply templates to new cartridges or individual pages, populating content structure and styles while allowing customization.
+* **FR-CT-3.47 (Template Application):** The Creator Tool SHALL allow users to apply templates to new cartridges or individual pages, populating content structure and styles while allowing customization.
 
-* **FR-CT-3.47 (Template Management):** The Creator Tool SHALL provide functionality to manage templates including creating, editing, deleting, importing, and exporting templates.
+* **FR-CT-3.48 (Template Management):** The Creator Tool SHALL provide functionality to manage templates including creating, editing, deleting, importing, and exporting templates.
 
 === Import Capabilities
 
-* **FR-CT-3.48 (Markdown Import):** The Creator Tool SHALL support importing content from Markdown files, converting Markdown syntax to HTML and creating appropriate page structures.
+* **FR-CT-3.49 (Markdown Import):** The Creator Tool SHALL support importing content from Markdown files, converting Markdown syntax to HTML and creating appropriate page structures.
 
-* **FR-CT-3.49 (DOCX Import):** The Creator Tool SHALL support importing content from Microsoft Word DOCX files, preserving formatting and structure where possible.
+* **FR-CT-3.50 (DOCX Import):** The Creator Tool SHALL support importing content from Microsoft Word DOCX files, preserving formatting and structure where possible.
 
-* **FR-CT-3.50 (HTML Import):** The Creator Tool SHALL support importing HTML files or HTML fragments, allowing users to bring in existing web content.
+* **FR-CT-3.51 (HTML Import):** The Creator Tool SHALL support importing HTML files or HTML fragments, allowing users to bring in existing web content.
 
-* **FR-CT-3.51 (Import Validation):** The Creator Tool SHALL validate imported content and provide feedback on any formatting or structure issues that may require manual adjustment.
+* **FR-CT-3.52 (Import Validation):** The Creator Tool SHALL validate imported content and provide feedback on any formatting or structure issues that may require manual adjustment.
 
-* **FR-CT-3.52 (Import Options):** The Creator Tool SHALL allow users to configure import options such as how to handle images, stylesheets, and other resources during import.
+* **FR-CT-3.53 (Import Options):** The Creator Tool SHALL allow users to configure import options such as how to handle images, stylesheets, and other resources during import.
 
 === Version History
 
-* **FR-CT-3.53 (Version Tracking):** The Creator Tool SHALL maintain a version history for each cartridge, tracking changes to content, metadata, and structure over time.
+* **FR-CT-3.54 (Version Tracking):** The Creator Tool SHALL maintain a version history for each cartridge, tracking changes to content, metadata, and structure over time.
 
-* **FR-CT-3.54 (Version Snapshots):** The Creator Tool SHALL create version snapshots at significant milestones (e.g., manual save points, before major edits, before publishing) and allow users to create manual version snapshots.
+* **FR-CT-3.55 (Version Snapshots):** The Creator Tool SHALL create version snapshots at significant milestones (e.g., manual save points, before major edits, before publishing) and allow users to create manual version snapshots.
 
-* **FR-CT-3.55 (Version Comparison):** The Creator Tool SHALL provide functionality to compare different versions of a cartridge, highlighting changes in content, metadata, and structure.
+* **FR-CT-3.56 (Version Comparison):** The Creator Tool SHALL provide functionality to compare different versions of a cartridge, highlighting changes in content, metadata, and structure.
 
-* **FR-CT-3.56 (Version Restoration):** The Creator Tool SHALL allow users to restore a cartridge to a previous version, with the option to create a new version from the restored state or replace the current version.
+* **FR-CT-3.57 (Version Restoration):** The Creator Tool SHALL allow users to restore a cartridge to a previous version, with the option to create a new version from the restored state or replace the current version.
 
-* **FR-CT-3.57 (Version Metadata):** Each version snapshot SHALL store metadata including timestamp, version number or identifier, and optional user-provided notes describing the changes.
+* **FR-CT-3.58 (Version Metadata):** Each version snapshot SHALL store metadata including timestamp, version number or identifier, and optional user-provided notes describing the changes.
 
 === Error Recovery and Data Integrity
 
-* **FR-CT-3.58 (Corruption Detection):** The Creator Tool SHALL detect cartridge file corruption when opening files and provide recovery options when possible.
+* **FR-CT-3.59 (Corruption Detection):** The Creator Tool SHALL detect cartridge file corruption when opening files and provide recovery options when possible.
 
-* **FR-CT-3.59 (Incomplete Save Recovery):** The Creator Tool SHALL detect and handle incomplete save operations, attempting to recover as much data as possible and alerting the user to any data loss.
+* **FR-CT-3.60 (Incomplete Save Recovery):** The Creator Tool SHALL detect and handle incomplete save operations, attempting to recover as much data as possible and alerting the user to any data loss.
 
-* **FR-CT-3.60 (Backup Creation):** The Creator Tool SHALL automatically create backup copies of cartridges before performing potentially destructive operations (e.g., major structural changes, version restoration).
+* **FR-CT-3.61 (Backup Creation):** The Creator Tool SHALL automatically create backup copies of cartridges before performing potentially destructive operations (e.g., major structural changes, version restoration).
 
-* **FR-CT-3.61 (Data Validation):** The Creator Tool SHALL continuously validate data integrity during editing operations, preventing invalid states and providing immediate feedback on errors.
+* **FR-CT-3.62 (Data Validation):** The Creator Tool SHALL continuously validate data integrity during editing operations, preventing invalid states and providing immediate feedback on errors.
 
-* **FR-CT-3.62 (Transaction Safety):** The Creator Tool SHALL use database transactions to ensure atomic operations, preventing partial updates that could corrupt the cartridge structure.
+* **FR-CT-3.63 (Transaction Safety):** The Creator Tool SHALL use database transactions to ensure atomic operations, preventing partial updates that could corrupt the cartridge structure.
 
-=== Accessibility
+=== Reader Accessibility
 
-* **FR-CT-3.63 (Keyboard Navigation):** The Creator Tool SHALL support full keyboard navigation and shortcuts for all editing and navigation functions, allowing operation without a mouse.
+* **FR-2.13.1 (Keyboard Navigation):** The Reader SHALL support full keyboard navigation for all essential functions, allowing users to operate the application without requiring a mouse or pointing device. Keyboard navigation SHALL include: page navigation (arrow keys, Page Up/Down, Home/End), form field navigation (Tab/Shift+Tab), menu navigation, and all text selection/copy operations.
 
-* **FR-CT-3.64 (Screen Reader Support):** The Creator Tool SHALL be compatible with screen readers, providing appropriate ARIA labels and semantic markup for all UI elements.
+* **FR-2.13.2 (Keyboard Shortcuts):** The Reader SHALL provide keyboard shortcuts for all essential functions to ensure WCAG 2.1 Level AA compliance. Keyboard shortcuts SHALL include: text selection (Ctrl+A/Cmd+A), copy (Ctrl+C/Cmd+C), paste (Ctrl+V/Cmd+V), cut (Ctrl+X/Cmd+X), undo/redo (Ctrl+Z/Cmd+Z, Ctrl+Y/Cmd+Shift+Z), search (Ctrl+F/Cmd+F), print (Ctrl+P/Cmd+P), and navigation (arrow keys, Page Up/Down, Home/End, Alt+Left/Right for history).
 
-* **FR-CT-3.65 (High Contrast Mode):** The Creator Tool SHALL support high contrast display modes for users with visual impairments.
+* **FR-2.13.3 (Screen Reader Support):** The Reader SHALL be compatible with screen readers, providing appropriate ARIA labels and semantic markup for all UI elements, form fields, and content structure.
 
-* **FR-CT-3.66 (Font Scaling):** The Creator Tool SHALL allow users to scale the UI font size and provide zoom functionality for the editing interface.
+* **FR-2.13.4 (High Contrast Support):** The Reader SHALL support high contrast display modes for users with visual impairments, either through system high contrast settings or through content theme selection (high contrast themes).
 
-* **FR-CT-3.67 (Accessibility Standards):** The Creator Tool SHALL comply with WCAG 2.1 Level AA accessibility standards for the editing interface.
+* **FR-2.13.5 (Font Scaling):** The Reader SHALL allow users to scale font sizes for improved readability, either through user settings or through system accessibility settings.
 
-* **FR-CT-3.68 (Keyboard Shortcuts Documentation):** The Creator Tool SHALL provide accessible documentation of all keyboard shortcuts and make this documentation available within the application.
+* **FR-2.13.6 (Accessibility Standards):** The Reader SHALL comply with WCAG 2.1 Level AA accessibility standards, ensuring that all essential functions are accessible via keyboard, that content is readable by screen readers, and that visual elements meet contrast requirements.
+
+=== Creator Tool Accessibility
+
+* **FR-CT-3.64 (Keyboard Navigation):** The Creator Tool SHALL support full keyboard navigation and shortcuts for all editing and navigation functions, allowing operation without a mouse.
+
+* **FR-CT-3.65 (Screen Reader Support):** The Creator Tool SHALL be compatible with screen readers, providing appropriate ARIA labels and semantic markup for all UI elements.
+
+* **FR-CT-3.66 (High Contrast Mode):** The Creator Tool SHALL support high contrast display modes for users with visual impairments.
+
+* **FR-CT-3.67 (Font Scaling):** The Creator Tool SHALL allow users to scale the UI font size and provide zoom functionality for the editing interface.
+
+* **FR-CT-3.68 (Accessibility Standards):** The Creator Tool SHALL comply with WCAG 2.1 Level AA accessibility standards for the editing interface.
+
+* **FR-CT-3.69 (Keyboard Shortcuts Documentation):** The Creator Tool SHALL provide accessible documentation of all keyboard shortcuts and make this documentation available within the application.
 
 === Multi-Language Support
 
-* **FR-CT-3.69 (UI Localization):** The Creator Tool SHALL support localization of the user interface using Qt i18n mechanisms, allowing the UI to be displayed in multiple languages.
+* **FR-CT-3.70 (UI Localization):** The Creator Tool SHALL support localization of the user interface using Qt i18n mechanisms, allowing the UI to be displayed in multiple languages.
 
-* **FR-CT-3.70 (Language Selection):** The Creator Tool SHALL allow users to select their preferred UI language, with the selection persisting across application sessions.
+* **FR-CT-3.71 (Language Selection):** The Creator Tool SHALL allow users to select their preferred UI language, with the selection persisting across application sessions.
 
-* **FR-CT-3.71 (Content Language Support):** The Creator Tool SHALL support authoring content in multiple languages, including right-to-left (RTL) languages, with appropriate text direction and formatting support.
+* **FR-CT-3.72 (Content Language Support):** The Creator Tool SHALL support authoring content in multiple languages, including right-to-left (RTL) languages, with appropriate text direction and formatting support.
 
-* **FR-CT-3.72 (Language Pack Management):** The Creator Tool SHALL support loading and managing language packs for UI translation, allowing users or third parties to provide translations.
+* **FR-CT-3.73 (Language Pack Management):** The Creator Tool SHALL support loading and managing language packs for UI translation, allowing users or third parties to provide translations.
 
-* **FR-CT-3.73 (Metadata Localization):** The Creator Tool SHALL allow users to provide localized versions of metadata fields (title, author, tags) for multi-language smartbook distribution.
+* **FR-CT-3.74 (Metadata Localization):** The Creator Tool SHALL allow users to provide localized versions of metadata fields (title, author, tags) for multi-language smartbook distribution.
 
-=== Theming Support
+=== UI Theming Support
 
-* **FR-CT-3.74 (Built-in Themes):** The Creator Tool SHALL provide three immutable, built-in themes for the application interface:
+* **FR-CT-3.75 (Built-in UI Themes):** The Creator Tool SHALL provide three immutable, built-in themes for the application interface:
 ** Light theme (default)
 ** Dark theme
 ** Sepia theme
 
-* **FR-CT-3.75 (Theme Selection):** The Creator Tool SHALL allow users to select and switch between built-in themes, with the selection persisting across application sessions.
+* **FR-CT-3.76 (UI Theme Selection):** The Creator Tool SHALL allow users to select and switch between built-in UI themes, with the selection persisting across application sessions.
 
-* **FR-CT-3.76 (Custom Theme Creation):** The Creator Tool SHALL provide functionality for users to create and save custom themes, allowing modification of UI colors, fonts, and styling.
+* **FR-CT-3.77 (Custom UI Theme Creation):** The Creator Tool SHALL provide functionality for users to create and save custom UI themes, allowing modification of UI colors, fonts, and styling.
 
-* **FR-CT-3.77 (Custom Theme Management):** The Creator Tool SHALL allow users to save, load, edit, and delete custom themes. Custom themes SHALL be stored locally and persist across sessions.
+* **FR-CT-3.78 (Custom UI Theme Management):** The Creator Tool SHALL allow users to save, load, edit, and delete custom UI themes. Custom UI themes SHALL be stored locally and persist across sessions.
 
-* **FR-CT-3.78 (Theme Application):** Theme changes SHALL apply immediately to the entire Creator Tool interface, including menu bars, toolbars, sidebars, and editing areas.
+* **FR-CT-3.79 (UI Theme Application):** UI theme changes SHALL apply immediately to the entire Creator Tool interface, including menu bars, toolbars, sidebars, and editing areas.
 
-* **FR-CT-3.79 (Theme Preview):** The Creator Tool SHALL provide a preview of themes before applying them, allowing users to see how the interface will look with the selected theme.
+* **FR-CT-3.80 (UI Theme Preview):** The Creator Tool SHALL provide a preview of UI themes before applying them, allowing users to see how the interface will look with the selected theme.
 
-* **FR-CT-3.80 (Theme Export/Import):** The Creator Tool SHALL support exporting custom themes to shareable files and importing themes created by other users.
+* **FR-CT-3.81 (UI Theme Export/Import):** The Creator Tool SHALL support exporting custom UI themes to shareable files and importing UI themes created by other users.
+
+=== Content Theme Management
+
+* **FR-CT-3.82 (Content Theme Manager Dialog):** The Creator Tool SHALL provide a Content Theme Manager dialog that allows authors to create, manage, and apply themes for smartbook content (not the application UI). The dialog SHALL include:
+  a. A left panel displaying available content themes with Apply buttons
+  b. A right panel showing theme configuration and live preview
+  c. Theme management actions (Add, Delete, Copy, Rename)
+  d. A "Persist on add" checkbox option
+
+* **FR-CT-3.83 (Content Theme List):** The Content Theme Manager SHALL display a list of available content themes (e.g., "Light Content", "Dark Content", "Warm Content") in the left panel. Each theme SHALL have an "Apply" button to apply the theme to the current cartridge. Built-in themes SHALL be immutable and clearly distinguished from custom themes.
+
+* **FR-CT-3.84 (Content Theme Actions):** The Content Theme Manager SHALL provide the following theme management actions:
+  a. Add (+) button: Create a new content theme
+  b. Delete (-) button: Delete the selected custom theme (built-in themes cannot be deleted)
+  c. Copy button: Duplicate the selected theme to create a new custom theme
+  d. Rename button: Rename the selected custom theme (built-in themes cannot be renamed)
+
+* **FR-CT-3.85 (Persist on Add):** The Content Theme Manager SHALL provide a "Persist on add" checkbox that, when enabled, automatically saves the theme to the cartridge's theme library when a new theme is created or modified.
+
+* **FR-CT-3.86 (Content Theme Configuration):** The Content Theme Manager SHALL provide a theme configuration panel that allows authors to:
+  a. Set the theme name via a text input field
+  b. Configure core colors (Primary, On Primary, Surface, On Surface, Background) using color pickers/swatches
+  c. Select color presets from a dropdown menu (e.g., "Default")
+  d. Reset colors to default values
+  e. Toggle color swatch display ("Show swatches" checkbox)
+
+* **FR-CT-3.87 (Content Theme Live Preview):** The Content Theme Manager SHALL provide a live preview panel that displays sample content (headings, body text, links, emphasis, inline code, quoted text, tables) rendered with the current theme configuration, allowing authors to see how the theme will appear before applying it.
+
+* **FR-CT-3.88 (Content Theme Actions):** The Content Theme Manager SHALL provide action buttons for the selected theme:
+  a. Apply: Apply the theme configuration to the current cartridge
+  b. Save: Save the theme configuration (enabled when theme is modified)
+  c. Cancel: Discard changes and close the dialog
+  d. Revert: Revert the theme to its last saved state
+
+* **FR-CT-3.89 (Content Theme Storage):** Content themes SHALL be stored within the cartridge file, allowing each smartbook to have its own set of content themes. Themes SHALL be accessible when editing the cartridge and SHALL be applied to content rendering in the Reader.
+
+* **FR-CT-3.90 (Content Theme Application):** When a content theme is applied, the Creator Tool SHALL update the cartridge's theme settings to use the selected theme for content rendering. The theme SHALL control **colors and fonts** (visual appearance and typography) while the CSS stylesheet controls **structure** (layout, positioning, spacing). The theme SHALL affect how content appears in both the Creator Tool preview and the Reader application, working in conjunction with the CSS stylesheet.
+
+== Error Handling and Logging Requirements
+
+=== Reader Application Error Handling
+
+* **FR-ERR-4.1 (Cartridge File Errors):** The Reader SHALL detect and handle cartridge file errors including: file not found, file corruption, invalid SQLite format, and file permission errors. The Reader SHALL display user-friendly error messages and SHALL log detailed error information.
+
+* **FR-ERR-4.2 (Database Connection Errors):** The Reader SHALL handle database connection failures gracefully, including: database locked errors, disk full errors, and SQLite corruption. The Reader SHALL attempt recovery where possible and SHALL inform the user of the error condition.
+
+* **FR-ERR-4.3 (Signature Verification Errors):** The Reader SHALL handle signature verification failures with specific error messages distinguishing between: invalid signature, expired certificate, untrusted CA, corrupted security data, and hash mismatch (tampering detected).
+
+* **FR-ERR-4.4 (File System Errors):** The Reader SHALL handle file system errors including: disk full, permission denied, path too long, and invalid characters. The Reader SHALL provide actionable error messages to the user.
+
+* **FR-ERR-4.5 (Manifest Update Errors):** The Reader SHALL handle manifest update failures gracefully. If manifest update fails, the Reader SHALL continue operation but SHALL log the error and SHALL retry the update on next application launch.
+
+* **FR-ERR-4.6 (Sandbox Operation Errors):** The Reader SHALL handle sandbox file system errors including: path traversal attempts, invalid filenames, file size limits exceeded, and disk space exhaustion. The Reader SHALL block invalid operations and SHALL return appropriate error codes via the WebChannel API.
+
+* **FR-ERR-4.7 (WebEngine Errors):** The Reader SHALL handle WebEngine crashes and JavaScript errors gracefully. The Reader SHALL log errors and SHALL provide recovery options (reload page, close app) without crashing the entire application.
+
+=== Creator Tool Error Handling
+
+* **FR-ERR-4.8 (Content Validation Errors):** The Creator Tool SHALL validate content before saving and SHALL provide specific error messages for: invalid HTML, malformed JSON schemas, missing required metadata, invalid form definitions, and resource reference errors.
+
+* **FR-ERR-4.9 (Cartridge Creation Errors):** The Creator Tool SHALL handle cartridge creation failures including: database initialization errors, GUID generation failures, and schema creation errors. The Creator Tool SHALL roll back partial changes and SHALL inform the user of the failure.
+
+* **FR-ERR-4.10 (Signing Errors):** The Creator Tool SHALL handle certificate and signing errors including: invalid certificate format, expired certificates, missing private keys, signing failures, and certificate import errors. The Creator Tool SHALL provide clear error messages and SHALL suggest corrective actions.
+
+* **FR-ERR-4.11 (Export Errors):** The Creator Tool SHALL handle export failures including: file write errors, disk full conditions, permission errors, and hash calculation failures. The Creator Tool SHALL preserve the working cartridge state and SHALL allow retry of the export operation.
+
+* **FR-ERR-4.12 (Import Errors):** The Creator Tool SHALL handle import failures including: unsupported file formats, corrupted source files, missing resources, and validation errors. The Creator Tool SHALL provide detailed error messages indicating what failed and why.
+
+* **FR-ERR-4.13 (Resource Management Errors):** The Creator Tool SHALL handle resource management errors including: file not found, invalid image formats, file size limits exceeded, and resource path errors. The Creator Tool SHALL validate resources before adding them to the cartridge.
+
+=== Logging Requirements
+
+* **FR-ERR-4.14 (Minimal Logging):** The application SHALL implement minimal logging that captures only essential information: errors, warnings, and critical security events. Debug and informational messages SHALL be excluded from production logs unless explicitly enabled.
+
+* **FR-ERR-4.15 (Log Rotation):** The application SHALL automatically rotate log files without user intervention. Log rotation SHALL occur when: a log file reaches a maximum size (default: 10MB), or daily (whichever comes first). The application SHALL retain a maximum of 5 rotated log files before deleting the oldest.
+
+* **FR-ERR-4.16 (Log Location):** Log files SHALL be stored in platform-appropriate application data directories:
+** Windows: `%APPDATA%\SmartBook\logs\`
+** macOS: `~/Library/Application Support/SmartBook/logs/`
+** Linux: `~/.local/share/SmartBook/logs/`
+
+* **FR-ERR-4.17 (Log Format):** Log entries SHALL include: timestamp, log level (ERROR/WARN/INFO), component name, and message. Log format SHALL be human-readable and machine-parseable.
+
+* **FR-ERR-4.18 (Error Reporting):** The application SHALL log sufficient error context to enable debugging without exposing sensitive user data. Error logs SHALL include: error code, error message, component, operation context, and stack trace (where available).
 
 == Non-Functional Requirements (NFR)
 

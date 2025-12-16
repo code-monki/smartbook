@@ -1,0 +1,349 @@
+= Embedded Applications Technical Feasibility Analysis
+:author: AI Assistant
+:revdate: 2025-12-14
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+
+== Executive Summary
+
+The embedded application concept is **reasonably achievable** with Qt WebEngine, but requires careful implementation of several security and isolation mechanisms. The approach leverages well-established web technologies (SPAs) within a controlled environment.
+
+== Feasibility Assessment: REASONABLE
+
+**Overall Assessment:** The concept is feasible but requires careful attention to security implementation details. Qt WebEngine provides the necessary foundation, but several security layers must be implemented correctly.
+
+== Technical Components Analysis
+
+=== 1. SPA Execution in Qt WebEngine
+
+**Feasibility:** ✅ **STRAIGHTFORWARD**
+
+* Qt WebEngine is Chromium-based and fully supports modern JavaScript frameworks (React, Vue, Angular, vanilla JS)
+* SPAs are standard web technology - no special implementation needed
+* HTML/CSS/JS injection is standard WebEngine functionality
+
+**Implementation:**
+* Load `entry_html` into `QWebEngineView`
+* Inject `js_code` and `css_code` via `QWebEnginePage::runJavaScript()` or by modifying HTML
+* Standard web development practices apply
+
+**Risk Level:** Low
+
+=== 2. Network Access Blocking
+
+**Feasibility:** ✅ **ACHIEVABLE** (with caveats)
+
+**Qt WebEngine Capabilities:**
+* `QWebEngineUrlRequestInterceptor` can intercept and block network requests
+* `QWebEngineProfile::setRequestInterceptor()` allows blocking at the profile level
+* Content Security Policy (CSP) headers can be set to restrict network access
+
+**Implementation Approach:**
+* Create custom `QWebEngineUrlRequestInterceptor` that blocks all network requests for embedded apps
+* Set strict CSP headers: `default-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'none';`
+* Validate that no `fetch()`, `XMLHttpRequest`, `WebSocket`, or `<script src="http...">` can execute
+
+**Challenges:**
+* **CSP Bypass Risks:** Some CSP implementations have known bypasses (though Qt WebEngine uses Chromium's CSP which is robust)
+* **WebSocket Blocking:** Must ensure WebSockets are blocked (interceptor handles this)
+* **Service Workers:** May need to disable service workers entirely for embedded apps
+* **Blob URLs:** Need to ensure blob URLs don't provide network access vectors
+
+**Risk Level:** Medium (requires thorough testing)
+
+**Mitigation:**
+* Comprehensive test suite for network blocking
+* Regular security audits
+* Consider using separate `QWebEngineProfile` for embedded apps with network disabled
+
+=== 3. Sandboxed File System
+
+**Feasibility:** ✅ **STRAIGHTFORWARD**
+
+**Implementation:**
+* Create directory structure: `{app_data}/{cartridge_guid}/{app_id}/sandbox/`
+* Use Qt's `QDir` and `QFile` APIs for file operations
+* Implement WebChannel API methods that validate paths and scope operations to sandbox directory
+
+**Key Implementation Details:**
+* **Path Validation:** Critical - must prevent path traversal (`../` attacks)
+* **Filename Sanitization:** Ensure valid filenames, no special characters
+* **File Size Limits:** Implement maximum file size limits
+* **Directory Traversal Prevention:** Use `QDir::canonicalPath()` and validate it starts with sandbox root
+
+**Code Example (Conceptual):**
+[source,cpp]
+----
+QString sandboxPath = getSandboxPath(cartridgeGuid, appId);
+QString requestedPath = QDir(sandboxPath).filePath(filename);
+QString canonicalPath = QDir(requestedPath).canonicalPath();
+
+if (!canonicalPath.startsWith(QDir(sandboxPath).canonicalPath())) {
+    // Path traversal attempt - reject
+    return false;
+}
+----
+
+**Risk Level:** Low-Medium (depends on path validation robustness)
+
+**Mitigation:**
+* Use Qt's built-in path canonicalization
+* Whitelist approach: only allow alphanumeric filenames + specific extensions
+* Test extensively for path traversal vulnerabilities
+
+=== 4. JavaScript Isolation
+
+**Feasibility:** ⚠️ **MODERATE COMPLEXITY**
+
+**Challenge:** Qt WebEngine runs all JavaScript in the same V8 context by default. True isolation requires:
+
+**Option A: Separate QWebEngineView per App** ✅ **RECOMMENDED**
+* Each embedded app gets its own `QWebEngineView` instance
+* Complete isolation - apps cannot access each other's JavaScript
+* Each view has its own WebChannel bridge instance
+* **Pros:** True isolation, simpler security model
+* **Cons:** Higher memory usage, more complex UI management
+
+**Option B: Single View with Namespace Isolation** ⚠️ **COMPLEX**
+* Use JavaScript namespaces/modules to isolate code
+* Wrap each app in an IIFE (Immediately Invoked Function Expression)
+* **Pros:** Lower memory usage
+* **Cons:** Not true isolation - apps could potentially access global scope, requires careful JavaScript engineering
+
+**Recommendation:** Use **Option A** (separate views) for security and simplicity.
+
+**Risk Level:** Low with Option A, Medium-High with Option B
+
+=== 5. Content Security Policy (CSP) Enforcement
+
+**Feasibility:** ✅ **ACHIEVABLE**
+
+**Implementation:**
+* Set CSP headers via `QWebEngineHttpRequest::setHeader()`
+* Use strict CSP: `default-src 'self' 'unsafe-inline' 'unsafe-eval'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'none';`
+
+**Considerations:**
+* `'unsafe-inline'` and `'unsafe-eval'` are needed for dynamic JavaScript (common in SPAs)
+* This reduces CSP effectiveness but is necessary for SPA functionality
+* Network blocking via interceptor provides primary security layer
+
+**Risk Level:** Medium (CSP is secondary defense, interceptor is primary)
+
+=== 6. Sandbox API Implementation
+
+**Feasibility:** ✅ **STRAIGHTFORWARD**
+
+**Implementation:**
+* Extend `SmartbookBridge` QObject with sandbox file methods
+* Use Qt's `QFile` and `QDir` APIs
+* Validate all inputs (filename, path, data size)
+* Use Qt's serialization for async callbacks
+
+**Code Structure:**
+[source,cpp]
+----
+class SmartbookBridge : public QObject {
+    Q_OBJECT
+public slots:
+    void saveSandboxFile(const QString& filename, const QByteArray& data, 
+                         QJSValue callback);
+    void loadSandboxFile(const QString& filename, QJSValue callback);
+    // ...
+};
+----
+
+**Risk Level:** Low
+
+== Major Technical Hurdles
+
+=== Hurdle 1: Network Blocking Completeness
+
+**Issue:** Ensuring 100% network blocking is difficult. JavaScript has many ways to make network requests:
+* `fetch()`, `XMLHttpRequest`, `WebSocket`
+* `<img src="http://...">`, `<link href="http://...">`
+* `navigator.sendBeacon()`
+* Dynamic script injection
+* Service Workers
+
+**Solution:**
+* Use `QWebEngineUrlRequestInterceptor` to block ALL requests at the network layer
+* Set strict CSP headers as secondary defense
+* Disable service workers: `QWebEngineProfile::setHttpCacheType(QWebEngineProfile::NoCache)`
+* Test comprehensively with automated security tests
+
+**Effort:** Medium-High (requires thorough testing)
+
+=== Hurdle 2: Memory and Performance
+
+**Issue:** Each embedded app requires its own `QWebEngineView` instance, which is memory-intensive (Chromium is heavy).
+
+**Impact:**
+* Each `QWebEngineView` uses ~50-100MB RAM
+* Multiple apps = multiple views = significant memory usage
+* Performance may degrade with many simultaneous apps
+
+**Mitigation:**
+* Lazy loading: Only create view when app is actually requested
+* View pooling/reuse (complex, may compromise isolation)
+* Resource limits: Limit number of simultaneous apps
+* Memory monitoring and warnings
+
+**Effort:** Medium
+
+=== Hurdle 3: Path Traversal Attacks
+
+**Issue:** Sandbox file operations must be bulletproof against path traversal (`../../../etc/passwd`).
+
+**Solution:**
+* Always use `QDir::canonicalPath()` and validate
+* Whitelist approach: Only allow specific filename patterns
+* Never trust user-provided paths
+* Comprehensive path validation tests
+
+**Effort:** Low-Medium (but critical - security vulnerability if wrong)
+
+=== Hurdle 4: CSP and SPA Compatibility
+
+**Issue:** SPAs often require `'unsafe-inline'` and `'unsafe-eval'` which weakens CSP protection.
+
+**Impact:**
+* CSP becomes less effective as a security layer
+* Primary security relies on network interceptor
+* XSS vulnerabilities in app code could be more dangerous
+
+**Mitigation:**
+* Network interceptor is primary defense (more reliable than CSP)
+* Content validation: Scan app code for obvious XSS patterns (optional)
+* User consent model provides additional security layer
+
+**Effort:** Low (accept the trade-off)
+
+=== Hurdle 5: App Lifecycle Management
+
+**Issue:** Managing multiple `QWebEngineView` instances, their lifecycle, cleanup, and resource management.
+
+**Complexity:**
+* When to create/destroy views?
+* How to handle app errors/crashes?
+* Memory cleanup when apps are closed
+* Sandbox directory cleanup
+
+**Solution:**
+* Clear lifecycle: Create on consent, destroy on page close or explicit unload
+* Use Qt's parent-child object model for automatic cleanup
+* Implement explicit cleanup methods
+* Sandbox cleanup on cartridge deletion (with user preference)
+
+**Effort:** Medium
+
+== Recommended Implementation Strategy
+
+=== Phase 1: Core Functionality (MVP)
+
+1. **Basic App Loading:**
+   * Single `QWebEngineView` per embedded app
+   * Load HTML/JS/CSS from database
+   * Basic WebChannel bridge
+
+2. **Network Blocking:**
+   * Implement `QWebEngineUrlRequestInterceptor`
+   * Block all network requests
+   * Test thoroughly
+
+3. **Sandbox API:**
+   * Implement basic file operations
+   * Path validation
+   * Basic error handling
+
+**Timeline:** 2-3 weeks for experienced Qt developer
+
+=== Phase 2: Security Hardening
+
+1. **Enhanced Path Validation:**
+   * Comprehensive path traversal tests
+   * Filename sanitization
+   * File size limits
+
+2. **CSP Implementation:**
+   * Set CSP headers
+   * Test CSP effectiveness
+   * Document limitations
+
+3. **Error Handling:**
+   * App crash handling
+   * Sandbox error recovery
+   * User feedback
+
+**Timeline:** 1-2 weeks
+
+=== Phase 3: Polish and Optimization
+
+1. **Performance Optimization:**
+   * Lazy loading
+   * Memory management
+   * Resource limits
+
+2. **User Experience:**
+   * Loading indicators
+   * Error messages
+   * Sandbox management UI
+
+**Timeline:** 1-2 weeks
+
+== Risk Assessment Summary
+
+[cols="2, 1, 1, 3", options="headers"]
+|===
+^.^| Risk ^.^| Likelihood ^.^| Impact ^.^| Mitigation
+
+| Network blocking bypass | Low-Medium | High | Comprehensive interceptor + CSP + testing
+| Path traversal attack | Low | High | Strict path validation + canonicalization
+| Memory exhaustion | Medium | Medium | Resource limits + lazy loading
+| App isolation failure | Low | Medium | Separate QWebEngineView per app
+| Performance degradation | Medium | Low-Medium | Optimization + resource limits
+|===
+
+== Conclusion
+
+**Verdict:** The embedded application concept is **reasonably achievable** with Qt WebEngine.
+
+**Key Success Factors:**
+1. ✅ Use separate `QWebEngineView` instances for true isolation
+2. ✅ Implement robust network blocking via interceptor
+3. ✅ Strict path validation for sandbox operations
+4. ✅ Comprehensive security testing
+5. ✅ Clear resource limits and lifecycle management
+
+**Estimated Development Effort:**
+* Core implementation: 4-6 weeks
+* Security hardening: 2-3 weeks
+* Testing and polish: 2-3 weeks
+* **Total: 8-12 weeks** for experienced Qt/C++ developer
+
+**Recommendation:** Proceed with implementation, but prioritize security testing and consider a phased rollout starting with trusted (Level 1) cartridges only.
+
+== Alternative Approaches (If Issues Arise)
+
+=== Option 1: Simplified Sandbox
+
+* Remove file system access entirely
+* Apps can only use `saveFormData`/`loadFormData` API
+* Simpler security model
+* **Trade-off:** Less functionality for apps
+
+=== Option 2: Restricted JavaScript Subset
+
+* Use a JavaScript sandbox library (e.g., `vm2` concept, but for C++)
+* More restrictive but potentially more secure
+* **Trade-off:** Significant development effort, may break many SPAs
+
+=== Option 3: External Process Isolation
+
+* Run each app in separate process (like Electron's approach)
+* Maximum security isolation
+* **Trade-off:** Much higher complexity and resource usage
+
+**Recommendation:** Current approach is best balance of security, functionality, and implementation complexity.
+

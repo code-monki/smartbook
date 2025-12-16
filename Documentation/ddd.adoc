@@ -63,8 +63,12 @@ The following tables define the structure of the Smartbook Cartridge (`.sqlite` 
 | `page_order` | INTEGER | NOT NULL, UNIQUE | Order of the page in the book structure.
 | `chapter_title` | TEXT | | Title of the chapter/section this page belongs to.
 | `html_content` | TEXT | NOT NULL | The primary HTML body content.
-| `associated_css` | TEXT | | Inline CSS or reference to a style sheet.
+| `associated_css` | TEXT | | Inline CSS or reference to a style sheet. This CSS controls the **structure** of the page (layout, positioning, spacing, margins, borders, display properties, etc.). Color and font styling is controlled by content themes (see `Content_Themes` table).
 |===
+
+**CSS vs Theme Distinction:**
+* **`associated_css`:** Controls **structural** aspects - layout (flexbox, grid, positioning), spacing (margins, padding), borders, display properties, etc.
+* **Content Themes (`Content_Themes` table):** Controls **visual** aspects - colors (background, text, links), fonts (family, size, weight), typography styling
 
 === `Form_Definitions` Table
 
@@ -74,6 +78,8 @@ The following tables define the structure of the Smartbook Cartridge (`.sqlite` 
 
 | `form_id` | TEXT | PRIMARY KEY | Unique identifier referenced by the WebChannel API.
 | `form_schema_json` | TEXT | NOT NULL | The complete JSON schema defining the form fields and validation.
+| `form_version` | INTEGER | NOT NULL, DEFAULT 1 | Version number of the form schema. Incremented when form structure changes significantly.
+| `migration_rules_json` | TEXT | | Optional JSON structure containing migration rules for upgrading user data from previous form versions. NULL if no migration rules defined.
 |===
 
 === `User_Data` Table
@@ -84,9 +90,112 @@ The following tables define the structure of the Smartbook Cartridge (`.sqlite` 
 
 | `data_id` | INTEGER | PRIMARY KEY | Unique ID for the saved data entry.
 | `form_key` | TEXT | NOT NULL | The `form_id` that this data belongs to.
+| `form_version` | INTEGER | | Version of the form schema when this data was saved. NULL for data saved before versioning was implemented (treated as version 1).
+| `migrated_from_version` | INTEGER | | If this data was migrated from an older form version, this field stores the source version number. NULL if data was saved directly to current version.
 | `timestamp` | INTEGER | NOT NULL | UNIX timestamp of when the data was saved.
 | `serialized_data` | TEXT | NOT NULL | The final, validated JSON string of user inputs.
 |===
+
+=== `Settings` Table
+
+[cols="2, ^1, ^3, 4"]
+|===
+^.^| Column Name ^.^| SQLite Type ^.^| Constraints ^.^| Description
+
+| `setting_key` | TEXT | PRIMARY KEY | Unique identifier for the setting (e.g., `default_font_size`, `default_font_family`, `default_theme`, `page_margins`, `line_spacing`).
+| `setting_value` | TEXT | NOT NULL | The value of the setting. May be a simple value (e.g., "14") or JSON for complex settings (e.g., `{"top": 10, "bottom": 10, "left": 15, "right": 15}` for margins).
+| `setting_type` | TEXT | NOT NULL | Data type of the setting: `string`, `integer`, `float`, `boolean`, `json`.
+| `description` | TEXT | | Optional human-readable description of what the setting controls.
+|===
+
+**Purpose:** Stores author-defined rendering defaults for the smartbook cartridge. These settings are part of the cartridge itself, defined by the author to provide initial display preferences. Users can override these settings, but the original author-defined defaults are preserved in the cartridge to enable resetting to the author's intended appearance.
+
+**Common Settings:**
+* `default_font_size` - Default font size in points (integer)
+* `default_font_family` - Default font family name (string)
+* `default_theme` - Default theme preference: `light`, `dark`, `sepia` (string)
+* `page_margins` - Page margin settings in pixels (JSON: `{"top": X, "bottom": Y, "left": Z, "right": W}`)
+* `line_spacing` - Line spacing multiplier (float, e.g., 1.5)
+* `text_alignment` - Default text alignment: `left`, `right`, `center`, `justify` (string)
+
+=== `Embedded_Apps` Table
+
+[cols="2, ^1, ^3, 4"]
+|===
+^.^| Column Name ^.^| SQLite Type ^.^| Constraints ^.^| Description
+
+| `app_id` | TEXT | PRIMARY KEY | Unique identifier for the embedded application (matches `appId` in manifest JSON).
+| `app_name` | TEXT | NOT NULL | Human-readable name of the application.
+| `manifest_json` | TEXT | NOT NULL | Complete `Embedded_App_Manifest` JSON structure defining the app's metadata, entry points, and resource requirements.
+| `entry_html` | TEXT | NOT NULL | The primary HTML entry point for the application (SPA root HTML).
+| `js_code` | BLOB | | Compiled or minified JavaScript code for the application. May be NULL if using external scripts.
+| `css_code` | BLOB | | CSS stylesheet code for the application. May be NULL if using external stylesheets.
+| `additional_resources` | BLOB | | ZIP archive or JSON manifest of additional resources (images, fonts, data files) required by the app. May be NULL.
+|===
+
+**Note:** Embedded applications are Single Page Applications (SPAs) or similar interactive components that operate **locally only** within a sandboxed environment. They provide functionality such as character generators, calculators, design tools, etc., but have **no network access** and can only access a local sandbox file system.
+
+=== `Settings` Table
+
+[cols="2, ^1, ^3, 4"]
+|===
+^.^| Column Name ^.^| SQLite Type ^.^| Constraints ^.^| Description
+
+| `setting_key` | TEXT | PRIMARY KEY | Unique identifier for the setting (e.g., `default_font_size`, `default_font_family`, `default_theme`, `page_margins`, `line_spacing`).
+| `setting_value` | TEXT | NOT NULL | The value of the setting (stored as string, may represent numbers, JSON, or other types).
+| `setting_type` | TEXT | NOT NULL | Type of the setting value: `string`, `number`, `boolean`, `json` (for complex settings).
+| `description` | TEXT | | Optional human-readable description of what the setting controls.
+|===
+
+**Purpose:** Stores book-specific rendering defaults defined by the author. These settings provide initial values for how the content should be displayed in the Reader. Users can override these settings, but the original cartridge defaults are preserved to allow resetting to author's intended appearance.
+
+**Common Settings:**
+* `default_font_size` - Default font size in points (e.g., "12")
+* `default_font_family` - Default font family name (e.g., "Georgia", "Arial")
+* `default_theme` - Default theme preference (e.g., "light", "dark", "sepia")
+* `page_margins` - Page margin settings (JSON: `{"top": 20, "bottom": 20, "left": 30, "right": 30}`)
+* `line_spacing` - Line spacing multiplier (e.g., "1.5")
+* `text_alignment` - Default text alignment (e.g., "left", "justify")
+* `page_width` - Preferred page width (e.g., "800px" or "100%")
+
+=== `Content_Themes` Table
+
+[cols="2, ^1, ^3, 4"]
+|===
+^.^| Column Name ^.^| SQLite Type ^.^| Constraints ^.^| Description
+
+| `theme_id` | TEXT | PRIMARY KEY | Unique identifier for the content theme (e.g., "light-content", "dark-content").
+| `theme_name` | TEXT | NOT NULL | Human-readable name of the theme (e.g., "Light Content", "Dark Content").
+| `is_builtin` | INTEGER | NOT NULL, DEFAULT 0 | Boolean flag: 1 for built-in themes (immutable), 0 for custom themes.
+| `theme_config_json` | TEXT | NOT NULL | JSON structure containing theme configuration (colors, fonts, styling).
+| `is_active` | INTEGER | DEFAULT 0 | Boolean flag: 1 if this theme is currently applied to the cartridge.
+|===
+
+**Purpose:** Stores content themes for smartbook cartridges. Themes define how content is rendered (colors, fonts, styling) and can be applied to control the appearance of content in the Reader. Built-in themes are immutable; custom themes can be created, modified, and deleted by authors.
+
+**Theme Configuration JSON Structure:**
+[source,json]
+----
+{
+  "coreColors": {
+    "primary": "#1976D2",
+    "onPrimary": "#FFFFFF",
+    "surface": "#FFFFFF",
+    "onSurface": "#000000",
+    "background": "#F5F5F5"
+  },
+  "fonts": {
+    "heading": "Georgia, serif",
+    "body": "Arial, sans-serif",
+    "monospace": "Courier New, monospace"
+  },
+  "styling": {
+    "linkColor": "#1976D2",
+    "emphasisStyle": "italic",
+    "codeBackground": "#F5F5F5"
+  }
+}
+----
 
 === `Cartridge_Security` Table
 
@@ -94,10 +203,11 @@ The following tables define the structure of the Smartbook Cartridge (`.sqlite` 
 |===
 ^.^| Column Name ^.^| SQLite Type ^.^| Constraints ^.^| Description
 
-| `digest_type` | TEXT | NOT NULL | Hash algorithm used (e.g., "SHA-256").
+| `digest_type` | TEXT | NOT NULL | Hash algorithm used. **SHALL** be "SHA-256" for Phase 1.
 | `hash_digest` | BLOB | NOT NULL | The binary hash of the critical content tables (H1).
 | `digital_signature` | BLOB | NOT NULL | The H1 hash signed by the author's private key.
 | `public_key_fingerprint` | TEXT | NOT NULL | Fingerprint of the public key used for verification.
+| `certificate_data` | BLOB | | The X.509 certificate (DER or PEM format) used for signing. Required for Level 1 (CA-signed) and Level 2 (self-signed) cartridges.
 |===
 
 == Reader Local Persistence Schema
@@ -136,6 +246,85 @@ These tables exist in a separate, local SQLite database maintained by the Reader
 | `timestamp` | INTEGER | NOT NULL | When the trust decision was made.
 |===
 
+=== `Local_User_Settings` Table
+
+[cols="2, ^1, ^3, 4", options="headers"]
+|===
+^.^| Column Name ^.^| SQLite Type ^.^| Constraints ^.^| Description
+
+| `settings_id` | INTEGER | PRIMARY KEY | Unique ID for the settings entry.
+| `cartridge_guid` | TEXT | NOT NULL (FK) | The unique ID of the cartridge these settings apply to.
+| `setting_key` | TEXT | NOT NULL | The setting key (matches `setting_key` in cartridge `Settings` table).
+| `setting_value` | TEXT | NOT NULL | The user's override value for this setting.
+| `timestamp` | INTEGER | NOT NULL | When the setting was last modified.
+|===
+
+**Purpose:** Stores user preference overrides for cartridge rendering settings. These overrides take precedence over author-defined defaults from the cartridge's `Settings` table, but the original author defaults are preserved in the cartridge for reset functionality.
+
+**Unique Constraint:** `(cartridge_guid, setting_key)` - One user override per setting per cartridge.
+
+**Settings Priority:** When loading a cartridge, settings are applied in this order:
+1. User override from `Local_User_Settings` (if exists)
+2. Author default from cartridge `Settings` table (if exists)
+3. Application default (hardcoded fallback)
+
+=== `Local_Bookmarks` Table
+
+[cols="2, ^1, ^3, 4", options="headers"]
+|===
+^.^| Column Name ^.^| SQLite Type ^.^| Constraints ^.^| Description
+
+| `bookmark_id` | INTEGER | PRIMARY KEY | Unique ID for the bookmark.
+| `cartridge_guid` | TEXT | NOT NULL (FK) | The unique ID of the cartridge this bookmark belongs to.
+| `page_id` | INTEGER | NOT NULL | The `page_id` from the cartridge's `Content_Pages` table.
+| `anchor_id` | TEXT | | Optional anchor identifier (e.g., heading ID, element ID) within the page.
+| `bookmark_label` | TEXT | NOT NULL | User-provided label/name for the bookmark.
+| `timestamp` | INTEGER | NOT NULL | When the bookmark was created.
+| `scroll_position` | INTEGER | | Optional scroll position (pixels from top) for precise position restoration.
+|===
+
+**Purpose:** Stores user-created bookmarks for quick navigation to specific pages or positions within pages.
+
+**Unique Constraint:** `(cartridge_guid, page_id, anchor_id)` - Prevents duplicate bookmarks for the same location.
+
+=== `Local_Reading_Position` Table
+
+[cols="2, ^1, ^3, 4", options="headers"]
+|===
+^.^| Column Name ^.^| SQLite Type ^.^| Constraints ^.^| Description
+
+| `position_id` | INTEGER | PRIMARY KEY | Unique ID for the reading position entry.
+| `cartridge_guid` | TEXT | NOT NULL, UNIQUE (FK) | The unique ID of the cartridge (one reading position per cartridge).
+| `page_id` | INTEGER | NOT NULL | The `page_id` from the cartridge's `Content_Pages` table where reading stopped.
+| `anchor_id` | TEXT | | Optional anchor identifier (e.g., heading ID, element ID) within the page.
+| `scroll_position` | INTEGER | | Optional scroll position (pixels from top) for precise position restoration.
+| `last_access_timestamp` | INTEGER | NOT NULL | Timestamp of when the cartridge was last accessed.
+|===
+
+**Purpose:** Stores the last reading position for each cartridge, enabling automatic restoration of reading position when cartridge is reopened.
+
+=== `Local_Window_State` Table
+
+[cols="2, ^1, ^3, 4", options="headers"]
+|===
+^.^| Column Name ^.^| SQLite Type ^.^| Constraints ^.^| Description
+
+| `state_id` | INTEGER | PRIMARY KEY | Unique ID for the window state entry.
+| `cartridge_guid` | TEXT | NOT NULL, UNIQUE (FK) | The unique ID of the cartridge (one window state per cartridge).
+| `window_width` | INTEGER | NOT NULL | Window width in pixels.
+| `window_height` | INTEGER | NOT NULL | Window height in pixels.
+| `window_x` | INTEGER | NOT NULL | Window X position (left edge) in screen coordinates.
+| `window_y` | INTEGER | NOT NULL | Window Y position (top edge) in screen coordinates.
+| `is_maximized` | INTEGER | NOT NULL | Boolean flag (0 = false, 1 = true) indicating whether window was maximized.
+| `last_updated` | INTEGER | NOT NULL | Timestamp when window state was last saved.
+|===
+
+**Purpose:** Stores window geometry and state (size, position, maximized state) for each cartridge, enabling restoration of window appearance when cartridge is reopened.
+
+**Unique Constraint:** `(cartridge_guid)` - One window state entry per cartridge.
+
+**Update Strategy:** On cartridge close or page navigation, update or insert record for `cartridge_guid` with current `page_id`, `anchor_id`, `scroll_position`, and `last_access_timestamp`.
+
 == Component Interface Specification
 
 === WebChannel Bridge API (SmartbookBridge)
@@ -165,6 +354,1643 @@ These tables exist in a separate, local SQLite database maintained by the Reader
 | **Form Rendering** | `SELECT` from `Form_Definitions` | Retrieves `form_schema_json`.
 |===
 
+== Form Rendering and Interaction Specification
+
+This section defines how forms are embedded, rendered, and interacted with in the Reader application.
+
+=== Form Embedding in Content Pages
+
+Forms are embedded within content pages using a special HTML marker element. The Reader detects these markers and dynamically renders the corresponding form definition.
+
+==== Embedding Syntax
+
+Forms are embedded in `Content_Pages.html_content` using one of the following patterns:
+
+**Pattern 1: Data Attribute (Recommended)**
+[source,html]
+----
+<div data-smartbook-form="form_id" data-form-instance="optional_instance_id"></div>
+----
+
+**Pattern 2: Custom Element (Alternative)**
+[source,html]
+----
+<smartbook-form form-id="form_id" instance-id="optional_instance_id"></smartbook-form>
+----
+
+**Parameters:**
+* `form_id` (required): The `form_id` from the `Form_Definitions` table
+* `instance_id` (optional): Unique identifier for this form instance, allowing multiple instances of the same form on different pages
+
+==== Form Detection and Rendering Flow
+
+1. **Content Loading:** Reader loads `html_content` from `Content_Pages` table
+2. **Form Marker Detection:** Reader scans HTML for form markers (`data-smartbook-form` attribute or `<smartbook-form>` elements)
+3. **Form Definition Retrieval:** For each detected marker, Reader queries `Form_Definitions` table using `form_id`
+4. **JSON Schema Parsing:** Reader parses `form_schema_json` to extract field definitions
+5. **HTML Form Generation:** Reader generates standard HTML form elements based on field definitions
+6. **Form Injection:** Reader replaces form marker with generated HTML form
+7. **Data Loading:** Reader loads saved form data (if any) and populates form fields
+8. **Event Binding:** Reader binds form events (submit, change, validation) to WebChannel API
+
+=== Form Rendering Algorithm
+
+The Reader converts form definition JSON schema to HTML form elements using the following mapping:
+
+==== Field Type to HTML Element Mapping
+
+[cols="2, 2, 4", options="headers"]
+|===
+^.^| Field Type ^.^| HTML Element ^.^| Notes
+
+| `text` | `<input type="text">` | Standard text input
+| `number` | `<input type="number">` | Numeric input with min/max validation
+| `email` | `<input type="email">` | Email input with format validation
+| `url` | `<input type="url">` | URL input with format validation
+| `date` | `<input type="date">` | Date picker input
+| `time` | `<input type="time">` | Time picker input
+| `textarea` | `<textarea>` | Multi-line text input
+| `select` | `<select>` with `<option>` elements | Dropdown selection
+| `radio` | `<input type="radio">` | Radio button group
+| `checkbox` | `<input type="checkbox">` | Checkbox input
+| `group` | `<fieldset>` with `<legend>` | Grouping container for nested fields
+|===
+
+==== Form Structure Generation
+
+**Algorithm:**
+1. Create `<form>` element with `id="smartbook-form-{formId}-{instanceId}"`
+2. Add form title as `<h2>` or `<legend>` if `formTitle` is defined
+3. Iterate through `fields` array in order:
+   a. For each field, generate appropriate HTML element based on `fieldType`
+   b. Set `name` attribute to `fieldId`
+   c. Set `id` attribute to `{formId}-{fieldId}-{instanceId}`
+   d. Apply `defaultValue` if present
+   e. Apply `placeholder` if present
+   f. Apply validation attributes (`required`, `min`, `max`, `pattern`, etc.)
+   g. For `group` type, create `<fieldset>` and recursively process `children` array
+4. Add form action buttons: "Save", "Reset", "Print" (if enabled)
+5. Apply CSS classes for styling: `smartbook-form`, `smartbook-form-field`, etc.
+
+=== Form Validation
+
+==== Client-Side Validation
+
+Validation is performed using HTML5 validation attributes and custom JavaScript validation:
+
+**HTML5 Attributes Applied:**
+* `required` - If `validation.required === true`
+* `min` / `max` - For numeric fields (`validation.min`, `validation.max`)
+* `minlength` / `maxlength` - For text fields (`validation.minLength`, `validation.maxLength`)
+* `pattern` - For regex validation (`validation.pattern`)
+* `type` - For email, url, date, time fields
+
+**Custom Validation:**
+* Custom validation rules are enforced via JavaScript event handlers
+* Validation errors are displayed inline using HTML5 `:invalid` pseudo-class and custom error messages
+* Error messages are displayed inline using `<span class="error-message">` elements
+
+==== Validation Error Display
+
+**Error Display Pattern:**
+[source,html]
+----
+<div class="form-field">
+  <label for="field-id">Field Label</label>
+  <input type="text" id="field-id" name="fieldId" required>
+  <span class="error-message" id="field-id-error" role="alert"></span>
+</div>
+----
+
+**Error Message Population:**
+* Error messages are populated from `validation.errorMessage` in form schema
+* If no custom message, default HTML5 validation messages are used
+* Error messages are displayed immediately on field blur or form submit
+
+=== Form Data Persistence
+
+==== Persistence to Cartridge (`User_Data` Table)
+
+**Save Operation:**
+1. User clicks "Save" button or auto-save triggers
+2. Form data is serialized to JSON: `{ "fieldId1": "value1", "fieldId2": "value2", ... }`
+3. JSON is validated against form schema
+4. WebChannel API `saveFormData(formId, dataJson, callback)` is called
+5. C++ core inserts new record into `User_Data` table:
+   * `form_key` = `formId`
+   * `form_version` = current form version (from `Form_Definitions` table)
+   * `migrated_from_version` = NULL (data saved directly to current version)
+   * `serialized_data` = validated JSON string
+   * `timestamp` = current UNIX timestamp
+
+**Load Operation:**
+1. Form is rendered
+2. Reader retrieves current form version from `Form_Definitions` table
+3. WebChannel API `loadFormData(formId, callback)` is called
+4. C++ core queries `User_Data` table: `SELECT serialized_data, form_version, migrated_from_version FROM User_Data WHERE form_key = formId ORDER BY timestamp DESC LIMIT 1`
+5. If saved data version < current form version, apply migration (see "Form Versioning and Data Migration" section)
+6. JSON data (migrated if necessary) is returned to JavaScript
+7. Form fields are populated with loaded values
+
+==== Persistence to Sandbox File System
+
+**Save Operation:**
+1. User selects "Save to Sandbox" option (if available)
+2. Form data is serialized to JSON
+3. **File Selection:** Reader presents sandbox file picker dialog:
+   a. User can select existing file to overwrite, or
+   b. User can enter new filename
+   c. File picker is restricted to sandbox directory only (no navigation outside)
+   d. Default filename suggested: `{formId}_{instanceId}_data.json`
+4. WebChannel API `saveSandboxFile(filename, jsonData, callback)` is called
+5. File is saved to embedded app's sandbox directory
+6. Embedded app can access file via `loadSandboxFile` API
+
+**Load Operation:**
+1. Form checks for sandbox file on load
+2. **File Selection:** Reader provides option to use sandbox file picker:
+   a. User can browse available files in sandbox directory
+   b. File picker displays list of available JSON files (or all files)
+   c. User selects file to load
+   d. File picker is restricted to sandbox directory only
+3. WebChannel API `loadSandboxFile(filename, callback)` is called with selected filename
+4. JSON data is loaded and form fields are populated
+
+**Sandbox File Picker Requirements:**
+* **Security:** File picker MUST be restricted to sandbox directory only
+* **Navigation:** User MUST NOT be able to navigate outside sandbox directory
+* **File Filtering:** Option to filter by file type (e.g., JSON files only)
+* **File Listing:** Display available files in sandbox with metadata (size, date modified)
+* **File Selection:** User can select existing file or enter new filename
+* **Validation:** Filename validation prevents path traversal and invalid characters
+
+**Use Case:** Enables embedded applications to process form data (e.g., character generators, calculators, design tools)
+
+=== Form Printing
+
+==== Print Functionality
+
+**Print Button:** Forms include a "Print" button that triggers print functionality.
+
+**Print Algorithm:**
+1. User clicks "Print" button
+2. Form is cloned and transformed for printing:
+   a. Remove all `<input>`, `<select>`, `<textarea>` elements
+   b. Replace with `<span>` or `<div>` elements displaying current field values
+   c. Apply print-specific CSS (`@media print`)
+   d. Hide form action buttons
+   e. Show field labels and values in print-friendly format
+3. Browser print dialog is triggered (`window.print()`)
+4. Print preview shows form with values, not input controls
+
+**Print CSS:**
+[source,css]
+----
+@media print {
+  .smartbook-form input,
+  .smartbook-form select,
+  .smartbook-form textarea {
+    display: none;
+  }
+  .smartbook-form .print-value {
+    display: inline;
+    font-weight: bold;
+  }
+  .smartbook-form button {
+    display: none;
+  }
+}
+----
+
+=== Form State Management
+
+==== Auto-Save
+
+**Configuration:**
+* Auto-save interval: Configurable (default: 30 seconds)
+* Auto-save trigger: Field blur event or interval timer
+* Auto-save scope: Current form instance only
+
+**Implementation:**
+1. Timer starts when form is loaded
+2. On field blur or timer expiration, form data is serialized
+3. If data has changed since last save, `saveFormData` is called
+4. Visual indicator shows "Saving..." and "Saved" states
+
+==== Form Reset
+
+**Reset to Defaults:**
+1. User clicks "Reset" button
+2. All form fields are restored to `defaultValue` from form schema
+3. Unsaved changes are discarded
+4. Saved data remains in `User_Data` table (not deleted)
+
+**Clear Form:**
+1. User selects "Clear" option
+2. All form fields are set to empty/null values
+3. Saved data remains in `User_Data` table (not deleted)
+
+=== Multiple Form Instances
+
+**Instance Isolation:**
+* Each form instance has unique `instance_id`
+* Form data is scoped by `formId` + `instanceId` combination
+* Multiple instances of same form can exist on different pages
+* Each instance maintains independent data state
+
+**Instance ID Generation:**
+* If `instance-id` attribute is provided, use that value
+* If not provided, generate unique ID: `{pageId}-{formId}-{timestamp}`
+
+**Data Scoping:**
+* When saving: `saveFormData(formId + "-" + instanceId, dataJson, callback)`
+* When loading: `loadFormData(formId + "-" + instanceId, callback)`
+
+=== Form Versioning and Data Migration
+
+This section defines how form schemas are versioned and how user data is migrated when form definitions change.
+
+==== Form Versioning Strategy
+
+**Version Number:**
+* Each form has a `form_version` integer in the `Form_Definitions` table
+* Version starts at 1 for new forms
+* Version is incremented when form structure changes significantly (fields added/removed/renamed, validation rules changed, field types changed)
+
+**Version Increment Triggers:**
+* **Breaking Changes:** Field removed, field renamed, field type changed, validation rules changed significantly
+* **Non-Breaking Changes:** Field added (with default value), field label changed, placeholder text changed, validation rules made more permissive
+
+**Version Tracking:**
+* Current form version stored in `Form_Definitions.form_version`
+* Form schema JSON also includes `schemaVersion` field (matches `form_version`)
+* User data stores `form_version` when saved, allowing Reader to detect version mismatches
+
+==== Form Page Structure
+
+**Dedicated Form Pages:**
+* Forms SHALL be placed on dedicated content pages, not intermingled with other content text
+* A form page contains only the form marker element: `<div data-smartbook-form="form_id"></div>`
+* Form pages may include minimal descriptive text (form title, instructions) but the form itself is the primary content
+* Form pages are regular `Content_Pages` entries with form markers
+
+**Form Embedding:**
+* Forms are embedded using existing form marker mechanism
+* Form builder output is injected at the designated point in the content page
+* If a form page already exists, form builder can overwrite it with updated form
+* Form pages are identified by presence of form marker in `html_content`
+
+**Rationale:**
+* Clear separation between forms and content text
+* Easier form management and versioning
+* Better user experience (forms are clearly distinct from reading content)
+* Simplifies form builder workflow
+
+==== Form Builder Version Management
+
+**Version Management UI:**
+* Form Builder displays current form version
+* Version increment button/option when making breaking changes
+* Version history view showing changes between versions
+* Migration mapping interface for defining field mappings
+
+**Version Increment Workflow:**
+1. Author makes changes to form in Form Builder
+2. Form Builder detects if changes are breaking (field removed, renamed, type changed)
+3. If breaking changes detected, prompt author to increment version
+4. Author can choose to:
+   * Increment version and define migration rules
+   * Revert changes
+   * Save as new form (different `form_id`)
+
+**Migration Mapping Interface:**
+* When version is incremented, Form Builder shows migration mapping interface
+* Lists all fields from previous version
+* For each field, author can:
+   * Map to new field (if renamed)
+   * Set default value (if field removed)
+   * Map to new field with transformation (if field type changed)
+* Author can preview migration results before saving
+
+==== Migration Rules JSON Structure
+
+Migration rules are stored in `Form_Definitions.migration_rules_json` as a JSON object:
+
+[source,json]
+----
+{
+  "fromVersion": 1,
+  "toVersion": 2,
+  "fieldMappings": [
+    {
+      "oldFieldId": "character_name",
+      "newFieldId": "name",
+      "action": "rename"
+    },
+    {
+      "oldFieldId": "character_class",
+      "newFieldId": "class",
+      "action": "rename"
+    },
+    {
+      "oldFieldId": "old_field",
+      "action": "remove",
+      "defaultValue": ""
+    },
+    {
+      "oldFieldId": "level",
+      "newFieldId": "character_level",
+      "action": "rename",
+      "transform": {
+        "type": "type_cast",
+        "fromType": "string",
+        "toType": "integer"
+      }
+    }
+  ],
+  "newFields": [
+    {
+      "fieldId": "new_field",
+      "defaultValue": "default_value"
+    }
+  ]
+}
+----
+
+**Migration Rule Actions:**
+* **`rename`** - Map old field to new field (field ID changed)
+* **`remove`** - Field was removed, use default value
+* **`transform`** - Field exists but type changed, apply transformation
+* **`copy`** - Copy field value as-is (explicit mapping, optional)
+
+**New Fields:**
+* Fields added in new version get default values from schema
+* Migration rules can override defaults if needed
+
+==== Form Data Migration Algorithm
+
+**Migration Process:**
+1. **Load Saved Data:** Retrieve most recent user data for form
+2. **Check Version:** Compare saved data `form_version` with current form version
+3. **If Versions Match:** Return data as-is (no migration needed)
+4. **If Versions Don't Match:**
+   a. Load migration rules from `Form_Definitions.migration_rules_json`
+   b. If no migration rules, attempt automatic migration (see below)
+   c. Apply migration rules to transform data
+   d. Validate migrated data against new form schema
+   e. If validation fails, load with defaults and warn user
+   f. Save migrated data with new version number and `migrated_from_version` set
+
+**Automatic Migration (No Rules Defined):**
+* If migration rules are not defined, attempt automatic field mapping:
+  * Fields with same `fieldId` are copied as-is
+  * Fields that don't exist in new schema are dropped
+  * New fields get default values from schema
+* Automatic migration only works for compatible changes (field additions, non-breaking changes)
+* Breaking changes (field removals, renames, type changes) require explicit migration rules
+
+**Migration Validation:**
+* After migration, validate migrated data against new form schema
+* Check required fields are present
+* Check data types match field types
+* Check validation rules pass
+* If validation fails:
+  * Log warning
+  * Load form with defaults
+  * Display message to user: "Form has been updated. Some of your previous data could not be migrated. Please review and update your entries."
+
+**Migration Data Saving:**
+* When migrated data is saved, set:
+  * `form_version` = current form version
+  * `migrated_from_version` = original saved data version
+* Original data record is preserved (not deleted) for audit trail
+* New record is created with migrated data
+
+==== Migration Security Considerations
+
+**Input Validation:**
+* Validate migration rules JSON structure before saving
+* Validate field mappings reference valid fields in both old and new schemas
+* Validate transformation rules (prevent code injection)
+* Sanitize default values (prevent XSS in migrated data)
+
+**Data Validation:**
+* Always validate migrated data against new form schema
+* Reject migrated data that doesn't pass validation
+* Never execute arbitrary code during migration
+* Type transformations must be safe (string to number, etc.)
+
+**Version Integrity:**
+* Prevent version downgrades (could corrupt data)
+* Validate version numbers are sequential
+* Validate migration rules target correct version range
+* Log all migration operations for audit trail
+
+**User Consent:**
+* When migration occurs, inform user that form has been updated
+* Show which fields were migrated and which were reset to defaults
+* Allow user to review migrated data before saving
+* Provide option to start fresh (discard old data)
+
+==== Form Builder Migration Interface Specification
+
+**Migration Mapping Dialog:**
+* Displayed when author increments form version with breaking changes
+* Shows side-by-side comparison: old form fields vs new form fields
+* For each old field, author can:
+  * Map to new field (dropdown of new fields)
+  * Mark as removed (set default value)
+  * Apply transformation (type conversion, value mapping)
+* Preview button to test migration with sample data
+* Save migration rules button
+
+**Migration Preview:**
+* Author can enter sample data for old form version
+* Preview shows how data would be migrated
+* Highlights any fields that would be lost or reset
+* Allows author to refine migration rules before saving
+
+**Version History:**
+* Form Builder shows version history for form
+* Lists all versions with change descriptions
+* Shows migration rules for each version transition
+* Allows author to view/edit migration rules for previous versions
+
+=== Form Field Undo/Redo
+
+**Undo/Redo Functionality:**
+* Support undo/redo operations for text input within form fields
+* Maintain undo/redo history per form field independently
+* Clear undo/redo history when form field loses focus or when form is saved
+
+**Implementation:**
+* Use browser/WebEngine's native undo/redo capabilities for form inputs
+* Keyboard shortcuts:
+  * **Undo:** Ctrl+Z (Windows/Linux) or Cmd+Z (macOS)
+  * **Redo:** Ctrl+Y or Ctrl+Shift+Z (Windows/Linux) or Cmd+Shift+Z (macOS)
+* Undo/redo works within the focused form field only
+* History is maintained in memory (not persisted)
+* History is cleared when:
+  * Form field loses focus (blur event)
+  * Form data is saved
+  * User navigates away from page
+
+**Undo/Redo Scope:**
+* Per-field undo/redo history (each form field has its own history)
+* History tracks text changes (insertions, deletions, replacements)
+* History does not track field-level operations (clearing field, loading data)
+* Maximum history depth: Browser default (typically 50-100 operations)
+
+**User Experience:**
+* Undo/redo works as users expect in standard text editors
+* Visual feedback: Text changes immediately when undo/redo is triggered
+* No separate undo/redo UI needed (uses standard keyboard shortcuts)
+* Context menu may optionally include "Undo" and "Redo" options when appropriate
+
+== Content Navigation Implementation Specification
+
+This section defines how content navigation, table of contents, bookmarking, and reading position are implemented in the Reader application.
+
+=== Forward/Backward Navigation
+
+**Implementation:**
+1. Reader maintains current `page_id` and `page_order` for active cartridge
+2. Forward button: Query `SELECT page_id FROM Content_Pages WHERE page_order = (SELECT page_order FROM Content_Pages WHERE page_id = ?) + 1 LIMIT 1`
+3. Backward button: Query `SELECT page_id FROM Content_Pages WHERE page_order = (SELECT page_order FROM Content_Pages WHERE page_id = ?) - 1 LIMIT 1`
+4. At boundaries: Wrap around (configurable) or disable buttons
+5. On navigation: Update `Local_Reading_Position` table with new `page_id`
+
+**Keyboard Shortcuts:**
+* Left Arrow / Page Up: Navigate backward
+* Right Arrow / Page Down: Navigate forward
+* Home: Navigate to first page
+* End: Navigate to last page
+
+=== Table of Contents Generation
+
+**TOC Generation Algorithm:**
+1. **Primary Structure (Chapters):**
+   a. Query `SELECT DISTINCT chapter_title, MIN(page_order) as first_page_order FROM Content_Pages WHERE chapter_title IS NOT NULL GROUP BY chapter_title ORDER BY first_page_order`
+   b. For each chapter, query pages: `SELECT page_id, page_order FROM Content_Pages WHERE chapter_title = ? ORDER BY page_order`
+   c. Create TOC entry: `{ "type": "chapter", "title": chapter_title, "page_id": first_page_id, "children": [...] }`
+
+2. **Secondary Structure (Headings):**
+   a. For each page, parse HTML content for heading elements (`<h1>`, `<h2>`, `<h3>`, etc.)
+   b. Extract heading text and ID (or generate ID if missing)
+   c. Create nested structure based on heading hierarchy
+   d. Apply depth limit (default: 2 levels, configurable 1-3)
+
+3. **TOC Structure:**
+[source,json]
+----
+{
+  "chapters": [
+    {
+      "title": "Chapter 1",
+      "page_id": 1,
+      "page_order": 1,
+      "headings": [
+        {
+          "level": 1,
+          "title": "Section 1.1",
+          "anchor_id": "section-1-1",
+          "page_id": 1
+        },
+        {
+          "level": 2,
+          "title": "Subsection 1.1.1",
+          "anchor_id": "subsection-1-1-1",
+          "page_id": 1
+        }
+      ],
+      "children": []
+    }
+  ]
+}
+----
+
+**TOC Display:**
+* Tree view with collapsible/expandable nodes
+* Click on TOC entry navigates to page and scrolls to anchor (if present)
+* Visual indicator for current page/section in TOC
+* Search/filter capability within TOC
+
+=== Tabbed Pane Interface
+
+**Pane Structure:**
+* **Tab 1: Table of Contents**
+  * Displays generated TOC tree
+  * Collapsible/expandable sections
+  * Click to navigate
+  
+* **Tab 2: Search Results**
+  * Displays search results when search is performed
+  * Shows matching pages and context snippets
+  * Click to navigate to result location
+
+**Implementation:**
+* Qt `QTabWidget` or similar tabbed interface
+* TOC tab always visible
+* Search Results tab appears when search is active
+* Both tabs share same navigation target (Reader View)
+
+=== Internal Link Navigation
+
+**Link Processing:**
+1. Reader intercepts link clicks within content pages
+2. Parse link href:
+   a. **Page reference:** `smartbook://page/{page_id}` or `#page-{page_id}`
+   b. **Anchor reference:** `#anchor-id` (within current page) or `smartbook://page/{page_id}#anchor-id` (cross-page)
+   c. **External link:** `http://` or `https://` (open in system browser)
+
+3. **Navigation Logic:**
+   a. Extract `page_id` and `anchor_id` from link
+   b. Load page: `SELECT html_content FROM Content_Pages WHERE page_id = ?`
+   c. If `anchor_id` present, scroll to element with matching ID
+   d. Update `Local_Reading_Position` table
+   e. Add to navigation history stack
+
+**Link Format Examples:**
+[source,html]
+----
+<!-- Link to another page -->
+<a href="smartbook://page/5">Go to Chapter 2</a>
+
+<!-- Link to anchor on current page -->
+<a href="#section-1">Jump to Section 1</a>
+
+<!-- Link to anchor on another page -->
+<a href="smartbook://page/10#character-sheet">View Character Sheet</a>
+
+<!-- External link (opens in system browser) -->
+<a href="https://example.com">External Reference</a>
+----
+
+=== Bookmarking Implementation
+
+**Add Bookmark:**
+1. User clicks "Add Bookmark" button or uses keyboard shortcut (Ctrl+B / Cmd+B)
+2. Reader prompts for bookmark label (default: page title or heading text)
+3. Reader captures:
+   * Current `page_id`
+   * Current `anchor_id` (if on a heading or anchor)
+   * Current `scroll_position` (optional, for precise restoration)
+4. Insert into `Local_Bookmarks` table:
+   * `cartridge_guid` = current cartridge GUID
+   * `page_id` = current page ID
+   * `anchor_id` = current anchor (if any)
+   * `bookmark_label` = user-provided label
+   * `scroll_position` = current scroll position
+   * `timestamp` = current timestamp
+
+**Bookmark Management:**
+* Display bookmarks in dedicated panel or menu
+* Show bookmark label, page title, and timestamp
+* Allow editing bookmark label
+* Allow deleting bookmarks
+* Click bookmark to navigate to saved position
+
+**Navigate to Bookmark:**
+1. User selects bookmark from list
+2. Load page: `SELECT html_content FROM Content_Pages WHERE page_id = ?`
+3. If `anchor_id` present, scroll to element
+4. If `scroll_position` present, restore scroll position
+5. Update `Local_Reading_Position` table
+
+=== Reading Position Persistence
+
+**Save Reading Position:**
+1. On page navigation or cartridge close:
+   a. Capture current `page_id`
+   b. Capture current `anchor_id` (if on a heading/anchor)
+   c. Capture current `scroll_position` (optional)
+   d. Update or insert into `Local_Reading_Position` table:
+      * `cartridge_guid` = current cartridge GUID
+      * `page_id` = current page ID
+      * `anchor_id` = current anchor (if any)
+      * `scroll_position` = current scroll position
+      * `last_access_timestamp` = current timestamp
+
+**Restore Reading Position:**
+1. On cartridge open:
+   a. Query `Local_Reading_Position` table: `SELECT * FROM Local_Reading_Position WHERE cartridge_guid = ?`
+   b. If record exists:
+      * Load page: `SELECT html_content FROM Content_Pages WHERE page_id = ?`
+      * If `anchor_id` present, scroll to element after page loads
+      * If `scroll_position` present, restore scroll position
+   c. If no record exists, load first page (`page_order = 1`)
+
+**Position Update Frequency:**
+* Update on explicit page navigation (forward/backward buttons, TOC click)
+* Update on internal link navigation
+* Update on bookmark navigation
+* Update on cartridge close/window close
+* Optionally update on scroll (debounced, e.g., every 5 seconds)
+
+=== Navigation History
+
+**History Stack:**
+* Maintain stack per Reader View Window
+* Stack entries: `{ page_id, anchor_id, scroll_position }`
+* Maximum stack size: 50 entries (configurable)
+
+**Back Navigation:**
+1. Pop current position from stack (save to end of forward stack)
+2. Pop previous position from history stack
+3. Navigate to previous position
+4. Update `Local_Reading_Position` table
+
+**Forward Navigation:**
+1. Pop next position from forward stack
+2. Push current position to history stack
+3. Navigate to next position
+4. Update `Local_Reading_Position` table
+
+**History Management:**
+* Clear history on cartridge close
+* Maintain separate history per Reader View Window
+* Browser-style back/forward buttons or keyboard shortcuts (Alt+Left/Right)
+
+== Search Functionality Implementation Specification
+
+This section defines how document search and in-page search are implemented in the Reader application.
+
+=== Document Search Implementation
+
+==== Search Modal UI
+
+**Modal Components:**
+* **Title:** "Site Search" or "Document Search"
+* **Search Input Field:** Text input with placeholder "Search site..." or "Search document..."
+* **Case Sensitivity Toggle ("Aa" Button):** Toggle button to enable/disable case-sensitive matching
+* **Search Type Dropdown:** Dropdown menu with options:
+  * "Normal" - Standard text search (default)
+  * "Boolean" - Boolean operator search (AND, OR, NOT)
+  * "Fuzzy" - Approximate/fuzzy matching
+  * "Regex" - Regular expression pattern matching
+* **Search Button:** Execute search button
+* **Close Button (X):** Dismiss modal
+
+**Modal Behavior:**
+* Modal appears centered on screen with semi-transparent overlay
+* Keyboard shortcut: Ctrl+F / Cmd+F opens modal
+* Escape key closes modal
+* Enter key in search field executes search
+
+==== Normal Search Algorithm
+
+**Implementation:**
+1. User enters search term in input field
+2. If case-sensitive toggle is OFF, convert search term and content to lowercase for comparison
+3. Query all pages: `SELECT page_id, page_order, chapter_title, html_content FROM Content_Pages ORDER BY page_order`
+4. For each page:
+   a. Strip HTML tags from `html_content` to get plain text
+   b. Search for search term in plain text
+   c. If match found, extract context snippet (e.g., 50 characters before and after match)
+   d. Store result: `{ page_id, page_order, chapter_title, match_text, context_snippet, match_position }`
+5. Return results sorted by `page_order`
+
+**Context Snippet Generation:**
+* Extract text surrounding match (e.g., 50-100 characters before and after)
+* Highlight search term in snippet (bold or different color)
+* Truncate with ellipsis if snippet exceeds maximum length
+
+==== Boolean Search Algorithm
+
+**Boolean Operators:**
+* `AND` - All terms must be present (e.g., "character AND sheet")
+* `OR` - Any term may be present (e.g., "weapon OR armor")
+* `NOT` - Term must not be present (e.g., "magic NOT spell")
+* Parentheses for grouping: `(character OR player) AND sheet`
+
+**Implementation:**
+1. Parse search query into boolean expression tree
+2. For each page, evaluate boolean expression against page content
+3. If expression evaluates to true, include page in results
+4. Extract context snippets for matched terms
+
+**Query Parsing:**
+* Tokenize input: split on whitespace, identify operators (AND, OR, NOT)
+* Build expression tree respecting operator precedence (NOT > AND > OR)
+* Evaluate tree against page content
+
+==== Fuzzy Search Algorithm
+
+**Fuzzy Matching:**
+* Use edit distance (Levenshtein distance) algorithm
+* Allow 1-2 character differences (configurable)
+* Match similar words despite typos or misspellings
+
+**Implementation:**
+1. For each word in search term, find similar words in content
+2. Calculate edit distance between search term and candidate words
+3. If edit distance <= threshold (default: 2), consider it a match
+4. Rank results by similarity score (lower edit distance = higher rank)
+
+**Performance Optimization:**
+* Limit fuzzy search to words of similar length
+* Use indexing or caching for frequently searched terms
+* Consider limiting fuzzy search to first 1000 pages for performance
+
+==== Regex Search Algorithm
+
+**Implementation:**
+1. Validate regex pattern syntax
+2. If invalid, display error message: "Invalid regular expression: [error details]"
+3. If valid, compile regex pattern
+4. For each page:
+   a. Strip HTML tags to get plain text
+   b. Apply regex pattern matching
+   c. Extract all matches and context snippets
+5. Return results with matched patterns highlighted
+
+**Error Handling:**
+* Catch regex compilation errors
+* Display user-friendly error messages
+* Suggest common regex patterns or provide help link
+
+==== Search Results Display
+
+**Results Format (Adobe Reader-style):**
+* **Result List:** Scrollable list of results
+* **Result Item Structure:**
+  * Page/Chapter title (clickable, navigates to page)
+  * Context snippet with search term highlighted
+  * Match indicator (e.g., "Match 1 of 15")
+* **Result Count:** Display total matches found (e.g., "Found 15 matches in 8 pages")
+* **Grouping:** Optionally group results by page or chapter
+
+**Result Item Example:**
+----
+Chapter 2: Character Creation
+...character sheet includes ability scores, skills, and equipment...
+Match 1 of 15
+----
+
+**Navigation:**
+* Click on result item navigates to corresponding page
+* Scrolls to match location within page
+* Highlights match on page (temporary highlight)
+
+==== Search Performance Optimization
+
+**Indexing Strategy:**
+* Option 1: Build search index on cartridge open (one-time cost)
+* Option 2: Lazy indexing (index pages as they're searched)
+* Option 3: No indexing (search on-demand, acceptable for small cartridges)
+
+**Index Structure:**
+* Full-text index: `{ word: [page_id, position, context] }`
+* Store in memory or temporary database
+* Rebuild index if cartridge content changes
+
+**Caching:**
+* Cache recent search results
+* Cache indexed pages
+* Clear cache on cartridge close
+
+=== In-Page Search Implementation
+
+==== Find-in-Page Dialog
+
+**Dialog Components:**
+* Compact bar/overlay at top or bottom of Reader view
+* Search input field (auto-focus on open)
+* Previous button (up arrow or "Previous")
+* Next button (down arrow or "Next")
+* Result count display (e.g., "3 of 12")
+* Case sensitivity checkbox
+* Close button (X)
+
+**Dialog Behavior:**
+* Keyboard shortcut: Ctrl+F / Cmd+F (if document search modal not open) or F3
+* Escape key closes dialog
+* Enter key moves to next match
+* Shift+Enter moves to previous match
+* Dialog stays visible while searching
+
+==== Term Highlighting
+
+**Highlighting Implementation:**
+1. User enters search term in find dialog
+2. Reader searches current page content for all matches
+3. Wrap each match in HTML span with highlight class:
+   [source,html]
+   ----
+   <span class="find-highlight">matched text</span>
+   ----
+4. Apply CSS styling:
+   [source,css]
+   ----
+   .find-highlight {
+     background-color: yellow;
+     color: black;
+   }
+   .find-highlight.active {
+     background-color: orange;
+     border: 2px solid red;
+   }
+   ----
+
+**Dynamic Highlighting:**
+* Update highlights as user types (debounced, e.g., 300ms delay)
+* Clear highlights when search term is cleared
+* Clear highlights when dialog is closed
+
+==== Match Navigation
+
+**Navigation Implementation:**
+1. Maintain array of all match positions: `[{ element, offset, text }]`
+2. Track current match index
+3. On "Next":
+   a. Increment current match index
+   b. Remove `active` class from previous match
+   c. Add `active` class to current match
+   d. Scroll to current match
+4. On "Previous":
+   a. Decrement current match index
+   b. Remove `active` class from previous match
+   c. Add `active` class to current match
+   d. Scroll to current match
+
+**Scroll to Match:**
+* Use `element.scrollIntoView({ behavior: 'smooth', block: 'center' })`
+* Ensure match is centered or visible in viewport
+* Handle edge cases (match at top/bottom of page)
+
+==== Result Count Display
+
+**Count Calculation:**
+* Count total matches on current page
+* Track current match position (1-based index)
+* Display: "3 of 12" or "Match 3 of 12"
+
+**Update Frequency:**
+* Update count when search term changes
+* Update position when navigating between matches
+* Display "No matches" when search term not found
+
+==== Case Sensitivity
+
+**Case-Sensitive Matching:**
+* Checkbox or toggle in find dialog
+* When enabled, match exact case (e.g., "Character" ≠ "character")
+* When disabled, case-insensitive matching (default)
+* Re-highlight and re-count when toggled
+
+==== Search Persistence Across Pages
+
+**Persistence Implementation:**
+1. Store current search term in Reader View Window state
+2. When user navigates to new page:
+   a. Check if search term exists
+   b. If exists, automatically search new page
+   c. Highlight matches on new page
+   d. Reset match index to 1
+   e. Update result count
+3. Maintain search term until:
+   a. User clears search field
+   b. User closes find dialog
+   c. User opens document search modal
+
+**State Management:**
+* Store search term per Reader View Window
+* Persist across page navigation
+* Clear on cartridge close
+
+== Content Theme Manager Implementation Specification
+
+This section defines how the Content Theme Manager dialog is implemented in the Creator Tool, allowing authors to create and manage themes for smartbook content.
+
+=== Content Theme Manager Dialog Structure
+
+**Dialog Layout:**
+* **Title:** "Content Theme Manager"
+* **Close Button (X):** Top right corner to dismiss dialog
+* **Two-Panel Layout:**
+  * Left Panel: Available Themes list and management actions
+  * Right Panel: Theme configuration and live preview
+
+=== Left Panel - Available Themes
+
+**Panel Components:**
+* **Heading:** "Available Themes" (bold, dark gray)
+* **Theme List:** Scrollable list displaying:
+  * Theme name (e.g., "Light Content", "Dark Content", "Warm Content")
+  * "Apply" button next to each theme
+  * Visual indicator for built-in vs custom themes
+  * Visual indicator for active theme (currently applied)
+* **Action Buttons:** Four buttons below theme list:
+  * **Add (+):** Create new custom theme
+  * **Delete (-):** Delete selected custom theme (disabled for built-in themes)
+  * **Copy:** Duplicate selected theme to create new custom theme
+  * **Rename:** Rename selected custom theme (disabled for built-in themes)
+* **Checkbox:** "Persist on add" - When enabled, automatically saves theme to cartridge when created/modified
+
+**Theme List Behavior:**
+* Built-in themes (Light Content, Dark Content, Warm Content) are immutable
+* Custom themes can be edited, renamed, or deleted
+* Clicking a theme selects it and loads its configuration in the right panel
+* "Apply" button applies theme to current cartridge immediately
+
+=== Right Panel - Theme Configuration
+
+**Panel Components:**
+
+==== Name Section
+* **Label:** "Name"
+* **Input Field:** Text input for theme name (editable for custom themes, read-only for built-in themes)
+* **Action Buttons:**
+  * **Apply:** Apply theme configuration to current cartridge
+  * **Save:** Save theme configuration (enabled when theme is modified, highlighted in blue)
+  * **Cancel:** Discard changes and close dialog
+  * **Revert:** Revert theme to last saved state (enabled when theme has unsaved changes)
+
+==== Core Colors (Simple) Section
+* **Heading:** "Core Colors (Simple)" (bold, dark gray)
+* **Preset Controls:**
+  * **Preset Dropdown:** Select color preset (e.g., "Default", "High Contrast", "Custom")
+  * **Reset Button:** Reset all colors to default values
+  * **Show Swatches Checkbox:** Toggle display of color swatches
+* **Color Pickers/Swatches:**
+  * **Primary:** Color picker/swatch for primary color
+  * **On Primary:** Color picker/swatch for text color on primary background
+  * **Surface:** Color picker/swatch for surface color
+  * **On Surface:** Color picker/swatch for text color on surface
+  * **Background:** Color picker/swatch for background color (may have multiple swatches)
+* **Descriptive Text:** "Only the core colors are exposed. Background is handled via a decorative pseudo-element so copying text won't include background color."
+
+**Color Picker Implementation:**
+* Use Qt `QColorDialog` or custom color picker widget
+* Display color swatches showing current color values
+* Update live preview when colors change
+* Validate color values (hex codes, RGB values)
+
+==== Live Preview Section
+* **Heading:** "Live Preview" (bold, dark gray)
+* **Preview Area:** White rectangular area displaying sample content rendered with current theme:
+  * **Heading:** "Heading Example" (styled with theme heading font/color)
+  * **Body Text:** "Body text with a link and emphasis. inline code."
+    * Link styled with theme link color
+    * Emphasis styled with theme emphasis style
+    * Inline code styled with theme monospace font and code background
+  * **Quoted Text:** Indented quoted text example
+  * **Table:** Two-column table with header row styled with theme colors
+
+**Live Preview Updates:**
+* Preview updates in real-time as colors/fonts are modified
+* Preview reflects current theme configuration
+* Preview uses actual HTML/CSS rendering (Qt WebEngineView or similar)
+
+=== Theme Management Operations
+
+==== Add New Theme
+1. User clicks "Add (+)" button
+2. Create new theme with default configuration:
+   * Generate unique `theme_id` (e.g., "custom-theme-{timestamp}")
+   * Set `theme_name` to "New Theme" or prompt for name
+   * Set `is_builtin` = 0
+   * Set default `theme_config_json` (copy from "Default" preset)
+   * Set `is_active` = 0
+3. Add theme to list in left panel
+4. Select new theme (loads in right panel for editing)
+5. If "Persist on add" is checked, automatically save to cartridge
+
+==== Delete Theme
+1. User selects custom theme in list
+2. User clicks "Delete (-)" button
+3. Confirm deletion dialog: "Are you sure you want to delete '{theme_name}'?"
+4. If confirmed:
+   * Delete theme from `Content_Themes` table
+   * Remove from theme list
+   * If deleted theme was active, apply default theme (Light Content)
+5. If theme is built-in, disable delete button (cannot delete built-in themes)
+
+==== Copy Theme
+1. User selects theme in list (built-in or custom)
+2. User clicks "Copy" button
+3. Create new theme:
+   * Generate unique `theme_id`
+   * Set `theme_name` to "{original_name} Copy" or prompt for name
+   * Copy `theme_config_json` from selected theme
+   * Set `is_builtin` = 0
+   * Set `is_active` = 0
+4. Add copied theme to list
+5. Select copied theme for editing
+
+==== Rename Theme
+1. User selects custom theme in list
+2. User clicks "Rename" button
+3. Prompt for new name (or edit name field directly)
+4. Validate name (not empty, unique within cartridge)
+5. Update `theme_name` in `Content_Themes` table
+6. Update theme list display
+7. If "Persist on add" is checked, save changes
+
+==== Apply Theme
+1. User clicks "Apply" button (either in theme list or configuration panel)
+2. Update `Content_Themes` table:
+   * Set `is_active` = 0 for all themes
+   * Set `is_active` = 1 for selected theme
+3. Generate theme CSS from theme configuration (colors and fonts only)
+4. Apply theme CSS to cartridge content (update `Settings` table or inject CSS)
+5. Theme CSS works **in conjunction with** structural CSS (`associated_css` field)
+6. Update preview pane in Creator Tool
+7. Visual indicator shows active theme in theme list
+
+**Note:** The theme CSS controls colors and fonts, while the CSS stylesheet (`associated_css`) controls structure (layout, positioning, spacing). Both are applied together for final rendering.
+
+==== Save Theme
+1. User modifies theme configuration (colors, fonts, etc.)
+2. "Save" button becomes enabled (highlighted in blue)
+3. User clicks "Save" button
+4. Update `theme_config_json` in `Content_Themes` table
+5. If "Persist on add" is checked, also save to cartridge file
+6. "Save" button becomes disabled (changes saved)
+
+==== Revert Theme
+1. User modifies theme configuration
+2. "Revert" button becomes enabled
+3. User clicks "Revert" button
+4. Reload theme configuration from `Content_Themes` table (last saved state)
+5. Reset all color pickers and inputs to saved values
+6. Update live preview
+7. "Revert" button becomes disabled
+
+=== Theme Configuration Storage
+
+**Database Operations:**
+* **Load Themes:** `SELECT * FROM Content_Themes ORDER BY is_builtin DESC, theme_name`
+* **Save Theme:** `INSERT OR REPLACE INTO Content_Themes (theme_id, theme_name, is_builtin, theme_config_json, is_active) VALUES (?, ?, ?, ?, ?)`
+* **Delete Theme:** `DELETE FROM Content_Themes WHERE theme_id = ? AND is_builtin = 0`
+* **Apply Theme:** `UPDATE Content_Themes SET is_active = CASE WHEN theme_id = ? THEN 1 ELSE 0 END`
+
+**Theme Configuration JSON Schema:**
+[source,json]
+----
+{
+  "version": "1.0",
+  "coreColors": {
+    "primary": "#1976D2",
+    "onPrimary": "#FFFFFF",
+    "surface": "#FFFFFF",
+    "onSurface": "#000000",
+    "background": "#F5F5F5"
+  },
+  "fonts": {
+    "heading": "Georgia, serif",
+    "body": "Arial, sans-serif",
+    "monospace": "Courier New, monospace"
+  },
+  "styling": {
+    "linkColor": "#1976D2",
+    "emphasisStyle": "italic",
+    "codeBackground": "#F5F5F5",
+    "quoteIndent": "20px"
+  }
+}
+----
+
+=== Theme Application to Content
+
+**Theme vs CSS Distinction:**
+* **CSS Stylesheet (`associated_css` in `Content_Pages`):** Controls **structure** - layout, positioning, spacing, margins, borders, display properties, flexbox/grid layouts, etc.
+* **Content Theme (`Content_Themes` table):** Controls **colors and fonts** - color schemes, typography (font families, sizes, weights), text colors, background colors, link colors, etc.
+
+**Design Rationale:**
+By separating structural concerns (CSS) from visual appearance concerns (themes), the system achieves a balanced approach:
+* **Author Control:** Authors maintain control over page structure, layout, and organization through CSS, ensuring content is presented as intended
+* **User Customization:** Users can customize visual appearance (colors, fonts) through theme selection and user settings, accommodating personal preferences and accessibility needs
+* **Middle Ground:** This separation provides a reasonable middle ground between strict author control (no customization) and complete user control (which could break author intent), allowing both parties to achieve their goals without conflict
+
+**Theme CSS Generation:**
+1. Load active theme from `Content_Themes` table
+2. Parse `theme_config_json` to extract colors, fonts, styling
+3. Generate CSS rules using CSS custom properties (variables) for **colors and fonts only**:
+   [source,css]
+   ----
+   :root {
+     /* Color variables */
+     --theme-primary: #1976D2;
+     --theme-on-primary: #FFFFFF;
+     --theme-surface: #FFFFFF;
+     --theme-on-surface: #000000;
+     --theme-background: #F5F5F5;
+     --theme-link: #1976D2;
+     
+     /* Font variables */
+     --theme-font-heading: Georgia, serif;
+     --theme-font-body: Arial, sans-serif;
+     --theme-font-monospace: Courier New, monospace;
+   }
+   
+   /* Apply colors and fonts only - structure handled by CSS stylesheet */
+   body {
+     background-color: var(--theme-background);
+     color: var(--theme-on-surface);
+     font-family: var(--theme-font-body);
+   }
+   
+   h1, h2, h3 {
+     font-family: var(--theme-font-heading);
+     color: var(--theme-on-surface);
+   }
+   
+   a {
+     color: var(--theme-link);
+   }
+   
+   code {
+     background-color: var(--theme-code-background);
+     font-family: var(--theme-font-monospace);
+   }
+   ----
+4. Inject theme CSS into cartridge content (add to `Settings` table or inject into HTML)
+5. Theme CSS works **in conjunction with** the structural CSS stylesheet (`associated_css`)
+6. Apply to Creator Tool preview pane
+7. Theme will be applied when cartridge is opened in Reader
+
+**Rendering Priority:**
+1. Structural CSS (`associated_css`) is applied first (layout, positioning, spacing)
+2. Theme CSS is applied second (colors, fonts override defaults)
+3. User settings (from `Local_User_Settings`) can override theme colors/fonts
+
+=== Built-in Themes
+
+**Default Built-in Themes:**
+* **Light Content:** Light background, dark text, blue links
+* **Dark Content:** Dark background, light text, light blue links
+* **Warm Content:** Warm beige/sepia background, dark brown text, warm accent colors
+
+**Built-in Theme Characteristics:**
+* Immutable (cannot be edited, renamed, or deleted)
+* Always available in theme list
+* Can be copied to create custom variants
+* Stored in application, not in cartridge (but can be applied to cartridge)
+
+== Print Functionality Implementation Specification
+
+This section defines how print functionality is implemented in the Reader application, including print capabilities, CSS handling, and rendering.
+
+=== Print Capabilities
+
+**Print Options:**
+* **Print Entire Document:** Print all pages in the cartridge
+* **Print Current Page:** Print only the currently displayed page
+* **Print Selection:** Print only selected text/content (if text is selected)
+
+**Print Dialog:**
+* Use Qt `QPrintDialog` for native system print dialog
+* Allow user to configure:
+  * Printer selection
+  * Page range (for document printing)
+  * Number of copies
+  * Paper size (US Letter, A4, etc.)
+  * Orientation (Portrait, Landscape)
+  * Other standard print options (color/grayscale, quality, etc.)
+
+=== Print CSS Stylesheets
+
+**Built-in Print Stylesheets:**
+The Reader provides built-in print CSS optimized for common paper sizes:
+
+==== US Letter (8.5" × 11") Print CSS
+[source,css]
+----
+@media print {
+  @page {
+    size: letter;
+    margin: 0.75in;
+  }
+  
+  body {
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+  
+  /* Hide non-printable elements */
+  .smartbook-navigation,
+  .smartbook-controls,
+  .smartbook-forms input,
+  .smartbook-forms select,
+  .smartbook-forms textarea,
+  button {
+    display: none;
+  }
+  
+  /* Optimize page breaks */
+  h1, h2, h3 {
+    page-break-after: avoid;
+  }
+  
+  p, li {
+    page-break-inside: avoid;
+  }
+  
+  /* Print-friendly link styling */
+  a::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+}
+----
+
+==== A4 (210mm × 297mm) Print CSS
+[source,css]
+----
+@media print {
+  @page {
+    size: A4;
+    margin: 20mm;
+  }
+  
+  body {
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+  
+  /* Same hide/show rules as US Letter */
+  .smartbook-navigation,
+  .smartbook-controls,
+  .smartbook-forms input,
+  .smartbook-forms select,
+  .smartbook-forms textarea,
+  button {
+    display: none;
+  }
+  
+  h1, h2, h3 {
+    page-break-after: avoid;
+  }
+  
+  p, li {
+    page-break-inside: avoid;
+  }
+  
+  a::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+}
+----
+
+**Print CSS Application:**
+1. Detect selected paper size from print dialog
+2. Load appropriate built-in print CSS (US Letter or A4)
+3. Merge with author's structural CSS (`associated_css`)
+4. Apply theme colors/fonts (from active content theme)
+5. Apply print-specific overrides via `@media print` rules
+6. Ensure print CSS takes precedence for print-specific rules
+
+=== Print Rendering Implementation
+
+**Rendering Strategy:**
+1. **Content Preparation:**
+   a. Load content from `Content_Pages` table
+   b. Apply structural CSS (`associated_css`)
+   c. Apply active theme CSS (colors/fonts)
+   d. Apply print CSS based on selected paper size
+   e. Remove/hide non-printable elements
+
+2. **Offscreen Rendering (if required):**
+   a. Create offscreen `QWebEngineView` or `QWebEnginePage`
+   b. Load prepared HTML content with all CSS applied
+   c. Wait for content to fully render
+   d. Capture rendered content for printing
+   e. Use Qt `QPrinter` to render to print device
+
+3. **Qt Print Integration:**
+   a. Use `QPrintDialog` for user print configuration
+   b. Use `QPrinter` to handle print rendering
+   c. Use `QWebEnginePage::printToPdf()` or `QWebEnginePage::print()` for WebEngine content
+   d. Handle page breaks and multi-page documents
+
+**Print Algorithm:**
+1. User triggers print (menu item, keyboard shortcut Ctrl+P / Cmd+P, or toolbar button)
+2. Determine print scope:
+   * If text selected: Print selection only
+   * If "Print Current Page" selected: Print current page only
+   * If "Print Document" selected: Print all pages
+3. Open `QPrintDialog` for user configuration
+4. User selects printer, paper size, orientation, etc.
+5. For each page to print:
+   a. Load page content from `Content_Pages` table
+   b. Apply CSS (structural + theme + print)
+   c. Render content (onscreen or offscreen)
+   d. Send to printer via `QPrinter`
+6. Handle page breaks between pages
+7. Complete print job
+
+=== Print Preview
+
+**Preview Implementation:**
+1. User selects "Print Preview" option
+2. Prepare content with print CSS applied (same as print rendering)
+3. Display preview in dialog or separate window
+4. Show preview with selected paper size and orientation
+5. Allow user to navigate through pages
+6. Allow user to adjust print settings and refresh preview
+7. User can print from preview or cancel
+
+**Preview Dialog:**
+* Display preview pages in scrollable view
+* Show page boundaries and margins
+* Display page numbers
+* Provide zoom controls
+* Show print settings summary
+* "Print" and "Cancel" buttons
+
+=== Print Quality Considerations
+
+**Text Rendering:**
+* Use appropriate font sizes for print (typically 10-12pt)
+* Ensure sufficient line spacing for readability
+* Use high-quality font rendering
+* Handle font fallbacks appropriately
+
+**Image Handling:**
+* Scale images appropriately for print resolution
+* Maintain aspect ratios
+* Use high-resolution images when available
+* Handle image formats appropriately (convert if needed)
+
+**Color Handling:**
+* Preserve color information for color printers
+* Provide grayscale option for monochrome printers
+* Handle transparency appropriately
+* Ensure sufficient contrast for readability
+
+**Background Handling:**
+* Option to print backgrounds (default: off for ink savings)
+* Handle decorative backgrounds appropriately
+* Ensure text remains readable
+
+=== Print CSS Priority
+
+**CSS Application Order:**
+1. **Structural CSS** (`associated_css`) - Base layout and structure
+2. **Theme CSS** (from `Content_Themes`) - Colors and fonts
+3. **Print CSS** (`@media print` rules) - Print-specific optimizations
+
+**Print CSS Overrides:**
+* Print CSS can override structural CSS for print-specific layout
+* Print CSS can override theme colors for print optimization (e.g., force black text)
+* Print CSS takes precedence within `@media print` blocks
+* User print settings (from print dialog) can further override CSS
+
+=== Multi-Page Document Printing
+
+**Page Handling:**
+* For document printing, iterate through all pages in `page_order`
+* Load each page's content sequentially
+* Apply consistent CSS across all pages
+* Handle page breaks between pages
+* Maintain consistent margins and formatting
+* Optionally add page numbers (if implemented in future)
+
+**Page Break Handling:**
+* Avoid breaking content awkwardly (headings, paragraphs, lists)
+* Use CSS `page-break-after`, `page-break-before`, `page-break-inside` properties
+* Ensure content flows naturally across pages
+* Handle edge cases (very long content, tables, etc.)
+
+== Text Selection and Copy Implementation Specification
+
+This section defines how text selection, copying, and pasting are implemented in the Reader application.
+
+=== Text Selection
+
+**Selection Methods:**
+* **Mouse Selection:** Click and drag to select text
+* **Keyboard Selection:** Shift+Arrow keys to extend selection
+* **Word Selection:** Double-click to select word
+* **Paragraph Selection:** Triple-click to select paragraph
+* **Select All:** Ctrl+A / Cmd+A to select all text on current page (or all text in focused form field)
+
+**Select All Behavior:**
+* **On Content Pages:** Selects all text content on the current page
+* **In Form Fields:** When a form field (input, textarea) is focused, selects all text within that field only
+* **Context Menu:** "Select All" option available in context menu when appropriate
+* **Keyboard Shortcut:** Ctrl+A (Windows/Linux) or Cmd+A (macOS)
+
+**Selection Behavior:**
+* Selection works with all rendered HTML content
+* Selection respects text flow and layout
+* Selection can span multiple elements (headings, paragraphs, lists)
+* Selection highlights with standard platform selection color
+* Selection is cleared when clicking outside selected area or navigating to new page
+
+**Selection Implementation:**
+* Use Qt WebEngine's native text selection capabilities
+* Enable text selection in `QWebEngineView` settings
+* Handle selection events via JavaScript or Qt signals
+* Display selection highlight using platform-standard selection styling
+
+=== Copy to Clipboard
+
+**Copy Functionality:**
+* **Keyboard Shortcut:** Ctrl+C / Cmd+C copies selected text to clipboard
+* **Context Menu:** Right-click on selected text shows "Copy" option
+* **Menu Bar:** Edit menu provides "Copy" option when text is selected
+
+**Copy Implementation:**
+1. User selects text and triggers copy (keyboard shortcut, context menu, or menu bar)
+2. Reader captures selected text from WebEngine
+3. **Background Removal:** Strip background colors and styling from copied text
+4. Convert to plain text format
+5. Copy plain text to system clipboard
+
+**Background Removal Algorithm:**
+1. Get selected HTML content from WebEngine
+2. Parse HTML to extract text nodes
+3. For each text node:
+   a. Extract text content
+   b. Remove inline styles (background-color, background, color if it matches background)
+   c. Remove CSS classes that apply backgrounds
+   d. Preserve text content only
+4. Combine text nodes with appropriate whitespace
+5. Copy plain text to clipboard
+
+**Alternative Approach (Simpler):**
+* Use WebEngine's built-in copy functionality
+* Intercept clipboard data before it's set
+* Strip HTML formatting, keeping only plain text
+* Set plain text to clipboard instead of HTML
+
+=== Paste Functionality
+
+**Paste into Forms:**
+1. User focuses on a form field (input, textarea, etc.)
+2. User triggers paste (Ctrl+V / Cmd+V or context menu)
+3. Reader retrieves plain text from system clipboard
+4. Insert text into focused form field
+5. Form field validation applies (if any)
+
+**Paste Implementation:**
+* Use WebEngine's native paste handling for form fields
+* Ensure clipboard content is accessible to form fields
+* Handle paste events in form input elements
+* Apply form validation after paste
+
+**Paste into External Documents:**
+* Text copied from Reader is plain text in clipboard
+* External applications receive plain text when pasting
+* No background formatting or styling is transferred
+* Text can be pasted into any application that accepts plain text
+
+=== Context Menu
+
+**Context Menu Implementation:**
+* Display context menu on right-click
+* Menu options:
+  * **Copy:** Copy selected text to clipboard (shown when text is selected)
+  * **Select All:** Select all text on current page or in focused form field (shown when appropriate)
+  * **Cut:** Cut selected text from form field (shown when text is selected in form field)
+  * **Paste:** Paste text from clipboard (shown when clipboard contains text and cursor is in form field)
+* Menu follows platform conventions (native OS context menu styling)
+* Menu appears near cursor position
+* Menu is dismissed when clicking outside or selecting option
+
+**Context Menu Behavior:**
+* Show "Copy" option when text is selected
+* Show "Cut" option when text is selected in a form field (not in content pages)
+* Show "Paste" option when clipboard contains text and cursor is in a form field
+* Show "Select All" option when appropriate (no text selected, or in form field)
+* Hide context menu when clicking outside
+* Handle keyboard navigation (arrow keys, Enter to select)
+
+=== Clipboard Integration
+
+**System Clipboard:**
+* Use Qt `QClipboard` for clipboard operations
+* Access system clipboard via `QApplication::clipboard()`
+* Set text using `clipboard->setText(plainText, QClipboard::Clipboard)`
+* Get text using `clipboard->text(QClipboard::Clipboard)`
+
+**Clipboard Formats:**
+* **Primary Format:** Plain text (UTF-8)
+* **No HTML Format:** Do not copy HTML to clipboard
+* **No Rich Text Format:** Do not copy RTF or other formatted text
+* **Plain Text Only:** Ensure only plain text is available for pasting
+
+**Cross-Platform Considerations:**
+* Windows: Use `QClipboard::Clipboard` (standard clipboard)
+* macOS: Use `QClipboard::Clipboard` (standard clipboard)
+* Linux: Use `QClipboard::Clipboard` (standard clipboard) or `QClipboard::Selection` (primary selection) based on platform conventions
+
+=== Form Field Paste Handling
+
+**Form Field Focus:**
+* Detect when form field receives focus
+* Enable paste functionality for focused form field
+* Handle paste events in form input elements
+
+**Paste into Form Fields:**
+1. User focuses on form field (click or Tab navigation)
+2. User triggers paste (Ctrl+V / Cmd+V)
+3. WebEngine handles paste event in form field
+4. Plain text from clipboard is inserted into form field
+5. Form field's input event is triggered
+6. Form validation applies (if any)
+
+**Paste Validation:**
+* Form field validation rules apply to pasted content
+* Invalid content may be rejected or sanitized
+* User receives feedback if paste is rejected
+* Valid content is inserted normally
+
+=== Selection Persistence
+
+**Selection Behavior:**
+* Selection is cleared when:
+  * User clicks outside selected area
+  * User navigates to new page
+  * User scrolls significantly
+  * User performs other actions (search, etc.)
+* Selection is NOT persisted across page navigation
+* Selection is NOT saved in reading position
+
+**Selection State:**
+* Track selection state per Reader View Window
+* Clear selection on page navigation
+* Clear selection on window focus loss (optional, platform-dependent)
+
+=== Standard Keyboard Shortcuts
+
+**Text Selection and Copy Shortcuts:**
+* **Select All:** Ctrl+A (Windows/Linux) or Cmd+A (macOS)
+  * Selects all text on current page when no form field is focused
+  * Selects all text in focused form field when form field has focus
+* **Copy:** Ctrl+C (Windows/Linux) or Cmd+C (macOS)
+  * Copies selected text to clipboard
+  * Works with content page text and form field text
+* **Paste:** Ctrl+V (Windows/Linux) or Cmd+V (macOS)
+  * Pastes text from clipboard into focused form field
+  * Works when form field has focus
+* **Cut:** Ctrl+X (Windows/Linux) or Cmd+X (macOS)
+  * Cuts selected text from form field (removes text and copies to clipboard)
+  * Only works in form fields, not in content pages (content is read-only)
+
+**Shortcut Implementation:**
+* Use Qt's keyboard shortcut handling (`QShortcut` or menu actions)
+* Ensure shortcuts work consistently across all Reader View Windows
+* Handle focus properly (shortcuts apply to focused element)
+* Follow platform conventions (Ctrl on Windows/Linux, Cmd on macOS)
+* Shortcuts should not conflict with WebEngine's native shortcuts
+
+**Shortcut Priority:**
+1. Form field shortcuts take precedence when form field is focused
+2. Content page shortcuts apply when no form field is focused
+3. Application-level shortcuts (menu items) always available
+
+**WCAG Compliance:**
+* Keyboard shortcuts are essential for WCAG 2.1 Level AA compliance
+* All essential functions must be accessible via keyboard without requiring a mouse
+* Standard keyboard shortcuts ensure users can perform all operations using only the keyboard
+* Keyboard shortcuts follow platform conventions for consistency and familiarity
+
 == Cartridge Signature Verification Process Algorithm
 
 === Phase 1: Integrity Check and Identity Establishment
@@ -173,10 +1999,13 @@ These tables exist in a separate, local SQLite database maintained by the Reader
 |===
 ^.^| Step ^.^| Action by Reader C++ Core ^.^| Output/Result
 
-| **1. Extract IDs & Security Data** | Read `cartridge_guid` from `Metadata`. Read security parameters (H1, Signature) from `Cartridge_Security`. | `cartridge_guid`, H1, Signature 
-| **2. Recalculate Content Hash** | Read the binary content of critical tables. Calculate H2. | H2 (Recalculated Content Hash)
-| **3. Verify Digital Signature** | Use Public Key to decrypt `digital_signature` and verify it matches the stored H1. | Signature Status: `VALID`, `INVALID`, or `UNVERIFIED`.
-| **4. Check Tampering (Content vs. Signature)** | Compare H1 vs. H2. | Integrity Status: `MATCH` or `MISMATCH`.
+| **1. Extract IDs & Security Data** | Read `cartridge_guid` from `Metadata`. Read security parameters (H1, Signature, Certificate, Fingerprint) from `Cartridge_Security`. | `cartridge_guid`, H1, Signature, Certificate, Fingerprint 
+| **2. Recalculate Content Hash** | Read the binary content of critical tables. Calculate H2 using the Content Hash Algorithm (see "Content Hash Algorithm Specification" section below). | H2 (Recalculated Content Hash)
+| **3. Extract Certificate and Public Key** | Extract certificate from `certificate_data`. Extract public key from certificate using `QSslCertificate::publicKey()`. If certificate is missing or invalid, set Public Key Status to `MISSING` or `INVALID`. | Certificate Object, Public Key Object, Public Key Status
+| **4. Verify Public Key Fingerprint** | Calculate fingerprint of extracted public key (using same algorithm as stored fingerprint, typically SHA-256). Compare calculated fingerprint with stored `public_key_fingerprint`. If mismatch, set Fingerprint Status to `MISMATCH` (indicates potential tampering). | Fingerprint Status: `MATCH` or `MISMATCH`
+| **5. Verify Digital Signature** | Use extracted Public Key to verify `digital_signature` matches the stored H1. If fingerprint mismatch detected in Step 4, reject signature verification. | Signature Status: `VALID`, `INVALID`, or `UNVERIFIED`.
+| **6. Extract and Validate Certificate** | Validate certificate using system CA store and check expiration. See "Certificate Validation" section below. | Certificate Status: `CA_VALID`, `CA_EXPIRED`, `SELF_SIGNED`, `INVALID`, or `NONE`.
+| **7. Check Tampering (Content vs. Signature)** | Compare H1 vs. H2. | Integrity Status: `MATCH` or `MISMATCH`.
 |===
 
 === Phase 2: Trust Level Assignment
@@ -185,10 +2014,12 @@ These tables exist in a separate, local SQLite database maintained by the Reader
 |===
 ^.^| Condition ^.^| Initial Trust Level ^.^| Required Action
 
-| Signature Invalid OR Hash Mismatch. | **Rejected** | Halt loading. Block all execution.
-| Signature Valid (CA-Signed). | **Level 1: Commercial Trust** | Whitelist apps by default.
-| Signature Valid (Self-Signed). | **Level 2: Self-Signed Trust** | Apps require consent.
-| No Signature. | **Level 3: No Signature** | Apps require consent.
+| Signature Invalid OR Hash Mismatch OR Fingerprint Mismatch OR Public Key Missing. | **Rejected** | Halt loading. Block all execution.
+| Signature Valid AND Certificate Status = `CA_VALID` (valid, non-expired CA-signed) AND Fingerprint Match. | **Level 1: Commercial Trust** | Whitelist apps by default.
+| Signature Valid AND Certificate Status = `CA_EXPIRED` (expired CA-signed certificate) AND Fingerprint Match. | **Level 2: Self-Signed Trust** | Downgrade to Level 2. Display integrity warning. Apps require consent.
+| Signature Valid AND Certificate Status = `SELF_SIGNED` (self-signed certificate) AND Fingerprint Match. | **Level 2: Self-Signed Trust** | Apps require consent.
+| Signature Valid AND Certificate Status = `INVALID` (certificate validation failed). | **Rejected** | Halt loading. Block all execution.
+| No Signature OR Certificate Status = `NONE`. | **Level 3: No Signature** | Apps require consent.
 |===
 
 === Phase 3: Local Trust Registry and Policy Enforcement
@@ -196,7 +2027,7 @@ These tables exist in a separate, local SQLite database maintained by the Reader
 1.  **Check Local Persistent Trust:** Query the `Local_Trust_Registry` using the `cartridge_guid`.
 2.  **Tampering Check on Trusted Files:** If persistent trust exists, compare **H2** against the hash in the **`Local_Library_Manifest`**. A mismatch sets policy to **Rejected (Tampered)**.
 3.  **Final Policy:** Policy is `WHITELISTED` if Level 1 OR Persistent Trust exists and is valid. Otherwise, the policy requires explicit consent.
-4.  **Update Manifest:** Update the `Local_Library_Manifest` using the current `cartridge_guid` and H2.
+4.  **Update Manifest:** Update the `Local_Library_Manifest` using the current `cartridge_guid` and H2. If manifest update fails, log error and display user-friendly error dialog (see "Manifest Update Error Handling" section).
 
 === Phase 4: Embedded Application Execution Policy
 
@@ -209,22 +2040,711 @@ These tables exist in a separate, local SQLite database maintained by the Reader
 | **Rejected (Tampered/Invalid)** | Return `FALSE`. Block app execution.
 |===
 
-== Custom JSON Structure for Embedded Applications
+=== Certificate Validation Implementation
 
-=== Top-Level Schema (`Embedded_App_Manifest`)
+This section details how certificates are validated in the Reader application.
+
+==== Certificate Extraction
+
+**Process:**
+1. Read `certificate_data` BLOB from `Cartridge_Security` table
+2. Parse certificate data (supports DER and PEM formats)
+3. Create `QSslCertificate` object from certificate data
+4. If certificate data is missing or invalid, set Certificate Status to `NONE` or `INVALID`
+
+==== System Certificate Store Integration
+
+**Platform-Specific Certificate Stores:**
+* **Windows:** Windows Certificate Store (automatically accessed via Qt's SSL implementation)
+* **macOS:** Keychain System Roots (automatically accessed via Qt's SSL implementation)
+* **Linux:** System CA bundle (typically `/etc/ssl/certs/ca-certificates.crt` or `/etc/pki/tls/certs/ca-bundle.crt`)
+
+**Implementation:**
+* Qt's `QSslCertificate` class automatically validates certificates against the system's trusted root CA store
+* No manual CA list maintenance required
+* System certificate store updates are automatically used by Qt
+
+==== Certificate Validation Algorithm
+
+**Step 1: Determine Certificate Type**
+1. Extract certificate from `certificate_data`
+2. Use `QSslCertificate::verify()` to check if certificate is signed by a trusted CA
+3. If `verify()` returns `QSslCertificate::Valid` → Certificate is CA-signed
+4. If `verify()` returns `QSslCertificate::SelfSigned` → Certificate is self-signed
+5. If `verify()` returns `QSslCertificate::Invalid` → Certificate validation failed
+
+**Step 2: Check Certificate Expiration**
+1. Get certificate validity dates:
+   * `QSslCertificate::effectiveDate()` - Certificate becomes valid
+   * `QSslCertificate::expiryDate()` - Certificate expires
+2. Get current system date/time
+3. If current date < `effectiveDate` → Certificate not yet valid → Certificate Status = `INVALID`
+4. If current date > `expiryDate` → Certificate expired → Certificate Status = `CA_EXPIRED` (if CA-signed) or `INVALID` (if self-signed)
+5. If current date is within validity period → Certificate is valid
+
+**Step 3: Determine Final Certificate Status**
+* **CA-signed AND valid AND not expired:** Certificate Status = `CA_VALID`
+* **CA-signed AND valid BUT expired:** Certificate Status = `CA_EXPIRED` (downgrade to Level 2)
+* **Self-signed AND valid:** Certificate Status = `SELF_SIGNED`
+* **Certificate validation failed:** Certificate Status = `INVALID`
+* **No certificate data:** Certificate Status = `NONE`
+
+==== Expired CA Certificate Handling
+
+**Decision:** Expired CA-signed certificates are downgraded to Level 2 (Self-Signed Trust) rather than being rejected.
+
+**Rationale:**
+* Expired certificates may still be valid for content that was signed when the certificate was valid
+* Downgrading to Level 2 allows users to make informed trust decisions
+* Users can still trust the cartridge via the Local Trust Registry if desired
+
+**User Experience:**
+* Expired CA certificates trigger the same integrity warning as self-signed certificates
+* Embedded applications require explicit user consent (same as Level 2)
+* Users can grant persistent trust via the consent dialog
+
+==== Certificate Revocation (Deferred for Phase 1)
+
+**Decision:** Certificate revocation checking (OCSP/CRL) is deferred for Phase 1.
+
+**Rationale:**
+* Revocation checking requires network access, which conflicts with offline-first design
+* Adds complexity and latency to certificate validation
+* Most use cases for Phase 1 do not require revocation checking
+* Can be added in future phases if needed
+
+**Future Consideration:**
+* OCSP (Online Certificate Status Protocol) checking
+* CRL (Certificate Revocation List) checking
+* Cached revocation status for offline operation
+
+== Content Hash Algorithm Specification
+
+This section defines the exact algorithm used to calculate content hashes (H1 and H2) for cartridge integrity verification and tampering detection.
+
+=== Hash Algorithm
+
+**Algorithm:** SHA-256 (Secure Hash Algorithm 256-bit)
+
+**Rationale:**
+* **Security:** 256-bit output provides strong collision resistance
+* **Performance:** Efficient computation suitable for large content
+* **Standard:** Widely supported in Qt, OpenSSL, and cryptographic libraries
+* **Future-proof:** No known vulnerabilities; recommended by NIST
+
+**Implementation:**
+* Use Qt's `QCryptographicHash` class with `QCryptographicHash::Sha256` algorithm
+* Or use OpenSSL's SHA-256 implementation
+* Hash output is 32 bytes (256 bits)
+
+=== Tables Included in Hash
+
+The content hash includes the following tables, which represent author-controlled content and potential attack surfaces:
+
+**Included Tables:**
+1. **`Content_Pages`** - Primary content (HTML pages, chapter structure)
+2. **`Embedded_Apps`** - Embedded JavaScript applications (critical attack surface)
+3. **`Form_Definitions`** - Form schemas and validation rules
+4. **`Settings`** - Author-defined rendering defaults
+5. **`Content_Themes`** - Theme configurations (colors, fonts, styling)
+6. **`Metadata`** (partial) - Author metadata fields (see below for specific fields)
+
+**Excluded Tables:**
+* **`User_Data`** - User input data (not part of author content, changes per user)
+* **`Cartridge_Security`** - Security metadata (circular dependency - contains the hash itself)
+
+**Metadata Fields Included:**
+From the `Metadata` table, include the following fields in the hash:
+* `title`
+* `author`
+* `version`
+* `publication_year`
+* `tags_json`
+* `cover_image_path`
+* `schema_version`
+
+**Metadata Fields Excluded:**
+* `cartridge_guid` - Used separately for identification, not part of content integrity
+
+=== Hash Calculation Algorithm (Option A: Concatenate Table Hashes)
+
+**Approach:** Hash each table independently, then concatenate table hashes and hash the result.
+
+**Step 1: Hash Each Table Independently**
+
+For each table in the specified order (see "Table Ordering" below):
+
+1. **Query all rows** from the table, ordered by primary key
+2. **Serialize each row** to a deterministic byte representation (see "Row Serialization" below)
+3. **Concatenate all serialized rows** in primary key order
+4. **Calculate SHA-256 hash** of the concatenated row data
+5. **Store table hash** (32 bytes) for later concatenation
+
+**Step 2: Concatenate Table Hashes**
+
+1. **Concatenate all table hashes** in the specified table order
+2. **Include table name** as a 4-byte prefix for each table hash (to prevent hash collisions between tables)
+   * Table name prefix: First 4 bytes of SHA-256 hash of table name (ensures deterministic, fixed-size prefix)
+3. **Result:** Single byte array containing: `[table1_prefix][table1_hash][table2_prefix][table2_hash]...`
+
+**Step 3: Calculate Final Hash**
+
+1. **Calculate SHA-256 hash** of the concatenated table hashes byte array
+2. **Result:** H1 (or H2) - 32-byte content hash
+
+=== Table Ordering
+
+Tables are processed in the following fixed order:
+
+1. `Content_Pages`
+2. `Content_Themes`
+3. `Embedded_Apps`
+4. `Form_Definitions`
+5. `Metadata` (partial fields only)
+6. `Settings`
+
+**Rationale:** Fixed order ensures deterministic hash calculation regardless of database insertion order.
+
+=== Row Ordering
+
+Within each table, rows are ordered by primary key in ascending order:
+
+* **`Content_Pages`:** Ordered by `page_order` (ascending)
+* **`Content_Themes`:** Ordered by `theme_id` (alphabetical)
+* **`Embedded_Apps`:** Ordered by `app_id` (alphabetical)
+* **`Form_Definitions`:** Ordered by `form_id` (alphabetical)
+* **`Metadata`:** Single row (no ordering needed)
+* **`Settings`:** Ordered by `setting_key` (alphabetical)
+
+=== Row Serialization
+
+Each row is serialized to a deterministic byte representation using the following rules:
+
+**Column Ordering:**
+* Columns are serialized in alphabetical order by column name
+* This ensures deterministic output regardless of table schema definition order
+
+**Value Serialization:**
+* **TEXT fields:** UTF-8 encoded bytes
+* **INTEGER fields:** 8-byte big-endian representation
+* **BLOB fields:** Raw bytes (no encoding)
+* **NULL values:** Single byte `0x00` (null marker)
+
+**Row Delimiter:**
+* Each row is terminated with a single newline byte (`0x0A`)
+* This prevents concatenation issues when rows are combined
+
+**Example Serialization:**
+For a row in `Content_Pages` with:
+* `page_id` = 1 (INTEGER)
+* `page_order` = 1 (INTEGER)
+* `chapter_title` = "Introduction" (TEXT)
+* `html_content` = "<p>Hello</p>" (TEXT)
+* `associated_css` = NULL
+
+Serialized as (hex representation):
+```
+[page_id: 8 bytes big-endian 1][page_order: 8 bytes big-endian 1][associated_css: 0x00][chapter_title: UTF-8 "Introduction"][html_content: UTF-8 "<p>Hello</p>"][0x0A]
+```
+
+**Column Name Order:** `associated_css`, `chapter_title`, `html_content`, `page_id`, `page_order`
+
+=== Empty Table Handling
+
+**Empty Tables:**
+* If a table has no rows, still include it in the hash calculation
+* Hash of empty table = SHA-256 of empty byte array (32 bytes of zeros)
+* Table name prefix is still included
+
+**Rationale:** Ensures hash changes if a table is added/removed, even if initially empty.
+
+=== Hash Calculation Pseudocode
+
+[source,text]
+----
+function calculateContentHash(database):
+    tableHashes = []
+    
+    // Define table order
+    tables = ["Content_Pages", "Content_Themes", "Embedded_Apps", 
+              "Form_Definitions", "Metadata", "Settings"]
+    
+    for each table in tables:
+        // Get table name prefix (first 4 bytes of SHA-256 of table name)
+        tableNameHash = SHA256(table)
+        tablePrefix = tableNameHash[0:4]
+        
+        // Query all rows ordered by primary key
+        rows = database.query("SELECT * FROM " + table + " ORDER BY primary_key")
+        
+        // Serialize all rows
+        rowData = []
+        for each row in rows:
+            serializedRow = serializeRow(row, table)  // Alphabetical column order
+            rowData.append(serializedRow)
+            rowData.append(0x0A)  // Row delimiter
+        
+        // Hash concatenated row data
+        tableHash = SHA256(concatenate(rowData))
+        
+        // Store prefix + hash
+        tableHashes.append(tablePrefix)
+        tableHashes.append(tableHash)
+    
+    // Concatenate all table hashes
+    concatenatedHashes = concatenate(tableHashes)
+    
+    // Calculate final hash
+    H1 = SHA256(concatenatedHashes)
+    
+    return H1
+----
+
+=== Verification Process
+
+**H1 (Stored Hash):**
+* Calculated by Creator Tool during cartridge finalization
+* Stored in `Cartridge_Security.hash_digest` column
+* Represents the content state at signing time
+
+**H2 (Recalculated Hash):**
+* Calculated by Reader during cartridge loading
+* Uses the same algorithm as H1
+* Represents the current content state
+
+**Tampering Detection:**
+* Compare H1 (stored) vs H2 (recalculated)
+* If H1 == H2: Content is intact (no tampering)
+* If H1 != H2: Content has been modified (tampering detected)
+
+=== Security Considerations
+
+**Attack Surface Coverage:**
+* **Content Pages:** Prevents modification of HTML content
+* **Embedded Apps:** Critical - prevents injection of malicious JavaScript code
+* **Form Definitions:** Prevents modification of form validation rules
+* **Settings & Themes:** Prevents modification of rendering behavior
+
+**Hash Collision Resistance:**
+* SHA-256 provides 2^256 possible hash values
+* Extremely low probability of collision (cryptographically secure)
+* Table name prefixes prevent cross-table hash collisions
+
+**Deterministic Calculation:**
+* Fixed table order ensures consistent hashing
+* Fixed row order (by primary key) ensures consistent hashing
+* Fixed column order (alphabetical) ensures consistent hashing
+* UTF-8 encoding ensures consistent text representation
+
+=== Public Key Extraction and Fingerprint Verification
+
+This section details how public keys are obtained and verified during signature verification.
+
+==== Public Key Source
+
+**Primary Method: Extract from Certificate**
+* Public keys are **NOT** distributed separately
+* Public keys are **extracted from the X.509 certificate** stored in `certificate_data`
+* The certificate is embedded in the cartridge itself, making each cartridge self-contained
+* No external public key distribution mechanism is required
+
+**Implementation:**
+* Use Qt's `QSslCertificate::publicKey()` method to extract the public key from the certificate
+* The public key is extracted on-demand during signature verification
+* No persistent storage of public keys in the Reader is required
+
+==== Public Key Extraction Process
+
+**Step 1: Certificate Parsing**
+1. Read `certificate_data` BLOB from `Cartridge_Security` table
+2. Parse certificate data (supports DER and PEM formats)
+3. Create `QSslCertificate` object from certificate data
+
+**Step 2: Public Key Extraction**
+1. Call `QSslCertificate::publicKey()` to extract the public key
+2. The public key is returned as a `QSslKey` object
+3. If certificate is missing or invalid, public key extraction fails → Public Key Status = `MISSING` or `INVALID`
+
+**Step 3: Public Key Usage**
+* Use extracted public key to verify the `digital_signature`
+* The public key is used to decrypt/verify that the signature matches the stored H1 hash
+* Public key is not stored persistently; it is extracted fresh for each verification
+
+==== Fingerprint Verification
+
+**Purpose:**
+* The `public_key_fingerprint` stored in `Cartridge_Security` serves as an integrity check
+* Verifying the fingerprint ensures the certificate (and thus the public key) has not been tampered with
+* Fingerprint mismatch indicates potential tampering or corruption
+
+**Fingerprint Calculation:**
+1. Extract public key from certificate (as described above)
+2. Calculate fingerprint of the public key using the same algorithm used when creating the cartridge (typically SHA-256)
+3. Convert fingerprint to the same format as stored `public_key_fingerprint` (typically hexadecimal string)
+
+**Fingerprint Verification Process:**
+1. Calculate fingerprint of extracted public key
+2. Compare calculated fingerprint with stored `public_key_fingerprint` from `Cartridge_Security` table
+3. If fingerprints match → Fingerprint Status = `MATCH`
+4. If fingerprints do not match → Fingerprint Status = `MISMATCH` (indicates potential tampering)
+
+**Fingerprint Mismatch Handling:**
+* Fingerprint mismatch is treated as a security violation
+* Cartridge is rejected (same as signature invalid or hash mismatch)
+* User is not prompted; cartridge loading is blocked immediately
+* This prevents attacks where an attacker might replace the certificate with a different one
+
+==== Public Key Storage
+
+**Reader Storage:**
+* **No persistent storage required** - public keys are extracted on-demand from certificates
+* Public keys are not cached in the Reader's local database
+* Each verification extracts the public key fresh from the certificate
+
+**Cartridge Storage:**
+* Public key is embedded in the certificate stored in `certificate_data` column
+* `public_key_fingerprint` is stored as a TEXT field for quick integrity checking
+* Both are stored in the `Cartridge_Security` table
+
+==== Key Rotation and Updates
+
+**Cartridge Independence:**
+* Each cartridge is **self-contained** with its own certificate and public key
+* Cartridges are **immutable** once signed - they cannot be updated with new keys
+* Old cartridges remain valid with their original certificates indefinitely
+
+**Key Rotation Strategy:**
+* **No cross-cartridge key management** is required
+* If an author obtains a new certificate/key pair:
+  * New cartridges can be signed with the new certificate
+  * Old cartridges continue to work with their original certificates
+  * No need to update or re-sign existing cartridges
+
+**Certificate Expiration:**
+* Expired certificates are handled as described in "Expired CA Certificate Handling" section
+* Expired certificates do not invalidate the cartridge; they are downgraded to Level 2
+* The public key remains valid for signature verification even if the certificate is expired
+
+**Key Compromise:**
+* If an author's private key is compromised:
+  * Existing cartridges signed with that key remain valid (they were signed before compromise)
+  * New cartridges should be signed with a new key pair
+  * Authors should obtain a new certificate and use it for future cartridges
+  * No mechanism exists to revoke signatures on existing cartridges (by design, for offline operation)
+
+==== Security Considerations
+
+**Advantages of Certificate-Embedded Public Keys:**
+* **Self-contained:** Each cartridge includes everything needed for verification
+* **No external dependencies:** No need for public key servers or distribution mechanisms
+* **Tamper-resistant:** Fingerprint verification detects certificate replacement
+* **Standard practice:** Follows PKI best practices
+
+**Limitations:**
+* **No key revocation:** Once a cartridge is signed, the signature cannot be revoked
+* **Key compromise handling:** Compromised keys cannot invalidate existing cartridges
+* **Offline-first design:** These limitations are intentional to support offline operation
+
+**Fingerprint Verification Benefits:**
+* Detects certificate tampering even if signature verification would pass
+* Provides additional layer of integrity checking
+* Quick comparison (fingerprint is small, fast to compute and compare)
+* Prevents certificate substitution attacks
+
+== Embedded Application Specification
+
+=== Concept and Purpose
+
+Embedded applications are **Single Page Applications (SPAs)** or similar interactive components that provide functionality such as:
+
+* Character generators (e.g., RPG character creation)
+* Design tools (vehicle/weapon/armor design)
+* Calculators and computational tools
+* Artifact generators
+* Interactive data visualization
+
+**Security Model:**
+* **Local Operation Only:** Embedded apps operate entirely locally with **no network access**
+* **Sandboxed File System:** Apps can only access a local sandbox directory for storing/retrieving files
+* **Isolated Execution:** Each app runs in its own isolated context within the WebEngine
+* **User Consent Required:** Apps require explicit user consent (except Level 1 trusted cartridges)
+
+=== JSON Structure: `Embedded_App_Manifest`
+
+The `Embedded_App_Manifest` is stored as JSON in the `manifest_json` column of the `Embedded_Apps` table. This structure defines the application's metadata and resource requirements.
+
+**Creation and Update:**
+* Embedded App Manifest is created/updated when the cartridge is created or updated by the Creator Tool
+* Manifest is stored as part of the cartridge database during cartridge packaging
+* Manifest is validated before being saved to the cartridge
+
+**Error Handling:**
+* If manifest creation/update fails in Creator Tool, user is notified with error dialog
+* Error dialog includes: operation type (create/update), app ID, error message, and suggested resolution
+* Manifest validation errors are caught before saving to cartridge
 
 [cols="1, ^1, 3"]
 |===
 ^.^| Key ^.^| Type ^.^| Description
 
-| `appId` | String | Unique identifier for this application instance.
-| `name` | String | Human-readable name displayed in the consent prompt.
-| `description` | String | Brief explanation of the app's function.
-| `entryFile` | String | Relative path to the primary HTML file.
-| `requiredScripts` | Array | List of external JavaScript files.
-| `requiredStyles` | Array | List of external CSS files.
-| `permissions` | Array | Reserved for future granular permission requests.
+| `appId` | String | Unique identifier for this application instance. **MUST** match the `app_id` in the `Embedded_Apps` table.
+| `name` | String | Human-readable name displayed in the consent prompt and UI.
+| `description` | String | Brief explanation of the app's function and purpose.
+| `version` | String | Application version (e.g., "1.0.0").
+| `entryFile` | String | The primary HTML entry point. For SPAs, this is typically `index.html` or similar. The HTML content is stored in the `entry_html` column.
+| `requiredScripts` | Array | List of JavaScript file names or identifiers. Code stored in `js_code` BLOB or referenced from `additional_resources`.
+| `requiredStyles` | Array | List of CSS file names or identifiers. Styles stored in `css_code` BLOB or referenced from `additional_resources`.
+| `sandboxPermissions` | Array | Reserved for future granular sandbox permission requests (e.g., `["read", "write"]`).
 |===
+
+=== Embedded Application Execution Flow
+
+[cols="1, 1, 1", options="header", grid="all"]
+|===
+^.^| Step ^.^| Action ^.^| Description
+
+| **1. App Request** | Content page calls `SmartbookBridge.requestAppConsent(appId)` | JavaScript in content page requests to load an embedded app
+| **2. Consent Check** | Reader checks Effective Trust Policy | If WHITELISTED, proceed. If CONSENT_REQUIRED, show native dialog.
+| **3. App Loading** | Reader queries `Embedded_Apps` table | Retrieve app record by `app_id`, extract `manifest_json`, `entry_html`, `js_code`, `css_code`
+| **4. Sandbox Creation** | Reader creates isolated sandbox directory | Create unique sandbox directory: `{cartridge_guid}/{app_id}/sandbox/`
+| **5. Resource Injection** | Reader injects app resources into WebEngine | Load `entry_html` as base, inject `js_code` and `css_code`, make sandbox API available
+| **6. App Execution** | WebEngine executes app JavaScript | App runs in isolated context with access only to sandbox file system via WebChannel API
+| **7. Isolation** | Each app instance isolated | Multiple apps can run simultaneously, each with its own sandbox directory
+|===
+
+=== Sandbox File System API
+
+Embedded applications access the sandbox file system through the WebChannel Bridge API (see WebChannel API Specification for complete details):
+
+* `saveSandboxFile(filename, data, callback)` - Save file to app's sandbox directory
+* `loadSandboxFile(filename, callback)` - Load file from app's sandbox directory
+* `listSandboxFiles(callback)` - List files in app's sandbox directory
+* `deleteSandboxFile(filename, callback)` - Delete file from sandbox directory
+
+**Security Constraints:**
+* Sandbox directory is scoped to `{cartridge_guid}/{app_id}/sandbox/`
+* Apps **cannot** access files outside their sandbox
+* Apps **cannot** access the host file system
+* Apps **cannot** make network requests
+* Sandbox is cleared when cartridge is deleted (optional: user preference to retain)
+
+=== JavaScript Security Sandbox and API Restrictions
+
+Qt WebEngine provides native sandboxing capabilities, but additional restrictions are required to ensure embedded applications operate securely within the local-only, sandboxed environment.
+
+==== Qt WebEngine Native Sandboxing
+
+**Built-in Security Features:**
+* **Process Isolation:** Each `QWebEngineView` runs in a separate renderer process (Chromium's multi-process architecture)
+* **V8 JavaScript Engine:** Isolated JavaScript execution context per view
+* **Network Interceptor:** `QWebEngineUrlRequestInterceptor` can block network requests at the profile level
+* **CSP Support:** Content Security Policy headers can be enforced
+
+**Isolation Strategy:**
+* Each embedded app runs in its own `QWebEngineView` instance
+* Complete JavaScript isolation between apps
+* Each view has its own WebChannel bridge instance
+* Apps cannot access each other's JavaScript or DOM
+
+==== Network API Restrictions
+
+**Blocked APIs (via Interceptor + CSP):**
+* **`fetch()`** - All network requests blocked
+* **`XMLHttpRequest`** - All network requests blocked
+* **`WebSocket`** - All WebSocket connections blocked
+* **`EventSource` (Server-Sent Events)** - All SSE connections blocked
+* **`<script src="http...">`** - External script loading blocked
+* **`<link href="http...">`** - External stylesheet loading blocked
+* **`<img src="http...">`** - External image loading blocked (unless cached)
+* **`<iframe src="http...">`** - External iframe loading blocked
+
+**Implementation:**
+* `QWebEngineUrlRequestInterceptor` blocks all HTTP/HTTPS requests
+* CSP header: `connect-src 'none';` prevents network connections
+* CSP header: `default-src 'self';` restricts resource loading to local content only
+
+==== File System API Restrictions
+
+**Blocked APIs:**
+* **File System Access API** (`window.showOpenFilePicker()`, `window.showSaveFilePicker()`) - Blocked (use WebChannel sandbox API instead)
+* **FileReader API** (for local files) - Restricted (can only read files provided via sandbox API)
+* **FileWriter API** - Blocked (use WebChannel sandbox API instead)
+
+**Allowed APIs:**
+* **FileReader API** (for Blob/ArrayBuffer) - Allowed (for in-memory file processing)
+* **Blob API** - Allowed (for creating in-memory file objects)
+* **URL.createObjectURL()** - Allowed (for creating blob URLs)
+
+**Rationale:** Direct file system access is blocked to prevent access outside the sandbox. All file operations must go through the WebChannel sandbox API, which enforces path validation and sandbox boundaries.
+
+==== Storage API Restrictions
+
+**Allowed APIs:**
+* **`localStorage`** - Allowed (scoped to app's origin, isolated per app instance)
+* **`sessionStorage`** - Allowed (scoped to app's origin, cleared on app unload)
+* **`IndexedDB`** - Allowed (scoped to app's origin, isolated per app instance)
+
+**Rationale:** Browser storage APIs are isolated per origin/view, providing natural isolation. Apps can use these for temporary data storage without security risks.
+
+==== Clipboard API Restrictions
+
+**Allowed APIs:**
+* **`navigator.clipboard.readText()`** - Allowed (read from clipboard)
+* **`navigator.clipboard.writeText()`** - Allowed (write to clipboard)
+* **`navigator.clipboard.read()`** - Allowed (read clipboard data)
+* **`navigator.clipboard.write()`** - Allowed (write clipboard data)
+
+**Rationale:** Clipboard access is safe and useful for user experience (copy/paste functionality). Users control clipboard content, so no security risk.
+
+==== Device Access API Restrictions
+
+**Blocked APIs:**
+* **`navigator.geolocation`** - Blocked (privacy concern, not needed for local apps)
+* **`navigator.mediaDevices.getUserMedia()`** - Blocked (camera/microphone access not needed)
+* **`navigator.mediaDevices.enumerateDevices()`** - Blocked (device enumeration not needed)
+* **`navigator.getBattery()`** - Blocked (battery API not needed)
+* **`navigator.vibrate()`** - Blocked (vibration API not needed)
+
+**Rationale:** Device access APIs are not needed for local-only applications and pose privacy/security risks.
+
+==== Window and Navigation API Restrictions
+
+**Blocked APIs:**
+* **`window.open()`** - Blocked (prevents opening external windows/URLs)
+* **`window.location.href = "http..."`** - Blocked (prevents navigation to external URLs)
+* **`window.location.replace()`** - Restricted (can only navigate within app's local context)
+* **`window.location.assign()`** - Restricted (can only navigate within app's local context)
+* **`window.history.pushState()`** - Allowed (for SPA navigation within app)
+* **`window.history.replaceState()`** - Allowed (for SPA navigation within app)
+
+**Rationale:** External navigation is blocked to prevent network access. Internal navigation (SPA routing) is allowed for app functionality.
+
+==== Communication API Restrictions
+
+**Blocked APIs:**
+* **`window.postMessage()`** - Restricted (can only communicate within same origin/app instance)
+* **`BroadcastChannel`** - Restricted (can only communicate within same origin/app instance)
+* **`SharedWorker`** - Blocked (not needed, potential security risk)
+* **`Service Worker`** - Blocked (not needed, potential security risk, network access risk)
+
+**Rationale:** Cross-origin communication is blocked. Same-origin communication is allowed for app internal functionality.
+
+==== Worker API Restrictions
+
+**Allowed APIs:**
+* **`new Worker()`** - Allowed (Web Workers for performance, isolated execution)
+* **`new SharedWorker()`** - Blocked (not needed, potential security risk)
+
+**Rationale:** Web Workers are allowed for performance (offloading computation), but SharedWorkers are blocked as they're not needed and pose potential security risks.
+
+==== Evaluation API Restrictions
+
+**Allowed APIs (with CSP):**
+* **`eval()`** - Allowed (required for many SPAs, controlled via CSP)
+* **`Function()` constructor** - Allowed (required for many SPAs, controlled via CSP)
+* **`setTimeout(codeString)`** - Allowed (required for some frameworks, controlled via CSP)
+
+**Rationale:** Dynamic code evaluation is necessary for many SPA frameworks. CSP provides some protection, but primary security comes from network blocking and sandbox isolation.
+
+**CSP Configuration:**
+* `script-src 'self' 'unsafe-inline' 'unsafe-eval';` - Allows inline scripts and eval (required for SPAs)
+
+==== WebAssembly API Restrictions
+
+**Allowed APIs:**
+* **`WebAssembly.compile()`** - Allowed
+* **`WebAssembly.instantiate()`** - Allowed
+* **`WebAssembly.compileStreaming()`** - Blocked (requires network, use compile() instead)
+* **`WebAssembly.instantiateStreaming()`** - Blocked (requires network, use instantiate() instead)
+
+**Rationale:** WebAssembly is allowed for performance, but streaming APIs are blocked as they require network access.
+
+==== Notification API Restrictions
+
+**Allowed APIs:**
+* **`new Notification()`** - Allowed (for user notifications within app)
+* **`Notification.requestPermission()`** - Allowed (for permission requests)
+
+**Rationale:** Notifications are safe and useful for user experience. They're scoped to the app instance.
+
+==== Content Security Policy (CSP) Configuration
+
+**CSP Header for Embedded Apps:**
+```
+default-src 'self';
+script-src 'self' 'unsafe-inline' 'unsafe-eval';
+style-src 'self' 'unsafe-inline';
+connect-src 'none';
+img-src 'self' data: blob:;
+font-src 'self' data:;
+object-src 'none';
+base-uri 'self';
+form-action 'none';
+frame-ancestors 'none';
+```
+
+**CSP Directives Explained:**
+* `default-src 'self'` - Only load resources from same origin (local app content)
+* `script-src 'self' 'unsafe-inline' 'unsafe-eval'` - Allow inline scripts and eval (required for SPAs)
+* `style-src 'self' 'unsafe-inline'` - Allow inline styles (required for SPAs)
+* `connect-src 'none'` - Block all network connections (fetch, XHR, WebSocket, etc.)
+* `img-src 'self' data: blob:` - Allow images from same origin, data URIs, and blob URLs
+* `font-src 'self' data:` - Allow fonts from same origin and data URIs
+* `object-src 'none'` - Block plugins (Flash, etc.)
+* `base-uri 'self'` - Restrict base tag URLs
+* `form-action 'none'` - Block form submissions (not needed, apps use WebChannel API)
+* `frame-ancestors 'none'` - Prevent embedding in iframes
+
+==== Network Request Interceptor Implementation
+
+**Implementation Approach:**
+* Create custom `QWebEngineUrlRequestInterceptor` subclass
+* Override `interceptRequest()` method
+* Block all HTTP/HTTPS requests (return `QWebEngineUrlRequestInterceptor::RequestIntercepted`)
+* Allow only `data:`, `blob:`, and `file://` URLs (for local content)
+* Log blocked requests for debugging (optional)
+
+**Code Structure (Conceptual):**
+[source,cpp]
+----
+class EmbeddedAppRequestInterceptor : public QWebEngineUrlRequestInterceptor {
+public:
+    void interceptRequest(QWebEngineUrlRequestInfo &info) override {
+        QUrl url = info.requestUrl();
+        QString scheme = url.scheme().toLower();
+        
+        // Block all network requests
+        if (scheme == "http" || scheme == "https") {
+            info.block(true);
+            return;
+        }
+        
+        // Allow local schemes
+        if (scheme == "data" || scheme == "blob" || scheme == "file") {
+            info.block(false);
+            return;
+        }
+        
+        // Block everything else
+        info.block(true);
+    }
+};
+----
+
+==== Security Layers Summary
+
+**Defense in Depth:**
+1. **Process Isolation** (Qt WebEngine native) - Apps run in separate renderer processes
+2. **Network Interceptor** (Primary defense) - Blocks all network requests at the profile level
+3. **CSP Headers** (Secondary defense) - Restricts resource loading and connections
+4. **API Restrictions** (Tertiary defense) - Blocks/restricts dangerous JavaScript APIs
+5. **Sandbox File System** (Controlled access) - All file operations go through validated WebChannel API
+
+**Security Model:**
+* **Default Deny:** All network access denied by default
+* **Whitelist Approach:** Only explicitly allowed APIs are available
+* **Isolation:** Each app runs in its own isolated context
+* **Validation:** All file operations validated for path traversal prevention
 
 == Application Architecture and Window Management
 
@@ -236,6 +2756,186 @@ The Smartbook Reader SHALL implement a Multi-Window Architecture: a single **Lib
 
 * **Database Isolation:** Each Reader View is isolated to its single cartridge file.
 * **WebChannel Scope:** The `SmartbookBridge` is uniquely instantiated per Reader View instance.
+
+=== Window Opening Mechanisms
+
+**Double-Click Opening:**
+* **List View:** Double-clicking a cartridge title opens the cartridge in a new Reader View Window
+* **Grid View:** Double-clicking a cartridge cover opens the cartridge in a new Reader View Window
+* Visual feedback: Brief highlight or selection indicator when double-click is detected
+* Opens new window immediately (no confirmation dialog)
+
+**Context Menu Opening:**
+* **List View:** Right-clicking a cartridge title displays a context menu
+* **Grid View:** Right-clicking a cartridge cover displays a context menu
+* Context menu options:
+  * **Open** - Opens cartridge in new Reader View Window (primary action)
+  * **Open in New Window** - Explicitly opens in new window (redundant but follows platform conventions)
+  * **Properties** - Display cartridge metadata (optional, Phase 2)
+  * **Delete** - Remove cartridge from library (existing functionality)
+* Context menu follows platform conventions (e.g., macOS: native context menu, Windows: Qt context menu)
+
+**Platform Conventions:**
+* Behavior should mimic established e-book applications:
+  * **Calibre:** Double-click opens book, right-click shows context menu
+  * **Apple Books:** Click opens book, right-click shows context menu
+  * **Adobe Digital Editions:** Double-click opens book, right-click shows context menu
+* Follow platform-specific UI guidelines (macOS Human Interface Guidelines, Windows UI Guidelines, Linux desktop environment guidelines)
+
+=== Window State Persistence
+
+**Window State Components:**
+* **Window Geometry:**
+  * Width (pixels)
+  * Height (pixels)
+  * X position (screen coordinates, left edge)
+  * Y position (screen coordinates, top edge)
+* **Window State:**
+  * Maximized flag (boolean)
+  * Note: Minimized state is not persisted (window restores to previous non-minimized state)
+* **Reading Position:** (See "Reading Position Persistence" section)
+  * `page_id`
+  * `anchor_id` (optional)
+  * `scroll_position` (pixels from top)
+
+**Save Window State:**
+* Triggered when Reader View Window is closed (user closes window or application quits)
+* Save to `Local_Window_State` table:
+  * Insert or update entry for `cartridge_guid`
+  * Store window geometry (width, height, x, y)
+  * Store maximized state
+  * Update `last_updated` timestamp
+* Save reading position to `Local_Reading_Position` table (see "Reading Position Persistence" section)
+* Both saves occur atomically (in same transaction if possible)
+
+**Window State Save Algorithm:**
+1. **On Window Close Event:**
+   a. Get current window geometry: `QMainWindow::geometry()` or `QMainWindow::frameGeometry()`
+   b. Get window state: `QMainWindow::isMaximized()`
+   c. Get reading position from WebEngine view (current page, scroll position)
+   d. Open transaction on local database
+   e. Insert or update `Local_Window_State` entry
+   f. Insert or update `Local_Reading_Position` entry
+   g. Commit transaction
+   h. Close window
+
+2. **On Application Quit:**
+   a. Iterate through all open Reader View Windows
+   b. For each window, save window state and reading position (as above)
+   c. Close all windows
+
+**Window State Validation:**
+* Before restoring window state, validate saved geometry:
+  * Check if saved position is within current screen bounds (accounting for multi-monitor setups)
+  * Check if saved size is within reasonable bounds (minimum: 400x300, maximum: screen size)
+  * If validation fails, use default window size and position
+
+=== Window State Restoration
+
+**Restore Window State:**
+* Triggered when cartridge is opened in new Reader View Window
+* Query `Local_Window_State` table for `cartridge_guid`
+* If entry exists:
+  * Restore window geometry (width, height, x, y)
+  * Restore maximized state (if was maximized, restore maximized)
+  * If entry doesn't exist, use default window size and position
+* Query `Local_Reading_Position` table for `cartridge_guid`
+* If entry exists:
+  * Navigate to saved `page_id`
+  * Navigate to saved `anchor_id` (if present)
+  * Scroll to saved `scroll_position`
+* If no reading position exists, navigate to first page
+
+**Window State Restoration Algorithm:**
+1. **On Cartridge Open:**
+   a. Create new `ReaderViewInstance` window
+   b. Query `Local_Window_State` for `cartridge_guid`
+   c. If entry found:
+      * Validate saved geometry (see "Window State Validation" above)
+      * If valid: Set window geometry using `QMainWindow::setGeometry()` or `QMainWindow::resize()` and `QMainWindow::move()`
+      * If was maximized: Call `QMainWindow::showMaximized()`
+      * If invalid: Use default geometry
+   d. If entry not found:
+      * Use default window size (e.g., 1024x768) and center on screen
+   e. Show window
+   f. Load cartridge content
+   g. Query `Local_Reading_Position` for `cartridge_guid`
+   h. If entry found:
+      * Navigate to saved `page_id`
+      * If `anchor_id` present, scroll to anchor
+      * If `scroll_position` present, scroll to position
+   i. If entry not found:
+      * Navigate to first page
+
+**Default Window Geometry:**
+* **Default Size:** 1024x768 pixels (or 80% of primary screen size, whichever is smaller)
+* **Default Position:** Centered on primary screen
+* **Default State:** Normal (not maximized)
+
+**Multi-Monitor Handling:**
+* If saved window position is on a monitor that no longer exists:
+  * Move window to primary monitor
+  * Center window on primary monitor
+* If saved window size exceeds current screen size:
+  * Resize to fit within screen bounds
+  * Maintain aspect ratio if possible
+
+=== Window Minimize and Restore Behavior
+
+**Standard OS Behavior:**
+* **Minimize:** Follow platform conventions:
+  * **Windows:** Window minimizes to taskbar
+  * **macOS:** Window minimizes to Dock (if enabled) or hides
+  * **Linux:** Window minimizes to taskbar/panel (desktop environment dependent)
+* **Restore:** Follow platform conventions:
+  * **Windows:** Click taskbar icon to restore
+  * **macOS:** Click Dock icon or use Mission Control
+  * **Linux:** Click taskbar/panel icon to restore
+
+**Implementation:**
+* Use Qt's standard window management:
+  * `QMainWindow::showMinimized()` - Minimize window
+  * `QMainWindow::showNormal()` - Restore from minimized/maximized
+  * `QMainWindow::showMaximized()` - Maximize window
+* Minimized state is NOT persisted (window restores to previous non-minimized state)
+* Window state (normal/maximized) is persisted, but minimized state is transient
+
+**Window State Transitions:**
+* **Normal → Minimized:** Window minimizes, state not saved
+* **Minimized → Normal:** Window restores to previous size/position (from `Local_Window_State`)
+* **Normal → Maximized:** Window maximizes, state saved on close
+* **Maximized → Normal:** Window restores to saved size/position, state saved on close
+* **Maximized → Minimized:** Window minimizes, maximized state preserved (restores to maximized when unminimized)
+
+=== Window Closing Behavior
+
+**User-Initiated Close:**
+* User clicks window close button (X button)
+* User selects File → Close from menu
+* User presses platform-specific close shortcut (e.g., Ctrl+W, Cmd+W)
+* Before closing:
+  * Save window state (geometry, position, maximized state)
+  * Save reading position (page, anchor, scroll position)
+  * Close window
+
+**Application Quit:**
+* User quits application (File → Quit, platform-specific quit shortcut)
+* Before quitting:
+  * Save window state for all open Reader View Windows
+  * Save reading position for all open Reader View Windows
+  * Close all windows
+  * Exit application
+
+**Close Confirmation (Optional):**
+* No confirmation dialog by default (follows platform conventions)
+* Reading position and window state are automatically saved
+* User can immediately reopen cartridge to continue reading
+
+**Multiple Windows:**
+* Each Reader View Window is independent
+* Closing one window does not affect other open windows
+* Each window saves its own state independently
+* Library Manager window state is NOT persisted (always opens with default geometry)
 
 == Creator Tool's Cartridge Packaging Algorithm
 
@@ -256,8 +2956,8 @@ The Smartbook Reader SHALL implement a Multi-Window Architecture: a single **Lib
 |===
 ^.^| Step ^.^| Action by Creator Tool ^.^| Output 
 
-| **1. Serialize Critical Tables** | Export the binary representation of the critical tables. | Binary Content Blob
-| **2. Calculate Content Hash (H1)** | Calculate the hash (e.g., SHA-256) of the Binary Content Blob. | H1 (Content Hash) 
+| **1. Serialize Critical Tables** | Export the binary representation of the critical tables using the Content Hash Algorithm (see "Content Hash Algorithm Specification" section below). | Binary Content Blob
+| **2. Calculate Content Hash (H1)** | Calculate the hash using SHA-256 algorithm as specified in the Content Hash Algorithm Specification. | H1 (Content Hash) 
 | **3. Determine Signing Method** | Prompt author to choose signing method (Level 1, 2, or 3). | Signing Intent 
 |===
 
@@ -358,6 +3058,821 @@ The Library Manager MUST allow the user to toggle between two modes: the visual 
 . Block execution.
 |===
 // Removed Image placeholder
+
+== Error Handling and Logging Implementation
+
+=== Error Handling Strategy
+
+The Reader and Creator Tool applications implement comprehensive error handling with graceful degradation, user-friendly error messages, and detailed logging for debugging.
+
+=== Reader Application Error Handling
+
+==== Cartridge File Errors
+
+**Detection:**
+* File existence check before opening
+* SQLite format validation
+* File corruption detection via SQLite integrity checks
+
+**Handling:**
+* **File Not Found:** Display user-friendly error: "Cartridge file not found. It may have been moved or deleted."
+* **Invalid SQLite Format:** Display error: "Invalid cartridge format. The file may be corrupted."
+* **File Corruption:** Attempt SQLite recovery if possible. If recovery fails, display error with option to delete corrupted cartridge.
+* **Permission Errors:** Display error: "Cannot access cartridge file. Check file permissions."
+
+**Logging:** All cartridge file errors SHALL be logged with ERROR level, including file path and error details.
+
+==== Database Connection Errors
+
+**Detection:**
+* Connection attempt with timeout
+* SQLite error code checking
+* Disk space monitoring
+
+**Handling:**
+* **Database Locked:** Retry with exponential backoff (max 3 retries). If still locked, display error: "Cartridge is in use by another application."
+* **Disk Full:** Display error: "Insufficient disk space. Free up space and try again."
+* **SQLite Corruption:** Attempt recovery using `PRAGMA integrity_check`. If recovery fails, display error with option to delete corrupted cartridge.
+* **Connection Timeout:** Display error: "Database connection timeout. The cartridge may be on a slow storage device."
+
+**Logging:** Database errors SHALL be logged with ERROR level, including SQLite error codes and operation context.
+
+==== Signature Verification Errors
+
+**Error Types and Messages:**
+
+[cols="2, 4", options="headers"]
+|===
+^.^| Error Type ^.^| User Message
+
+| Invalid Signature | "Cartridge signature is invalid. The content may have been tampered with or corrupted."
+| Expired Certificate | "The cartridge's security certificate has expired. Contact the publisher for an updated version."
+| Untrusted CA | "The cartridge's security certificate is not from a trusted authority. Proceed with caution."
+| Corrupted Security Data | "Cartridge security data is corrupted. The file may be damaged."
+| Hash Mismatch (Tampering) | "Cartridge integrity check failed. The file has been modified since it was signed. For security reasons, execution is blocked."
+|===
+
+**Handling:**
+* All signature verification errors SHALL block app execution
+* Hash mismatch errors SHALL be logged as security events with WARN level
+* User SHALL be informed of the specific error type
+
+==== File System Errors
+
+**Handling:**
+* **Disk Full:** Check available disk space before operations. Display error: "Insufficient disk space. Free up [X] MB and try again."
+* **Permission Denied:** Display error: "Permission denied. Check file permissions or run as administrator."
+* **Path Too Long:** Display error: "File path is too long. Move the cartridge to a shorter path."
+* **Invalid Characters:** Sanitize paths and display warning if sanitization occurred.
+
+**Logging:** File system errors SHALL be logged with WARN or ERROR level depending on severity.
+
+==== Manifest Update Error Handling
+
+**Two Types of Manifests:**
+
+1. **Embedded App Manifest** (`Embedded_App_Manifest` JSON in `Embedded_Apps.manifest_json`):
+   * Created/updated when cartridge is created/updated by Creator Tool
+   * Stored within the cartridge database itself
+   * Failures typically occur during cartridge creation/update in Creator Tool
+   * Error handling: See "Creator Tool Manifest Error Handling" below
+
+2. **Local Library Manifest** (`Local_Library_Manifest` table in Reader's local database):
+   * Updated when cartridge is added/updated/removed from library
+   * Stored in Reader's local database (`local_reader.sqlite`)
+   * Failures typically due to disk space or file permissions
+   * Error handling: See "Local Library Manifest Error Handling" below
+
+===== Creator Tool: Embedded App Manifest Error Handling
+
+**When Manifest is Created/Updated:**
+* During cartridge creation: When author defines embedded applications
+* During cartridge update: When author modifies embedded application definitions
+* Manifest is validated before being saved to cartridge database
+
+**Error Scenarios:**
+* JSON validation errors (invalid manifest structure)
+* Schema validation errors (missing required fields, invalid field types)
+* Database write errors (cartridge file locked, disk full, permissions)
+
+**Error Dialog Requirements:**
+* Display error dialog to user with:
+  * **Operation:** "Create Embedded App Manifest" or "Update Embedded App Manifest"
+  * **App ID:** The `app_id` of the embedded app being created/updated
+  * **Error Type:** Brief description (e.g., "JSON Validation Error", "Database Write Error")
+  * **Error Message:** Detailed error message from validation or database operation
+  * **Context:** Cartridge file path, operation timestamp
+  * **Suggested Resolution:** Actionable steps to resolve the error
+* Error dialog should include "Copy Error Details" button to copy full error information for debugging
+* Error dialog should allow user to retry operation or cancel
+
+**Error Dialog Example:**
+```
+Title: "Failed to Save Embedded App Manifest"
+
+Message:
+"Failed to save embedded app manifest for app 'character_generator'.
+
+Error: JSON validation failed - missing required field 'appId'
+
+Cartridge: /path/to/cartridge.sqlite
+Operation: Create Embedded App Manifest
+Timestamp: 2025-12-14 10:30:45
+
+Suggested Resolution:
+1. Check that all required fields are present in the manifest
+2. Verify JSON structure is valid
+3. Try saving again
+
+[Copy Error Details] [Retry] [Cancel]"
+```
+
+**Logging:**
+* Log error with ERROR level
+* Include: operation type, app ID, error message, cartridge path, stack trace (if available)
+
+===== Reader: Local Library Manifest Error Handling
+
+**When Manifest is Updated:**
+* **On Cartridge Import:** When new cartridge is added to library
+* **On Cartridge Open:** When cartridge is opened and content hash (H2) is recalculated
+* **On Cartridge Update:** When cartridge file is detected at new path or with changed content
+* **On Cartridge Deletion:** When cartridge is removed from library
+
+**Error Scenarios:**
+* **Disk Space Exhaustion:** Insufficient disk space to write to local database
+* **File Permissions:** No write permission to local database file or directory
+* **Database Locked:** Local database file is locked by another process
+* **Database Corruption:** Local database file is corrupted or inaccessible
+* **Path Issues:** Invalid or inaccessible local database path
+
+**Error Handling Strategy:**
+* If manifest update fails, operation SHALL continue (non-blocking for cartridge operations)
+* Error SHALL be logged with ERROR level
+* User SHALL be notified via error dialog with sufficient information to reproduce and debug
+
+**Error Dialog Requirements:**
+* Display error dialog to user with:
+  * **Operation:** "Update Library Manifest" or "Add to Library" or "Remove from Library"
+  * **Cartridge:** Cartridge title and `cartridge_guid`
+  * **Error Type:** Brief description (e.g., "Disk Space Error", "Permission Denied")
+  * **Error Message:** Detailed error message from database operation
+  * **Context:** Local database path, operation timestamp, SQLite error code (if applicable)
+  * **Suggested Resolution:** Actionable steps to resolve the error
+* Error dialog should include "Copy Error Details" button to copy full error information for debugging
+* Error dialog should allow user to retry operation or dismiss
+
+**Error Dialog Example:**
+```
+Title: "Failed to Update Library Manifest"
+
+Message:
+"Failed to update library manifest for cartridge 'D&D 5e Player's Handbook'.
+
+Error: SQLite error 14 - unable to open database file
+SQLite Error Code: 14
+Error Message: disk I/O error
+
+Cartridge GUID: abc-123-def-456
+Local Database: /Users/username/.local/share/SmartBook/local_reader.sqlite
+Operation: Update Library Manifest
+Timestamp: 2025-12-14 10:30:45
+
+Suggested Resolution:
+1. Check that you have write permissions to the database directory
+2. Verify sufficient disk space is available
+3. Ensure the database file is not locked by another process
+4. Try restarting the application
+
+[Copy Error Details] [Retry] [Dismiss]"
+```
+
+**Logging:**
+* Log error with ERROR level
+* Include: operation type, cartridge_guid, error message, local database path, SQLite error code, stack trace (if available)
+
+**Retry Strategy:**
+* Update SHALL be retried on next application launch
+* If retry fails, error dialog is displayed again
+* User can manually retry via error dialog
+
+**Non-Blocking Behavior:**
+* Cartridge operations (open, import, delete) continue even if manifest update fails
+* Library view may show stale data until manifest update succeeds
+* User is informed that library data may be out of date
+
+== Cartridge Import Process Specification
+
+This section defines the complete workflow for importing cartridges into the Reader's library.
+
+=== Import Mechanisms
+
+**Drag-and-Drop:**
+* Users can drag one or more `.sqlite` cartridge files from the file system
+* Drop target: Library Manager window (main library view area)
+* Visual feedback: Highlight drop target area when files are dragged over window
+* Accepts: Files with `.sqlite` extension
+* Rejects: Non-cartridge files (display error message)
+
+**File Picker Dialog:**
+* Accessible via: Menu item (File → Import) or toolbar button
+* Native file picker dialog (Qt's `QFileDialog`)
+* Supports: Single file selection or multiple file selection
+* File filter: "SmartBook Cartridges (*.sqlite)" or "All Files (*)"
+* Default directory: Last used import directory or user's Documents folder
+
+=== Import Storage Location
+
+**Default Library Directory:**
+* **Windows:** `%USERPROFILE%\Documents\SmartBook\Library\`
+* **macOS:** `~/Documents/SmartBook/Library/`
+* **Linux:** `~/Documents/SmartBook/Library/`
+
+**Rationale:**
+* Follows operating system standards for user document storage
+* Documents folder is typically backed up by OS backup systems
+* Accessible to users for manual file management
+* Consistent across platforms
+
+**User Configuration:**
+* Users can configure custom library directory via application settings
+* Setting stored in application configuration (QSettings)
+* Library directory preference persists across sessions
+* If custom directory doesn't exist, create it on first import
+* If custom directory becomes inaccessible, fall back to default directory and notify user
+
+**Storage Strategy:**
+* Imported cartridges are copied to the library directory
+* Original file location is not required after import
+* Cartridge files are stored with their original filename (or renamed if duplicate filename exists)
+* Library directory structure is flat (no subdirectories) for simplicity
+
+=== Import Progress Dialog
+
+**Dialog Components:**
+* **Title:** "Importing Cartridges"
+* **Progress Bar:** Shows overall progress (percentage or file count)
+* **Status Text:** Current operation description (e.g., "Copying file: example.sqlite")
+* **File List:** List of files being imported with status indicators (pending, in progress, completed, failed)
+* **Cancel Button:** Abort import operation (closes dialog, stops import)
+
+**Progress Updates:**
+* Update progress bar as each file is processed
+* Update status text for each operation step
+* Update file list with status indicators
+* Enable cancel button throughout import process
+
+**Cancel Behavior:**
+* If user clicks Cancel:
+  * Stop processing remaining files
+  * Complete current file operation (if in progress)
+  * Roll back any partial imports (delete copied files, remove manifest entries)
+  * Close progress dialog
+  * Display summary: "Import cancelled. X of Y files imported."
+
+=== Duplicate Detection and Handling
+
+**Duplicate Detection:**
+* After copying file to library directory, open cartridge and read `cartridge_guid` from `Metadata` table
+* Query `Local_Library_Manifest` table for existing entry with same `cartridge_guid`
+* If duplicate found, display confirmation dialog before proceeding
+
+**Duplicate Confirmation Dialog:**
+* **Title:** "Duplicate Cartridge Detected"
+* **Message:** "A cartridge with the same identifier already exists in your library."
+* **Existing Cartridge Information:**
+  * Title
+  * Author
+  * File path
+  * File size
+  * Last modified date
+* **New Cartridge Information:**
+  * Title
+  * Author
+  * File path (source)
+  * File size
+  * Last modified date
+* **Options:**
+  * **Replace:** Delete existing cartridge file, import new cartridge, update manifest entry
+  * **Skip:** Abort import for this cartridge, continue with next file (if multiple)
+  * **Keep Both:** Rename new file (add suffix like "_1", "_2") and import as separate entry
+* **Checkbox (if multiple files):** "Apply this choice to all duplicates" - allows batch handling
+
+**Replace Operation:**
+* Delete existing cartridge file from library directory
+* Copy new cartridge file to library directory
+* Update manifest entry (new path, new hash, new metadata)
+* Preserve trust registry entry (if exists) - user's trust decision remains
+* Preserve user settings (if exists) - user preferences remain
+* Preserve bookmarks and reading position (if exists) - user data remains
+
+**Skip Operation:**
+* Do not copy new cartridge file
+* Do not update manifest
+* Continue with next file in import batch
+* Log skipped duplicate for user reference
+
+**Keep Both Operation:**
+* Generate unique filename: `{original_name}_{suffix}.sqlite` where suffix is incremented until unique
+* Copy new cartridge file with new filename
+* Create new manifest entry (different `local_path`, same `cartridge_guid`)
+* Note: This creates two entries with same `cartridge_guid` but different paths
+* User can manually delete one later if desired
+
+=== Import Validation
+
+**Validation Steps:**
+1. **File Format Validation:**
+   * Verify file exists and is readable
+   * Verify file has `.sqlite` extension (or is valid SQLite database)
+   * Attempt to open as SQLite database
+   * If fails: Display error "Invalid cartridge file format" and skip
+
+2. **Schema Validation:**
+   * Verify `Metadata` table exists
+   * Verify `cartridge_guid` column exists and contains valid UUID v4
+   * Verify `schema_version` column exists
+   * Verify required tables exist (`Content_Pages`, etc.)
+   * If fails: Display error "Invalid cartridge structure" and skip
+
+3. **Version Compatibility:**
+   * Read `schema_version` from `Metadata` table
+   * Compare with Reader's supported format versions
+   * If newer version: Display error "Cartridge requires newer Reader version" and skip
+   * If older version: Proceed (migration handled during load)
+
+4. **Metadata Extraction:**
+   * Read `title`, `author`, `publication_year` from `Metadata` table
+   * Read `cover_image_path` and load cover image data
+   * Verify required metadata fields are present
+   * If fails: Display error "Missing required metadata" and skip
+
+**Validation Error Handling:**
+* Display error dialog for each validation failure
+* Include: File name, error type, error details
+* Allow user to continue with other files (if batch import)
+* Log all validation errors
+
+=== Import Workflow Algorithm
+
+**Step 1: File Selection**
+1. User initiates import (drag-drop or file picker)
+2. Collect list of files to import
+3. Filter to only `.sqlite` files (warn about non-cartridge files)
+
+**Step 2: Progress Dialog Display**
+1. Display import progress dialog
+2. Initialize progress bar to 0%
+3. Add all files to file list with "pending" status
+
+**Step 3: Process Each File**
+For each file in import list:
+
+1. **Update Status:** Set file status to "in progress" in progress dialog
+2. **Validate File:** Perform import validation (see "Import Validation" above)
+3. **If Validation Fails:**
+   * Set file status to "failed" in progress dialog
+   * Display error dialog
+   * Continue with next file
+4. **If Validation Succeeds:**
+   * **Check for Duplicate:**
+     * Read `cartridge_guid` from cartridge
+     * Query manifest for existing entry
+     * If duplicate found:
+       * Display duplicate confirmation dialog
+       * Wait for user choice
+       * If "Skip": Set status to "skipped", continue next file
+       * If "Replace": Proceed with replace operation
+       * If "Keep Both": Generate unique filename
+   * **Copy File:**
+     * Determine destination path (library directory + filename)
+     * Copy file to library directory
+     * Update progress: "Copying file..."
+   * **Extract Metadata:**
+     * Read metadata from cartridge
+     * Load cover image data
+     * Calculate content hash (H2)
+     * Update progress: "Extracting metadata..."
+   * **Create Manifest Entry:**
+     * Insert/update entry in `Local_Library_Manifest` table
+     * Update progress: "Updating library..."
+   * **Set Status:** Set file status to "completed" in progress dialog
+
+**Step 4: Completion**
+1. Update progress bar to 100%
+2. Close progress dialog (or show completion summary)
+3. Refresh library view to display imported cartridges
+4. Display success notification (optional): "Successfully imported X cartridges"
+
+**Step 5: Error Summary (if any failures)**
+1. If any files failed validation or were skipped:
+2. Display summary dialog: "Import completed with X errors. Y files imported successfully, Z files skipped/failed."
+3. Provide option to view error log
+
+=== Import Error Handling
+
+**File Access Errors:**
+* **File Not Found:** Display error "File not found. It may have been moved or deleted."
+* **Permission Denied:** Display error "Permission denied. Check file permissions."
+* **Disk Full:** Display error "Insufficient disk space. Free up space and try again."
+
+**Database Errors:**
+* **Invalid SQLite Format:** Display error "Invalid cartridge format. The file may be corrupted."
+* **Database Locked:** Display error "Cartridge file is locked. Close other applications using this file."
+* **Corruption:** Display error "Cartridge file is corrupted. Cannot import."
+
+**Manifest Update Errors:**
+* If manifest update fails during import:
+  * File is copied but manifest entry not created
+  * Display error dialog (see "Manifest Update Error Handling" section)
+  * User can retry manifest update later
+  * File remains in library directory but won't appear in library view until manifest is updated
+
+**Logging:**
+* Log all import operations with INFO level
+* Log validation errors with WARN level
+* Log file operation errors with ERROR level
+* Include: file paths, cartridge_guid, error details, timestamps
+
+== Database Migration Strategy
+
+This section defines how database schema migrations are handled for both cartridge format versions and the Reader's local database schema.
+
+=== Cartridge Format Version Migration
+
+Cartridge format version is stored in the `Metadata.schema_version` field and indicates the Smartbook Format Specification version used when the cartridge was created.
+
+==== Version Detection
+
+**When Cartridge is Opened:**
+1. Reader reads `schema_version` from `Metadata` table
+2. Reader compares cartridge `schema_version` with current supported format version
+3. If versions match: Cartridge is loaded normally
+4. If versions don't match: Migration process is triggered
+
+**Supported Versions:**
+* **Phase 1:** Format version "1.0" is the initial and only supported version
+* Future phases may introduce new format versions (e.g., "1.1", "2.0")
+* Reader must support all format versions from Phase 1 forward (backward compatibility)
+
+==== Migration Strategy
+
+**Backward Compatibility:**
+* Reader SHALL support reading cartridges from all previous format versions
+* Reader SHALL NOT modify cartridge files during migration (cartridges are read-only from Reader perspective)
+* Migration is performed in-memory during cartridge loading
+* Original cartridge file remains unchanged
+
+**Forward Compatibility:**
+* Reader SHALL detect cartridges with newer format versions than it supports
+* Reader SHALL display error message: "This cartridge requires a newer version of SmartBook Reader. Please update the application."
+* Reader SHALL NOT attempt to load cartridges with unsupported newer format versions
+
+**Migration Process:**
+1. **Detect Version:** Read `schema_version` from cartridge `Metadata` table
+2. **Check Compatibility:** Compare with Reader's supported format versions
+3. **If Older Version:**
+   a. Determine migration path (e.g., 1.0 → 1.1 → 2.0)
+   b. Apply migration transformations in-memory
+   c. Load cartridge with migrated schema
+   d. Log migration operation
+4. **If Same Version:** Load cartridge normally
+5. **If Newer Version:** Display error and refuse to load
+
+==== Format Version Changes
+
+**Breaking Changes (Require Version Increment):**
+* Table schema changes (columns added/removed/renamed, data type changes)
+* Table structure changes (new tables, removed tables)
+* Required field additions
+* Data format changes (JSON structure changes, encoding changes)
+
+**Non-Breaking Changes (No Version Increment):**
+* Optional field additions
+* New optional tables
+* Extended validation rules (more restrictive)
+* Additional metadata fields
+
+**Version Numbering:**
+* Format: `MAJOR.MINOR` (e.g., "1.0", "1.1", "2.0")
+* **MAJOR** increment: Breaking changes that require migration
+* **MINOR** increment: Non-breaking changes, backward compatible
+
+==== Migration Transformations
+
+**Table Schema Migrations:**
+* **Add Column:** Add new column with default value or NULL
+* **Remove Column:** Drop column (data loss, but backward compatible for reading)
+* **Rename Column:** Map old column name to new column name
+* **Change Data Type:** Transform data type (e.g., TEXT to INTEGER with parsing)
+* **Add Table:** Create new table structure in-memory
+* **Remove Table:** Ignore table if not present in older version
+
+**Data Transformations:**
+* **JSON Structure Changes:** Transform JSON data to match new schema
+* **Encoding Changes:** Convert text encoding if needed
+* **Default Values:** Apply default values for new required fields
+
+**Migration Rules:**
+* Migration rules are defined in Reader code (not stored in cartridges)
+* Each format version transition has specific migration code
+* Migration code is tested and validated before release
+
+==== Migration Error Handling
+
+**Migration Failures:**
+* If migration fails, Reader SHALL display error dialog:
+  * "Failed to migrate cartridge from format version X to version Y"
+  * Include cartridge title, format version, error details
+  * Suggest updating cartridge with Creator Tool or contacting publisher
+* Reader SHALL log migration errors with full context
+* Reader SHALL NOT attempt to load cartridge if migration fails
+
+**Partial Migration:**
+* If migration partially succeeds (some data cannot be migrated):
+  * Reader SHALL load cartridge with available data
+  * Reader SHALL display warning: "Some data could not be migrated. Some features may not work correctly."
+  * Reader SHALL log which data could not be migrated
+
+**Migration Validation:**
+* After migration, validate migrated schema against current format version
+* Verify all required tables and columns are present
+* Verify data integrity (foreign keys, constraints)
+* If validation fails, treat as migration failure
+
+=== Reader Local Database Schema Migration
+
+The Reader's local database (`local_reader.sqlite`) contains the `Local_Library_Manifest`, `Local_Trust_Registry`, and `Local_User_Settings` tables. The schema may change between Reader application versions.
+
+==== Version Tracking
+
+**Database Version Table:**
+* Reader SHALL maintain a `_schema_version` table in the local database
+* Table structure:
+  * `version` (TEXT, PRIMARY KEY): Schema version number (e.g., "1.0")
+  * `applied_date` (INTEGER): Timestamp when migration was applied
+* If `_schema_version` table doesn't exist, database is treated as version "1.0" (initial schema)
+
+**Version Detection:**
+* On application startup, Reader checks `_schema_version` table
+* Compares stored version with current schema version
+* If versions don't match, migration process is triggered
+
+==== Migration Process
+
+**Migration on Startup:**
+1. **Check Version:** Query `_schema_version` table for current database version
+2. **Compare Versions:** Compare with Reader's current schema version
+3. **If Versions Match:** Continue normal startup
+4. **If Versions Don't Match:**
+   a. Determine migration path (e.g., 1.0 → 1.1 → 2.0)
+   b. Create backup of local database
+   c. Apply migration transformations sequentially
+   d. Update `_schema_version` table
+   e. Validate migrated database
+   f. If validation fails, restore from backup and display error
+
+**Migration Transformations:**
+* **Add Column:** `ALTER TABLE table_name ADD COLUMN column_name TYPE DEFAULT value`
+* **Remove Column:** SQLite doesn't support DROP COLUMN directly - use table recreation:
+  * Create new table with desired schema
+  * Copy data from old table (excluding removed columns)
+  * Drop old table
+  * Rename new table to original name
+* **Rename Column:** Use table recreation (same as remove column)
+* **Add Table:** `CREATE TABLE new_table (...)`
+* **Remove Table:** `DROP TABLE old_table` (with data loss warning)
+* **Modify Constraints:** Use table recreation
+
+**Migration Backup:**
+* Before migration, create backup: `local_reader.sqlite.backup`
+* Backup is created in same directory as database
+* If migration fails, restore from backup
+* Backup is kept until next successful migration or user manually deletes it
+
+==== Migration Error Handling
+
+**Migration Failures:**
+* If migration fails, Reader SHALL:
+  * Restore database from backup
+  * Display error dialog:
+    * "Failed to migrate local database from version X to version Y"
+    * Include error details, backup location
+    * Suggest manual database repair or contacting support
+  * Log migration error with full context
+  * Continue with previous schema version (may limit functionality)
+
+**Migration Validation:**
+* After migration, validate database schema:
+  * Verify all expected tables exist
+  * Verify all expected columns exist
+  * Verify data integrity (run PRAGMA integrity_check)
+  * If validation fails, restore from backup
+
+**User Notification:**
+* If migration succeeds, optionally display brief notification: "Database updated successfully"
+* If migration fails, display error dialog (see above)
+* User can continue using application with previous schema (with limitations)
+
+==== Schema Version History
+
+**Version 1.0 (Phase 1 - Initial Schema):**
+* `Local_Library_Manifest` table with columns: manifest_id, cartridge_guid, cartridge_hash, local_path, title, author, version, publication_year, cover_image_data, last_opened, location_status
+* `Local_Trust_Registry` table with columns: registry_id, cartridge_guid, app_trust_policy, trust_timestamp, content_hash_at_trust
+* `Local_User_Settings` table with columns: setting_id, cartridge_guid, setting_key, setting_value
+* `Local_Bookmarks` table with columns: bookmark_id, cartridge_guid, bookmark_name, page_id, anchor_id, created_timestamp
+* `Local_Reading_Position` table with columns: position_id, cartridge_guid, page_id, anchor_id, scroll_position, last_access_timestamp
+
+**Future Versions:**
+* Schema changes will be documented here as they are introduced
+* Each version will include migration instructions
+
+=== Handling Older Format Cartridges
+
+**Detection:**
+* Reader detects older format cartridges by reading `schema_version` from `Metadata` table
+* Reader compares with supported format versions
+
+**Loading Strategy:**
+* **Supported Older Versions:** Apply migration transformations and load
+* **Unsupported Older Versions:** Display error: "This cartridge format is no longer supported. Please contact the publisher for an updated version."
+* **Newer Versions:** Display error: "This cartridge requires a newer version of SmartBook Reader. Please update the application."
+
+**User Experience:**
+* Migration is transparent to user (automatic, in-memory)
+* User is only notified if migration fails or if cartridge format is unsupported
+* Cartridge loading may be slightly slower if migration is required
+
+**Creator Tool Compatibility:**
+* Creator Tool can open and migrate older format cartridges
+* Creator Tool can save cartridges in current format version
+* Creator Tool can optionally save in older format versions (for compatibility testing)
+
+==== WebEngine Errors
+
+**Handling:**
+* **JavaScript Errors:** Logged but do not crash application. Display error overlay in WebEngine view with option to reload.
+* **WebEngine Crash:** Catch crash signals, log error, display recovery dialog: "The content viewer encountered an error. Reload page or close cartridge?"
+* **Memory Exhaustion:** Monitor memory usage, display warning if approaching limits, offer to close other cartridges.
+
+**Logging:** WebEngine errors SHALL be logged with ERROR level, including JavaScript console output where available.
+
+=== Creator Tool Error Handling
+
+==== Content Validation Errors
+
+**Validation Points:**
+* Before saving cartridge
+* Before exporting cartridge
+* On form definition creation
+* On embedded app definition
+
+**Error Messages:**
+* **Invalid HTML:** "Invalid HTML detected at line [X]. Fix syntax errors before saving."
+* **Malformed JSON:** "Form schema JSON is invalid: [error details]"
+* **Missing Metadata:** "Required metadata field '[field]' is missing."
+* **Invalid Form Definition:** "Form definition validation failed: [specific field errors]"
+* **Resource Reference Error:** "Referenced resource '[path]' not found."
+
+**Handling:**
+* Validation errors SHALL prevent save/export operations
+* Errors SHALL be displayed in validation panel with line numbers and details
+* User SHALL be able to fix errors and retry
+
+==== Cartridge Creation Errors
+
+**Handling:**
+* **Database Initialization Failure:** Roll back any partial changes, display error: "Failed to create cartridge database. Check disk space and permissions."
+* **GUID Generation Failure:** Retry GUID generation. If persistent failure, display error: "Failed to generate unique identifier. Try again."
+* **Schema Creation Error:** Roll back database, display error: "Failed to create cartridge structure. The cartridge file may be corrupted."
+
+**Logging:** All creation errors SHALL be logged with ERROR level.
+
+==== Signing Errors
+
+**Error Messages:**
+* **Invalid Certificate Format:** "Certificate file is invalid or corrupted. Select a valid certificate file."
+* **Expired Certificate:** "Certificate has expired. Use a valid certificate or generate a new one."
+* **Missing Private Key:** "Private key file not found. Provide the private key for signing."
+* **Signing Failure:** "Failed to sign cartridge. Check certificate and key files."
+* **Certificate Import Error:** "Failed to import certificate. Verify the certificate file format."
+
+**Handling:**
+* Signing errors SHALL prevent export
+* User SHALL be able to correct certificate/key issues and retry
+* Errors SHALL be displayed with actionable guidance
+
+==== Export Errors
+
+**Handling:**
+* **File Write Error:** Display error: "Failed to write cartridge file. Check disk space and permissions."
+* **Disk Full:** Display error: "Insufficient disk space. Free up [X] MB and try again."
+* **Permission Error:** Display error: "Permission denied. Check file permissions or choose a different location."
+* **Hash Calculation Failure:** Display error: "Failed to calculate content hash. Try exporting again."
+
+**Recovery:**
+* Export errors SHALL NOT affect the working cartridge
+* User SHALL be able to retry export after resolving the issue
+* Working cartridge state SHALL be preserved
+
+=== Logging Implementation
+
+==== Logging Framework
+
+**Requirements:**
+* Minimal logging: Only errors, warnings, and critical security events
+* Automatic log rotation: When file reaches 10MB or daily (whichever comes first)
+* Maximum retention: 5 rotated log files before deletion
+* Platform-appropriate log locations
+
+==== Log File Locations
+
+[cols="2, 4", options="headers"]
+|===
+^.^| Platform ^.^| Log Directory
+
+| Windows | `%APPDATA%\SmartBook\logs\`
+| macOS | `~/Library/Application Support/SmartBook/logs/`
+| Linux | `~/.local/share/SmartBook/logs/`
+|===
+
+**Log File Naming:**
+* Current log: `smartbook.log`
+* Rotated logs: `smartbook.log.1`, `smartbook.log.2`, etc. (oldest deleted first)
+
+==== Log Format
+
+**Format:** `[TIMESTAMP] [LEVEL] [COMPONENT] MESSAGE`
+
+**Example:**
+```
+[2025-12-14 10:23:45.123] [ERROR] [CartridgeDBConnector] Failed to open cartridge: /path/to/file.sqlite - SQLite error: database disk image is malformed
+[2025-12-14 10:23:46.456] [WARN] [SignatureVerifier] Hash mismatch detected for cartridge_guid: abc-123-def
+[2025-12-14 10:23:47.789] [INFO] [LocalDBManager] Manifest updated: 5 entries
+```
+
+**Fields:**
+* **TIMESTAMP:** ISO 8601 format with milliseconds
+* **LEVEL:** ERROR, WARN, INFO (DEBUG excluded in production)
+* **COMPONENT:** Component name (e.g., CartridgeDBConnector, SignatureVerifier)
+* **MESSAGE:** Human-readable error message with context
+
+==== Log Rotation Algorithm
+
+**Trigger Conditions:**
+1. Log file size >= 10MB
+2. Daily rotation (at midnight or application start if >24 hours since last rotation)
+
+**Rotation Process:**
+1. Close current log file
+2. Rename existing rotated files: `smartbook.log.N` → `smartbook.log.N+1`
+3. Rename current log: `smartbook.log` → `smartbook.log.1`
+4. Delete `smartbook.log.6` if it exists (keep only 5 rotated files)
+5. Create new `smartbook.log` file
+6. Continue logging to new file
+
+**Implementation Notes:**
+* Rotation SHALL be atomic (no log entries lost)
+* Rotation SHALL occur automatically without user intervention
+* Rotation SHALL be logged (one INFO entry per rotation)
+
+==== Log Levels
+
+**ERROR:** Critical errors that prevent operation or indicate security issues
+* Database failures
+* File system errors
+* Signature verification failures
+* Security violations (path traversal, tampering)
+
+**WARN:** Non-critical issues that may affect functionality
+* Hash mismatches (tampering detection)
+* Manifest update failures
+* Resource not found (non-critical)
+* Performance warnings
+
+**INFO:** Important operational events
+* Application startup/shutdown
+* Cartridge import/export
+* Log rotation
+* Trust decisions
+
+**DEBUG:** Detailed debugging information (excluded from production logs unless explicitly enabled)
+
+==== Error Context Logging
+
+When logging errors, the following context SHALL be included:
+* Error code (if applicable)
+* Component name
+* Operation being performed
+* Relevant identifiers (cartridge_guid, app_id, form_id, etc.)
+* File paths (sanitized to avoid sensitive data)
+* Error message
+* Stack trace (where available)
+
+**Sensitive Data Exclusion:**
+* User data (form data, file contents) SHALL NOT be logged
+* File paths SHALL be sanitized (remove user home directory, show relative paths)
+* Passwords and keys SHALL NEVER be logged
 
 == Test Suite Requirements and Acceptance Criteria (EXPANDED)
 

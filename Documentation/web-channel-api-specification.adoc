@@ -27,6 +27,11 @@ The following table summarizes the methods available to the embedded JavaScript:
 | `loadFormData` | `loadFormData(formId, callback)` | JSON String | Retrieves the most recent serialized data for a specific form ID.
 | `logMessage` | `logMessage(level, message)` | void | Allows the embedded JS to send debug or error messages to the native C++ logging system.
 | `requestAppConsent`| `requestAppConsent(appId, callback)` | Boolean | Triggers the native modal dialog to ask the user for consent to run an embedded application.
+| `saveSandboxFile` | `saveSandboxFile(filename, data, callback)` | Boolean | Saves a file to the embedded app's sandbox directory.
+| `loadSandboxFile` | `loadSandboxFile(filename, callback)` | String/BLOB | Loads a file from the embedded app's sandbox directory.
+| `listSandboxFiles` | `listSandboxFiles(callback)` | Array | Lists all files in the embedded app's sandbox directory.
+| `deleteSandboxFile` | `deleteSandboxFile(filename, callback)` | Boolean | Deletes a file from the embedded app's sandbox directory.
+| `openSandboxFilePicker` | `openSandboxFilePicker(mode, filter, callback)` | String | Opens a native file picker dialog restricted to the sandbox directory. Returns selected filename or null if cancelled.
 |===
 
 == Detailed Method Specification
@@ -38,7 +43,13 @@ The following table summarizes the methods available to the embedded JavaScript:
     1.  Verifies the `formId` exists in the `Form_Definitions` table.
     2.  Sanitizes and validates the `dataJson` string (prevents injection/malformed data).
     3.  Persists data: Insert/Update row in `User_Data` with the `formId`, `dataJson`, and `timestamp`.
-    4.  Invokes the JS `callback` with a success/failure status.
+    4.  Invokes the JS `callback` with a success/failure status and error details.
+
+**Error Handling:**
+* **Invalid `formId`:** If `formId` does not exist in `Form_Definitions`, callback is invoked with `success: false` and `errorCode: "INVALID_FORM_ID"`.
+* **Invalid JSON:** If `dataJson` is malformed or fails validation, callback is invoked with `success: false` and `errorCode: "INVALID_JSON"`.
+* **Database Error:** If database operation fails (locked, corrupted, disk full), callback is invoked with `success: false` and `errorCode: "DATABASE_ERROR"`. Error is logged.
+* **Validation Failure:** If data fails schema validation, callback is invoked with `success: false`, `errorCode: "VALIDATION_ERROR"`, and `errorMessage` containing validation details.
 
 [cols="2, ^1, 4", options="headers"]
 |===
@@ -46,8 +57,15 @@ The following table summarizes the methods available to the embedded JavaScript:
 
 | `formId` | String | The unique ID of the form being saved.
 | `dataJson` | String | The entire serialized form data (JSON string), ready for storage.
-| `callback` | Function | JS function to execute upon completion (`callback(success: bool)`).
+| `callback` | Function | JS function to execute upon completion (`callback(success: bool, errorCode?: string, errorMessage?: string)`).
 |===
+
+**Callback Error Codes:**
+* `INVALID_FORM_ID` - Form ID does not exist
+* `INVALID_JSON` - JSON is malformed or invalid
+* `VALIDATION_ERROR` - Data fails form schema validation
+* `DATABASE_ERROR` - Database operation failed
+* `UNKNOWN_ERROR` - Unexpected error occurred
 
 === `loadFormData`
 
@@ -56,13 +74,25 @@ The following table summarizes the methods available to the embedded JavaScript:
     1.  Queries the `User_Data` table for the latest row matching the `formId`.
     2.  Invokes the JS `callback` with the retrieved JSON string. Returns empty JSON object (`{}`) if no data exists.
 
+**Error Handling:**
+* **Invalid `formId`:** If `formId` does not exist in `Form_Definitions`, callback is invoked with empty object `{}` and `success: false`, `errorCode: "INVALID_FORM_ID"`.
+* **No Data Found:** If no data exists for the `formId`, callback is invoked with empty object `{}` and `success: true` (this is not an error condition).
+* **Database Error:** If database query fails, callback is invoked with empty object `{}`, `success: false`, and `errorCode: "DATABASE_ERROR"`. Error is logged.
+* **Corrupted Data:** If stored data is corrupted and cannot be parsed, callback is invoked with empty object `{}`, `success: false`, and `errorCode: "CORRUPTED_DATA"`.
+
 [cols="2, ^1, 4", options="headers"]
 |===
 ^.^| Parameter ^.^| Type ^.^| Description
 
 | `formId` | String | The unique ID of the form whose data is being requested.
-| `callback` | Function | JS function to execute with the retrieved data (`callback(data: string)`).
+| `callback` | Function | JS function to execute with the retrieved data (`callback(data: string, success: bool, errorCode?: string)`).
 |===
+
+**Callback Error Codes:**
+* `INVALID_FORM_ID` - Form ID does not exist
+* `DATABASE_ERROR` - Database query failed
+* `CORRUPTED_DATA` - Stored data is corrupted
+* `UNKNOWN_ERROR` - Unexpected error occurred
 
 === `requestAppConsent` (Security Gate)
 
@@ -72,13 +102,26 @@ The following table summarizes the methods available to the embedded JavaScript:
     2.  If author is untrusted, presents a native modal dialog to the user for explicit permission.
     3.  The user's decision is returned via the callback.
 
+**Error Handling:**
+* **Invalid `appId`:** If `appId` does not exist in `Embedded_Apps` table, callback is invoked with `consentGranted: false` and `errorCode: "INVALID_APP_ID"`.
+* **Tampering Detected:** If cartridge tampering is detected (hash mismatch), callback is invoked with `consentGranted: false` and `errorCode: "TAMPERING_DETECTED"`. App execution is blocked.
+* **User Cancelled:** If user cancels the consent dialog, callback is invoked with `consentGranted: false` and `errorCode: "USER_CANCELLED"`.
+* **Dialog Error:** If consent dialog cannot be displayed (UI error), callback is invoked with `consentGranted: false` and `errorCode: "DIALOG_ERROR"`. Error is logged.
+
 [cols="2, ^1, 4", options="headers"]
 |===
 ^.^| Parameter ^.^| Type ^.^| Description
 
 | `appId` | String | The unique ID of the embedded app requesting consent.
-| `callback` | Function | JS function to execute with the result (`callback(consentGranted: bool)`).
+| `callback` | Function | JS function to execute with the result (`callback(consentGranted: bool, errorCode?: string)`).
 |===
+
+**Callback Error Codes:**
+* `INVALID_APP_ID` - App ID does not exist
+* `TAMPERING_DETECTED` - Cartridge integrity check failed
+* `USER_CANCELLED` - User cancelled consent dialog
+* `DIALOG_ERROR` - Consent dialog could not be displayed
+* `UNKNOWN_ERROR` - Unexpected error occurred
 
 === `logMessage` (Debugging/Telemetry)
 
@@ -91,4 +134,230 @@ The following table summarizes the methods available to the embedded JavaScript:
 | `level` | String | Severity level (e.g., `DEBUG`, `INFO`, `WARN`, `ERROR`).
 | `message` | String | The log message string.
 |===
+
+== Sandbox File System API
+
+These methods are available **only to embedded applications** (not regular content pages) and provide access to a local, sandboxed file system. The sandbox is scoped to the specific cartridge and app instance, providing isolation and security.
+
+**Security Constraints:**
+* Sandbox directory path: `{local_app_data}/{cartridge_guid}/{app_id}/sandbox/`
+* Apps **cannot** access files outside their sandbox directory
+* Apps **cannot** access the host file system
+* Apps **cannot** make network requests
+* All file operations are validated and sanitized by the C++ core
+
+=== `saveSandboxFile`
+
+* **Function:** Saves a file to the embedded app's sandbox directory. The file is stored locally and persists across app sessions.
+* **C++ Logic:**
+    1.  Validates `filename` (prevents path traversal attacks, ensures valid filename).
+    2.  Validates `data` size (enforce maximum file size limit).
+    3.  Creates sandbox directory if it doesn't exist.
+    4.  Writes file to sandbox directory.
+    5.  Invokes callback with success/failure status.
+
+**Error Handling:**
+* **Invalid Filename:** If filename contains path separators (`/`, `\`) or invalid characters, callback is invoked with `success: false` and `errorCode: "INVALID_FILENAME"`.
+* **Path Traversal:** If path traversal attempt detected (`../`), callback is invoked with `success: false` and `errorCode: "PATH_TRAVERSAL"`. Attempt is logged as security event.
+* **File Size Limit:** If data exceeds maximum file size (default: 10MB), callback is invoked with `success: false` and `errorCode: "FILE_TOO_LARGE"`.
+* **Disk Full:** If disk space is insufficient, callback is invoked with `success: false` and `errorCode: "DISK_FULL"`.
+* **Permission Error:** If file write permission is denied, callback is invoked with `success: false` and `errorCode: "PERMISSION_DENIED"`. Error is logged.
+* **Write Failure:** If file write operation fails, callback is invoked with `success: false` and `errorCode: "WRITE_ERROR"`. Error is logged.
+
+[cols="2, ^1, 4", options="headers"]
+|===
+^.^| Parameter ^.^| Type ^.^| Description
+
+| `filename` | String | The filename (must be valid, no path separators allowed).
+| `data` | String/BLOB | The file content to save (text or binary data).
+| `callback` | Function | JS function to execute upon completion (`callback(success: bool, errorCode?: string, errorMessage?: string)`).
+|===
+
+**Callback Error Codes:**
+* `INVALID_FILENAME` - Filename contains invalid characters
+* `PATH_TRAVERSAL` - Path traversal attempt detected
+* `FILE_TOO_LARGE` - File exceeds size limit
+* `DISK_FULL` - Insufficient disk space
+* `PERMISSION_DENIED` - File write permission denied
+* `WRITE_ERROR` - File write operation failed
+* `UNKNOWN_ERROR` - Unexpected error occurred
+
+=== `loadSandboxFile`
+
+* **Function:** Loads a file from the embedded app's sandbox directory.
+* **C++ Logic:**
+    1.  Validates `filename` (prevents path traversal attacks).
+    2.  Checks if file exists in sandbox directory.
+    3.  Reads file content.
+    4.  Returns content via callback (empty string if file doesn't exist).
+
+**Error Handling:**
+* **Invalid Filename:** If filename contains path separators or invalid characters, callback is invoked with empty data, `success: false`, and `errorCode: "INVALID_FILENAME"`.
+* **Path Traversal:** If path traversal attempt detected, callback is invoked with empty data, `success: false`, and `errorCode: "PATH_TRAVERSAL"`. Attempt is logged as security event.
+* **File Not Found:** If file does not exist, callback is invoked with empty data, `success: false`, and `errorCode: "FILE_NOT_FOUND"`.
+* **Read Error:** If file read operation fails, callback is invoked with empty data, `success: false`, and `errorCode: "READ_ERROR"`. Error is logged.
+* **Permission Error:** If file read permission is denied, callback is invoked with empty data, `success: false`, and `errorCode: "PERMISSION_DENIED"`. Error is logged.
+
+[cols="2, ^1, 4", options="headers"]
+|===
+^.^| Parameter ^.^| Type ^.^| Description
+
+| `filename` | String | The filename to load (must exist in sandbox).
+| `callback` | Function | JS function to execute with file content (`callback(data: string|BLOB, success: bool, errorCode?: string)`).
+|===
+
+**Callback Error Codes:**
+* `INVALID_FILENAME` - Filename contains invalid characters
+* `PATH_TRAVERSAL` - Path traversal attempt detected
+* `FILE_NOT_FOUND` - File does not exist
+* `READ_ERROR` - File read operation failed
+* `PERMISSION_DENIED` - File read permission denied
+* `UNKNOWN_ERROR` - Unexpected error occurred
+
+=== `listSandboxFiles`
+
+* **Function:** Lists all files in the embedded app's sandbox directory.
+* **C++ Logic:**
+    1.  Scans sandbox directory.
+    2.  Returns list of filenames (excluding directories).
+    3.  Invokes callback with file list.
+
+**Error Handling:**
+* **Directory Not Found:** If sandbox directory does not exist, callback is invoked with empty array `[]`, `success: true` (directory will be created on first file save).
+* **Permission Error:** If directory read permission is denied, callback is invoked with empty array `[]`, `success: false`, and `errorCode: "PERMISSION_DENIED"`. Error is logged.
+* **Scan Error:** If directory scan fails, callback is invoked with empty array `[]`, `success: false`, and `errorCode: "SCAN_ERROR"`. Error is logged.
+
+[cols="2, ^1, 4", options="headers"]
+|===
+^.^| Parameter ^.^| Type ^.^| Description
+
+| `callback` | Function | JS function to execute with file list (`callback(files: Array<string>, success: bool, errorCode?: string)`).
+|===
+
+**Callback Error Codes:**
+* `PERMISSION_DENIED` - Directory read permission denied
+* `SCAN_ERROR` - Directory scan operation failed
+* `UNKNOWN_ERROR` - Unexpected error occurred
+
+=== `deleteSandboxFile`
+
+* **Function:** Deletes a file from the embedded app's sandbox directory.
+* **C++ Logic:**
+    1.  Validates `filename` (prevents path traversal attacks).
+    2.  Checks if file exists in sandbox directory.
+    3.  Deletes file.
+    4.  Invokes callback with success/failure status.
+
+**Error Handling:**
+* **Invalid Filename:** If filename contains path separators or invalid characters, callback is invoked with `success: false` and `errorCode: "INVALID_FILENAME"`.
+* **Path Traversal:** If path traversal attempt detected, callback is invoked with `success: false` and `errorCode: "PATH_TRAVERSAL"`. Attempt is logged as security event.
+* **File Not Found:** If file does not exist, callback is invoked with `success: false` and `errorCode: "FILE_NOT_FOUND"`.
+* **Delete Error:** If file deletion fails, callback is invoked with `success: false` and `errorCode: "DELETE_ERROR"`. Error is logged.
+* **Permission Error:** If file delete permission is denied, callback is invoked with `success: false` and `errorCode: "PERMISSION_DENIED"`. Error is logged.
+
+[cols="2, ^1, 4", options="headers"]
+|===
+^.^| Parameter ^.^| Type ^.^| Description
+
+| `filename` | String | The filename to delete (must exist in sandbox).
+| `callback` | Function | JS function to execute upon completion (`callback(success: bool, errorCode?: string, errorMessage?: string)`).
+|===
+
+**Callback Error Codes:**
+* `INVALID_FILENAME` - Filename contains invalid characters
+* `PATH_TRAVERSAL` - Path traversal attempt detected
+* `FILE_NOT_FOUND` - File does not exist
+* `DELETE_ERROR` - File deletion operation failed
+* `PERMISSION_DENIED` - File delete permission denied
+* `UNKNOWN_ERROR` - Unexpected error occurred
+
+=== `openSandboxFilePicker`
+
+* **Function:** Opens a native file picker dialog restricted to the sandbox directory, allowing users to select an existing file or specify a new filename.
+* **C++ Logic:**
+    1.  Validates `mode` parameter (`open` for loading, `save` for saving).
+    2.  Opens Qt `QFileDialog` restricted to sandbox directory only.
+    3.  Applies file filter if provided (e.g., `*.json` for JSON files).
+    4.  Prevents navigation outside sandbox directory (chroots dialog to sandbox).
+    5.  Returns selected filename or null if user cancels.
+    6.  Invokes callback with selected filename or cancellation status.
+
+**Error Handling:**
+* **Invalid Mode:** If `mode` is not `open` or `save`, callback is invoked with `success: false` and `errorCode: "INVALID_MODE"`.
+* **Dialog Error:** If file dialog fails to open, callback is invoked with `success: false` and `errorCode: "DIALOG_ERROR"`. Error is logged.
+* **Security Violation:** If path traversal attempt detected, callback is invoked with `success: false` and `errorCode: "SECURITY_VIOLATION"`. Attempt is logged as security event.
+
+[cols="2, ^1, 4", options="headers"]
+|===
+^.^| Parameter ^.^| Type ^.^| Description
+
+| `mode` | String | File picker mode: `"open"` (select existing file) or `"save"` (select/enter filename for saving).
+| `filter` | String | Optional file filter (e.g., `"JSON Files (*.json)"`). If not provided, shows all files.
+| `callback` | Function | JS function to execute with result (`callback(filename: string|null, success: bool, errorCode?: string)`).
+|===
+
+**Callback Parameters:**
+* `filename` - Selected filename (relative to sandbox directory) or `null` if cancelled
+* `success` - `true` if file selected, `false` if cancelled or error occurred
+* `errorCode` - Error code if operation failed (optional)
+
+**Callback Error Codes:**
+* `INVALID_MODE` - Mode parameter is not "open" or "save"
+* `DIALOG_ERROR` - File dialog failed to open
+* `SECURITY_VIOLATION` - Security violation detected (path traversal attempt)
+* `UNKNOWN_ERROR` - Unexpected error occurred
+
+**Security Constraints:**
+* File picker MUST be restricted to sandbox directory only
+* User MUST NOT be able to navigate outside sandbox directory
+* Selected filename MUST be validated for path traversal attempts
+* Filename MUST be sanitized before returning to JavaScript
+
+== Error Handling Patterns
+
+=== Standard Callback Pattern
+
+All WebChannel API methods follow a consistent error handling pattern:
+
+**Success Case:**
+```javascript
+callback(result, true);  // or callback(true) for boolean returns
+```
+
+**Error Case:**
+```javascript
+callback(defaultValue, false, "ERROR_CODE", "Optional error message");
+```
+
+=== Error Code Categories
+
+**Validation Errors:**
+* `INVALID_FORM_ID`, `INVALID_APP_ID`, `INVALID_FILENAME`, `INVALID_JSON`
+
+**Security Errors:**
+* `PATH_TRAVERSAL`, `TAMPERING_DETECTED`
+
+**Resource Errors:**
+* `FILE_NOT_FOUND`, `FILE_TOO_LARGE`, `DISK_FULL`
+
+**Permission Errors:**
+* `PERMISSION_DENIED`, `USER_CANCELLED`
+
+**System Errors:**
+* `DATABASE_ERROR`, `READ_ERROR`, `WRITE_ERROR`, `DELETE_ERROR`, `SCAN_ERROR`
+
+**Unknown Errors:**
+* `UNKNOWN_ERROR` - Used for unexpected errors that don't fit other categories
+
+=== Error Logging
+
+All errors SHALL be logged to the application log file with:
+* Timestamp
+* Error code
+* Component name (e.g., "SmartbookBridge")
+* Operation context
+* Error message
+* Stack trace (where available)
+
+Security-related errors (path traversal, tampering) SHALL be logged with `WARN` or `ERROR` level. Other errors SHALL be logged with appropriate severity levels.
 
