@@ -35,6 +35,24 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 # Find Qt6
+# Try custom Qt path first (~/Qt), then system default
+if(EXISTS "$ENV{HOME}/Qt")
+    if(APPLE)
+        file(GLOB QT_PATHS "$ENV{HOME}/Qt/6.*/macos")
+        list(SORT QT_PATHS)
+        list(REVERSE QT_PATHS)
+        list(GET QT_PATHS 0 QT_PREFIX)
+        if(QT_PREFIX)
+            set(CMAKE_PREFIX_PATH ${QT_PREFIX} ${CMAKE_PREFIX_PATH})
+        endif()
+    else()
+        file(GLOB QT_PATHS "$ENV{HOME}/Qt/6.*/gcc_64" "$ENV{HOME}/Qt/6.*/clang_64")
+        if(QT_PATHS)
+            list(GET QT_PATHS 0 QT_PREFIX)
+            set(CMAKE_PREFIX_PATH ${QT_PREFIX} ${CMAKE_PREFIX_PATH})
+        endif()
+    endif()
+endif()
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Sql)
 
 # Enable Qt MOC

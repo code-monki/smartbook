@@ -11,6 +11,24 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # Find Qt6
+# Try custom Qt path first (~/Qt), then system default
+if(EXISTS "$ENV{HOME}/Qt")
+    if(APPLE)
+        file(GLOB QT_PATHS "$ENV{HOME}/Qt/6.*/macos")
+        list(SORT QT_PATHS)
+        list(REVERSE QT_PATHS)
+        list(GET QT_PATHS 0 QT_PREFIX)
+        if(QT_PREFIX)
+            set(CMAKE_PREFIX_PATH ${QT_PREFIX} ${CMAKE_PREFIX_PATH})
+        endif()
+    else()
+        file(GLOB QT_PATHS "$ENV{HOME}/Qt/6.*/gcc_64" "$ENV{HOME}/Qt/6.*/clang_64")
+        if(QT_PATHS)
+            list(GET QT_PATHS 0 QT_PREFIX)
+            set(CMAKE_PREFIX_PATH ${QT_PREFIX} ${CMAKE_PREFIX_PATH})
+        endif()
+    endif()
+endif()
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets WebEngine WebChannel Sql)
 
 # Enable Qt MOC
