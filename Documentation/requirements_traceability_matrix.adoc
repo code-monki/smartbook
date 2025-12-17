@@ -14,4 +14,4 @@ This matrix maps all core requirements from the Software Requirements Specificat
 
 [cols="1, 3, 2, 1", options="header", grid="all"]
 |===
-^.^| SRS ID ^.^| Requirement Summary ^.^| Design Artifact (DDD Section) ^.^| Test Case IDs
+^.^| SRS ID ^.^| Requirement Summary ^.^| Design Artifact (DDD Section) ^.^| Test Case IDs[cols="1, 3, 2, 1", options="header", grid="all"]|===
