@@ -1,0 +1,211 @@
+= SmartBook Windows Build Instructions
+:author: AI Assistant
+:revdate: 2025-12-16
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+
+== Overview
+
+Windows builds use **PowerShell scripts** instead of GNU Make, since Make is not available by default on Windows. The build system automatically detects Qt installations and handles MSVC or MinGW compiler variants.
+
+== Prerequisites
+
+. **Qt 6.2+** installed at:
+  * `%USERPROFILE%\Qt\6.x.x\msvc2019_64` (MSVC - recommended)
+  * `%USERPROFILE%\Qt\6.x.x\mingw*_64` (MinGW)
+  * `C:\Qt\6.x.x\msvc2019_64` (alternative location)
+
+. **CMake 3.20+** - Download from https://cmake.org/download/
+
+. **Compiler:**
+  * **MSVC:** Visual Studio 2019+ with C++ build tools
+  * **MinGW:** MinGW-w64 (if using MinGW Qt)
+
+. **PowerShell 5.1+** (included with Windows 10/11)
+
+== Building
+
+=== Quick Start
+
+[source,powershell]
+----
+# Build everything
+.\build-windows.ps1
+
+# Build specific component
+.\build-windows.ps1 -Target reader
+.\build-windows.ps1 -Target creator
+.\build-windows.ps1 -Target common
+
+# Clean and rebuild
+.\build-windows.ps1 -Clean
+
+# Build and install
+.\build-windows.ps1 -Install
+----
+
+=== Build Options
+
+[source,powershell]
+----
+.\build-windows.ps1 [options]
+----
+
+**Options:**
+* `-Target <target>` - Build target: `all`, `common`, `reader`, `creator`, `test` (default: `all`)
+* `-BuildType <type>` - Build type: `Release`, `Debug` (default: `Release`)
+* `-Platform <arch>` - Platform: `x86_64` (default: `x86_64`)
+* `-QtPath <path>` - Custom Qt installation path (auto-detected if not specified)
+* `-Clean` - Clean build directories before building
+* `-Install` - Install after building
+* `-Help` - Show help message
+
+=== Examples
+
+[source,powershell]
+----
+# Build everything in Release mode
+.\build-windows.ps1
+
+# Build reader only in Debug mode
+.\build-windows.ps1 -Target reader -BuildType Debug
+
+# Clean, build, and install
+.\build-windows.ps1 -Clean -Install
+
+# Use custom Qt path
+.\build-windows.ps1 -QtPath "D:\Qt\6.9.3\msvc2019_64"
+----
+
+== Installation
+
+=== Using Install Script
+
+[source,powershell]
+----
+# Install to default location (Program Files)
+.\install-windows.ps1
+
+# Install to custom location
+.\install-windows.ps1 -InstallPrefix "C:\MyApps\SmartBook"
+----
+
+=== Manual Installation
+
+After building, binaries are located in:
+* `build\windows-x86_64\common\lib\` - Common library (DLL)
+* `build\windows-x86_64\reader\` - Reader executable
+* `build\windows-x86_64\creator\` - Creator executable
+
+Copy these to your desired installation directory.
+
+== Using CMake Directly
+
+If you prefer to use CMake directly (e.g., from Visual Studio or Qt Creator):
+
+[source,powershell]
+----
+# Configure
+cmake -B build\windows-x86_64 -S . -DCMAKE_BUILD_TYPE=Release
+
+# Build
+cmake --build build\windows-x86_64 --config Release
+
+# Install
+cmake --install build\windows-x86_64 --config Release --prefix "C:\Program Files\SmartBook"
+----
+
+== Qt Detection
+
+The build scripts automatically detect Qt installations in:
+. `%USERPROFILE%\Qt\6.x.x\msvc*_64` (MSVC - preferred)
+. `%USERPROFILE%\Qt\6.x.x\mingw*_64` (MinGW)
+. `C:\Qt\6.x.x\msvc*_64` (alternative)
+. `C:\Qt\6.x.x\mingw*_64` (alternative)
+. `%QTDIR%` environment variable
+
+The latest Qt 6.x version is automatically selected.
+
+== Troubleshooting
+
+=== PowerShell Execution Policy
+
+If you get an execution policy error:
+
+[source,powershell]
+----
+# Allow script execution for current session
+Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
+
+# Or run with bypass flag
+powershell -ExecutionPolicy Bypass -File build-windows.ps1
+----
+
+=== Qt Not Found
+
+If Qt is not auto-detected:
+
+[source,powershell]
+----
+# Specify Qt path explicitly
+.\build-windows.ps1 -QtPath "C:\Qt\6.9.3\msvc2019_64"
+
+# Or set QTDIR environment variable
+$env:QTDIR = "C:\Qt\6.9.3\msvc2019_64"
+.\build-windows.ps1
+----
+
+=== CMake Not Found
+
+Ensure CMake is in your PATH, or specify full path:
+
+[source,powershell]
+----
+& "C:\Program Files\CMake\bin\cmake.exe" -B build -S .
+----
+
+=== Missing Dependencies
+
+Ensure all Qt components are installed:
+* Qt6Core
+* Qt6Gui
+* Qt6Widgets
+* Qt6WebEngine
+* Qt6WebChannel
+* Qt6Sql
+
+== Differences from Unix Builds
+
+. **No GNU Make:** Windows uses PowerShell scripts instead
+. **Path Separators:** Use backslashes (`\`) in paths
+. **Executable Extension:** Binaries have `.exe` extension
+. **Library Extension:** DLLs use `.dll` extension
+. **Installation:** May require administrator privileges for Program Files
+
+== Integration with Visual Studio
+
+You can open the project in Visual Studio:
+
+[source,powershell]
+----
+# Generate Visual Studio solution
+cmake -B build\vs2022 -S . -G "Visual Studio 17 2022"
+
+# Open in Visual Studio
+start build\vs2022\SmartBook.sln
+----
+
+== Next Steps
+
+* See main link:README.adoc[README] for project overview
+* See link:build-process.adoc[Build Process Documentation] for detailed build documentation
+* See link:srs.adoc[Software Requirements Specification] for requirements
+
+== Revision History
+
+|===
+| Date | Version | Changes | Author
+| 2025-12-16 | 1.0 | Converted from Markdown to AsciiDoc | AI Assistant
+|===

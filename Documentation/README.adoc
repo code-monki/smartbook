@@ -1,0 +1,148 @@
+= SmartBook Project
+:author: SmartBook Development Team
+:revdate: 2025-12-16
+:doctype: article
+:toc: left
+:toclevels: 2
+
+== Overview
+
+SmartBook is a cross-platform digital reading and content creation system designed for secure, self-contained content distribution. The system uses SQLite-based "cartridges" that contain both content and metadata, with built-in security verification.
+
+== Key Features
+
+* **Secure Content Distribution:** 4-phase verification algorithm for cartridge integrity
+* **Cross-Platform:** Supports macOS, Linux, and Windows
+* **Self-Contained:** Cartridges include all content and metadata in SQLite format
+* **Creator Tools:** Built-in tools for creating and managing cartridges
+* **Form Support:** Interactive forms with data persistence
+* **Custom Navigation:** Support for custom navigation structures in collections
+
+== Project Structure
+
+[source]
+----
+SmartBook/
+├── Documentation/          # All project documentation (AsciiDoc)
+├── common/                # Shared library code
+├── reader/                # Reader application
+├── creator/               # Creator tool application
+├── test/                  # Test suite
+├── build/                 # Build artifacts (gitignored)
+├── Makefile               # Top-level build orchestration
+├── CMakeLists.txt         # Root CMake configuration
+└── build-windows.ps1      # Windows build script
+----
+
+== Quick Start
+
+=== Prerequisites
+
+* Qt 6.2+ (auto-detected at ~/Qt or C:\Qt)
+* CMake 3.20+
+* C++17 compatible compiler
+* SQLite 3.51+
+
+=== Check Dependencies
+
+**macOS/Linux:**
+[source,bash]
+----
+./check-dependencies.sh
+----
+
+**Windows:**
+[source,powershell]
+----
+.\check-dependencies.ps1
+----
+
+=== Build
+
+**macOS:**
+[source,bash]
+----
+make macos
+----
+
+**Linux:**
+[source,bash]
+----
+make linux
+----
+
+**Windows:**
+[source,powershell]
+----
+.\build-windows.ps1
+----
+
+=== Run
+
+**macOS/Linux:**
+[source,bash]
+----
+make run-reader
+# or
+make run-creator
+----
+
+**Windows:**
+[source,powershell]
+----
+.\build-windows.ps1 -Target run-reader
+----
+
+== Documentation
+
+All documentation is in AsciiDoc format in the `Documentation/` directory:
+
+* link:srs.adoc[Software Requirements Specification]
+* link:ddd.adoc[Detailed Design Document]
+* link:hld.adoc[High-Level Design]
+* link:test-plan.adoc[Test Plan]
+* link:build-process.adoc[Build Process Documentation]
+* link:testing-guide.adoc[Testing Guide]
+* link:README-WINDOWS.adoc[Windows Build Instructions]
+
+Generate PDFs with:
+[source,bash]
+----
+make docs
+----
+
+== Development
+
+=== Testing
+
+See link:testing-guide.adoc[Testing Guide] for detailed testing procedures.
+
+=== Commit Guidelines
+
+During testing phase, use atomic commits for easier regression tracking:
+
+[source,text]
+----
+<type>(<scope>): <subject>
+
+<body>
+----
+
+Types: `fix`, `feat`, `test`, `build`, `docs`, `refactor`, `style`, `perf`
+
+See `.gitmessage` for detailed guidelines.
+
+== License
+
+[To be determined]
+
+== Contact
+
+[To be determined]
+
+== Revision History
+
+|===
+| Date | Version | Changes | Author
+| 2025-12-16 | 1.0 | Converted from Markdown to AsciiDoc | AI Assistant
+|===
