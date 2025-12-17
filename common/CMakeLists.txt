@@ -111,7 +111,7 @@ set(COMMON_HEADERS
     include/smartbook/common/database/LocalDBManager.h
     include/smartbook/common/database/CartridgeDBConnector.h
     include/smartbook/common/security/SignatureVerifier.h
-    include/smartbook/common/security/TrustRegistry.h
+    # include/smartbook/common/security/TrustRegistry.h  # TODO: Implement TrustRegistry
     include/smartbook/common/utils/PlatformUtils.h
     include/smartbook/common/utils/PathUtils.h
     include/smartbook/common/metadata/MetadataExtractor.h

@@ -79,13 +79,8 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-# Find common library
-find_library(SMARTBOOK_COMMON_LIB
-    NAMES smartbook_common
-    PATHS ${CMAKE_BINARY_DIR}/../common/lib
-          ${CMAKE_BINARY_DIR}/../../common/lib
-          /usr/local/lib
-)
+# Common library is built by top-level CMakeLists.txt
+# Just link to the target directly
 
 # Source files
 set(CREATOR_SOURCES
@@ -95,7 +90,7 @@ set(CREATOR_SOURCES
     src/FormBuilder.cpp
     src/CartridgeExporter.cpp
     # src/ui/MainWindow.cpp  # TODO: Implement MainWindow UI
-    src/ui/ContentEditorView.cpp
+    # src/ui/ContentEditorView.cpp  # TODO: Implement ContentEditorView
     src/ui/FormBuilderDialog.cpp
 )
 
@@ -130,7 +125,7 @@ target_link_libraries(smartbook-creator PRIVATE
     Qt6::WebEngine
     Qt6::WebChannel
     Qt6::Sql
-    ${SMARTBOOK_COMMON_LIB}
+    smartbook_common
 )
 
 # Platform-specific settings

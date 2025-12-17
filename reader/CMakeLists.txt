@@ -79,13 +79,8 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-# Find common library
-find_library(SMARTBOOK_COMMON_LIB
-    NAMES smartbook_common
-    PATHS ${CMAKE_BINARY_DIR}/../common/lib
-          ${CMAKE_BINARY_DIR}/../../common/lib
-          /usr/local/lib
-)
+# Common library is built by top-level CMakeLists.txt
+# Just link to the target directly
 
 # Source files
 set(READER_SOURCES
@@ -128,7 +123,7 @@ target_link_libraries(smartbook-reader PRIVATE
     Qt6::WebEngine
     Qt6::WebChannel
     Qt6::Sql
-    ${SMARTBOOK_COMMON_LIB}
+    smartbook_common
 )
 
 # Platform-specific settings
