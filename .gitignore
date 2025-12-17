@@ -148,6 +148,7 @@ Documentation/html/
 Documentation/pdf/
 Documentation/_build/
 .asciidoctor/
+build/docs/
 
 # Package files
 *.tar.gz

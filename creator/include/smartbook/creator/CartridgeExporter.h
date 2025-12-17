@@ -1,0 +1,52 @@
+#ifndef SMARTBOOK_CREATOR_CARTRIDGEEXPORTER_H
+#define SMARTBOOK_CREATOR_CARTRIDGEEXPORTER_H
+
+#include <QString>
+#include <QObject>
+
+namespace smartbook {
+namespace creator {
+
+/**
+ * @brief Cartridge exporter
+ * 
+ * Handles cartridge creation, signing, and export.
+ */
+class CartridgeExporter : public QObject {
+    Q_OBJECT
+
+public:
+    explicit CartridgeExporter(QObject* parent = nullptr);
+
+    /**
+     * @brief Export cartridge to file
+     * @param cartridgePath Path to save cartridge
+     * @param metadata Cartridge metadata
+     * @return true if export successful, false otherwise
+     */
+    bool exportCartridge(const QString& cartridgePath, const QHash<QString, QVariant>& metadata);
+
+    /**
+     * @brief Sign cartridge with certificate
+     * @param cartridgePath Path to cartridge file
+     * @param certificatePath Path to certificate file
+     * @param privateKeyPath Path to private key file
+     * @param securityLevel Security level (1, 2, or 3)
+     * @return true if signing successful, false otherwise
+     */
+    bool signCartridge(const QString& cartridgePath, const QString& certificatePath,
+                      const QString& privateKeyPath, int securityLevel);
+
+signals:
+    void exportProgress(int percentage);
+    void exportComplete(bool success, const QString& errorMessage);
+
+private:
+    bool createCartridgeSchema(const QString& cartridgePath);
+    QByteArray calculateContentHash(const QString& cartridgePath);
+};
+
+} // namespace creator
+} // namespace smartbook
+
+#endif // SMARTBOOK_CREATOR_CARTRIDGEEXPORTER_H
