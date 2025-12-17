@@ -17,45 +17,49 @@ def extract_test_cases_from_test_plan():
         while i < len(lines):
             line = lines[i]
             
-            # Look for test case table
-            if '**Test Case ID**' in line and i+1 < len(lines):
-                # Get test case ID from next line
-                test_id_line = lines[i+1]
-                if '|' in test_id_line:
-                    parts = test_id_line.split('|')
-                    if len(parts) >= 2:
-                        test_id = parts[1].strip()
-                        
-                        # Get requirement - look for "**Requirement Covered**" in next few lines
-                        for j in range(i+2, min(i+10, len(lines))):
-                            if '**Requirement Covered**' in lines[j] and j+1 < len(lines):
-                                req_line = lines[j+1]
-                                if '|' in req_line:
-                                    req_parts = req_line.split('|')
-                                    if len(req_parts) >= 2:
-                                        req_text = req_parts[1].strip()
-                                        # Extract requirement IDs from text
-                                        req_matches = re.findall(r'((?:FR|NFR|FR-CT|FR-WE|FR-NAV|FR-SERIES|DDD)-[\d\.]+(?:/[0-9\.]+)?)', req_text)
-                                        for req_match in req_matches:
-                                            req_id = req_match
-                                            # Handle combined requirements like FR-2.3.2/2.3.3
-                                            if '/' in req_id:
-                                                # Split into individual requirements
-                                                base = req_id.split('/')[0]
-                                                second = req_id.split('/')[1]
-                                                # Reconstruct second requirement ID
-                                                base_parts = base.split('-')
-                                                if len(base_parts) >= 2:
-                                                    req_type = base_parts[0]
-                                                    req_id2 = f"{req_type}-{second}"
-                                                    if test_id not in req_to_tests[base]:
-                                                        req_to_tests[base].append(test_id)
-                                                    if test_id not in req_to_tests[req_id2]:
-                                                        req_to_tests[req_id2].append(test_id)
-                                            else:
-                                                if test_id not in req_to_tests[req_id]:
-                                                    req_to_tests[req_id].append(test_id)
-                                break
+            # Look for test case table - format: | **Test Case ID** | **T-XXX**
+            if '**Test Case ID**' in line:
+                # Get test case ID from next line (the actual test ID)
+                if i+1 < len(lines):
+                    test_id_line = lines[i+1]
+                    if '|' in test_id_line:
+                        parts = test_id_line.split('|')
+                        # Test ID is in the second column (index 1)
+                        if len(parts) >= 2:
+                            test_id = parts[1].strip()
+                            # Remove any bold markers
+                            test_id = test_id.replace('**', '').strip()
+                            
+                            # Get requirement - look for "**Requirement Covered**" in next few lines
+                            for j in range(i+2, min(i+10, len(lines))):
+                                if '**Requirement Covered**' in lines[j] and j+1 < len(lines):
+                                    req_line = lines[j+1]
+                                    if '|' in req_line:
+                                        req_parts = req_line.split('|')
+                                        if len(req_parts) >= 2:
+                                            req_text = req_parts[1].strip()
+                                            # Extract requirement IDs from text
+                                            req_matches = re.findall(r'((?:FR|NFR|FR-CT|FR-WE|FR-NAV|FR-SERIES|DDD)-[\d\.]+(?:/[0-9\.]+)?)', req_text)
+                                            for req_match in req_matches:
+                                                req_id = req_match
+                                                # Handle combined requirements like FR-2.3.2/2.3.3
+                                                if '/' in req_id:
+                                                    # Split into individual requirements
+                                                    base = req_id.split('/')[0]
+                                                    second = req_id.split('/')[1]
+                                                    # Reconstruct second requirement ID
+                                                    base_parts = base.split('-')
+                                                    if len(base_parts) >= 2:
+                                                        req_type = base_parts[0]
+                                                        req_id2 = f"{req_type}-{second}"
+                                                        if test_id not in req_to_tests[base]:
+                                                            req_to_tests[base].append(test_id)
+                                                        if test_id not in req_to_tests[req_id2]:
+                                                            req_to_tests[req_id2].append(test_id)
+                                                else:
+                                                    if test_id not in req_to_tests[req_id]:
+                                                        req_to_tests[req_id].append(test_id)
+                                    break
             i += 1
     
     return req_to_tests
