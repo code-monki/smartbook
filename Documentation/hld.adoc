@@ -14,6 +14,15 @@ This document outlines the macro-architecture, key components, data flow, and ar
 
 The system employs a Multi-Window Architecture to guarantee separation of concerns and security isolation. The application is divided into a single **Library Manager** and multiple, independent **Reader View Instances**.
 
+=== System Architecture Diagram
+
+The following diagram illustrates the high-level system architecture:
+
+[NOTE]
+====
+See `diagrams.adoc` (System Architecture Overview diagram) for the complete visual representation of the Multi-Window Architecture with Library Manager, Reader View Instances, Data Management Layer, and Security Layer.
+====
+
 
 === Key Components and Responsibilities
 
@@ -50,6 +59,17 @@ The DML handles all persistence and is partitioned into global and per-instance 
 
 The core security logic is centralized in the `SignatureVerifier` utility class.
 
+=== 4-Phase Verification Algorithm
+
+The following sequence diagram illustrates the 4-Phase Verification Algorithm:
+
+[source,plantuml]
+----
+include::diagrams.adoc[tags=verification-algorithm]
+----
+
+// See `diagrams.adoc` for the complete 4-Phase Verification Algorithm sequence diagram.
+
 === Trust Policy Determination
 
 1.  **Identity:** The `SignatureVerifier` reads the `cartridge_guid` and security data (H1) from the cartridge.
@@ -62,3 +82,96 @@ The core security logic is centralized in the `SignatureVerifier` utility class.
 When embedded JavaScript calls `requestAppConsent()`, the **WebChannel Bridge** checks the **Effective Trust Policy**:
 * If `WHITELISTED` (L1 or Persistent Trust, and H1=H2): The native dialog is skipped.
 * If `CONSENT_REQUIRED` (L2 or L3): The native consent dialog is displayed (FR-2.3.2/2.3.3).
+
+== Custom Navigation Bar Architecture
+
+The Reader supports custom navigation bars defined within cartridges, enabling specialized navigation for magazine collections and similar content types.
+
+=== Navigation Bar Components
+
+**Navigation Structure:**
+* Stored in `Navigation_Structure` table within cartridge database
+* Defines navigation groups (Browse, Departments, Bibliographies, etc.)
+* Each group contains menu items with navigation targets
+* Supports hierarchical navigation (sub-menus via `parent_item_id`)
+
+**Navigation Rendering:**
+* Custom navigation bar rendered as HTML/CSS within Reader View
+* Positioned above main content area
+* Styled using cartridge CSS and themes
+* Separate from application menu (cartridge-specific)
+
+**Navigation Targets:**
+* **Page ID:** Direct navigation to specific page
+* **Anchor:** Navigation to anchor on current or specified page
+* **Page and Anchor:** Combined page and anchor navigation
+* **Custom Handler:** JavaScript-based navigation (e.g., Browse by Creator/Issue/Title)
+
+=== Navigation Flow
+
+1. **Load Navigation Structure:** Reader queries `Navigation_Structure` table on cartridge open
+2. **Render Navigation Bar:** HTML navigation bar generated from structure data
+3. **User Interaction:** User selects menu item from dropdown
+4. **Target Resolution:** Reader resolves navigation target (page_id, anchor, custom handler)
+5. **Navigation:** Reader navigates to target and updates reading position/history
+
+**Browse Navigation:**
+* Custom handlers filter content by metadata (Creator, Issue, Title)
+* Results displayed as filtered content view or index page
+* Filter criteria defined in `metadata_json` field
+
+**Department Navigation:**
+* Direct navigation to department-specific pages or sections
+* Supports hierarchical department structures
+
+**Bibliography Navigation:**
+* Navigation to citation format reference pages
+* Target format: page and anchor (e.g., bibliography page with format sections)
+
+== Series and Edition Grouping Architecture
+
+The Library Manager supports organizing cartridges by series, edition, and user-defined custom collections.
+
+=== Grouping Components
+
+**Metadata-Based Grouping:**
+* Cartridge `Metadata` table includes optional `series_name`, `edition_name`, and `series_order` fields
+* Author-defined series/editions are portable across systems
+* Library Manager auto-groups cartridges by series/edition metadata
+
+**Local Grouping System:**
+* `Local_Cartridge_Groups` table stores group definitions (series, editions, custom collections)
+* `Local_Cartridge_Group_Members` junction table links cartridges to groups
+* Custom collections are user-defined and stored locally
+
+=== Grouping Flow
+
+**Auto-Grouping (Series/Edition):**
+1. On library load or cartridge import, Library Manager queries `Local_Library_Manifest` for unique `series_name` and `edition_name` values
+2. For each unique value, creates or updates group in `Local_Cartridge_Groups` (group_type: "series" or "edition")
+3. Adds cartridges to group memberships based on metadata
+4. Auto-grouped series/editions are read-only (managed by system)
+
+**Custom Collections:**
+1. User creates custom collection via Library Manager UI
+2. Collection stored in `Local_Cartridge_Groups` (group_type: "custom_collection")
+3. User adds/removes cartridges to/from collection
+4. Custom collections are user-managed and local-only
+
+**Grouping Display:**
+1. Library Manager provides filter/view options: "All", "By Series", "By Edition", "Custom Collections"
+2. When filter selected, Library Manager queries appropriate groups and displays members
+3. Series members ordered by `series_order` (if available), otherwise alphabetical
+4. Edition and custom collection members ordered alphabetically (or by user-defined `display_order`)
+
+=== Grouping Performance
+
+**Query Optimization:**
+* All grouping queries use `Local_Library_Manifest` (fast, indexed, < 500ms per NFR-3.1)
+* Group memberships queried efficiently via indexed junction table
+* No cartridge file parsing required for grouping operations
+
+**Indexes:**
+* Index on `Local_Cartridge_Groups.group_type` for filtering
+* Index on `Local_Cartridge_Group_Members(group_id, cartridge_guid)` for membership queries
+* Index on `Local_Library_Manifest.series_name` and `edition_name` for auto-grouping

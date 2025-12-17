@@ -1,0 +1,726 @@
+= Qt WebEngine Configuration Specification
+:author: AI Assistant
+:revdate: 2025-12-14
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+
+== Introduction
+
+This document specifies the Qt WebEngine configuration requirements, design, and testing for the Smartbook Reader and Creator Tool applications. Qt WebEngine is used for rendering HTML content, executing embedded JavaScript applications, and providing the WYSIWYG editing interface in the Creator Tool.
+
+== Requirements (SRS)
+
+=== WebEngine Configuration Requirements
+
+* **FR-WE-5.1 (WebEngine Profile Configuration):** The Reader and Creator Tool SHALL configure Qt WebEngine profiles with appropriate settings for security, performance, and functionality. Each `QWebEngineView` instance SHALL use a properly configured `QWebEngineProfile`.
+
+* **FR-WE-5.2 (JavaScript Engine Version):** The Reader and Creator Tool SHALL use the JavaScript engine version provided by Qt WebEngine (V8 engine, version determined by Qt WebEngine version). The application SHALL document the minimum Qt WebEngine version required and the corresponding V8 engine version.
+
+* **FR-WE-5.3 (HTML/CSS Standards Compliance):** The Reader and Creator Tool SHALL support HTML5 and CSS3 standards as implemented by the Chromium engine version used by Qt WebEngine. The application SHALL document the Chromium version and corresponding HTML/CSS standards support level.
+
+* **FR-WE-5.4 (Security Settings):** The Reader and Creator Tool SHALL configure WebEngine security settings to:
+  a. Disable JavaScript access to local file system (except via WebChannel API)
+  b. Block network requests for embedded applications (via interceptor)
+  c. Enforce Content Security Policy (CSP) headers
+  d. Disable service workers
+  e. Disable plugins (Flash, etc.)
+
+* **FR-WE-5.5 (Performance Settings):** The Reader and Creator Tool SHALL configure WebEngine performance settings to:
+  a. Enable hardware acceleration (if available)
+  b. Configure appropriate cache settings
+  c. Set memory limits for embedded applications
+  d. Optimize rendering performance
+
+* **FR-WE-5.6 (Profile Isolation):** The Reader SHALL use separate `QWebEngineProfile` instances for:
+  a. Content rendering (Reader View)
+  b. Embedded applications (each app gets its own profile or isolated profile)
+  c. Creator Tool editing interface
+
+* **FR-WE-5.7 (Network Interceptor Configuration):** The Reader SHALL configure `QWebEngineUrlRequestInterceptor` for embedded applications to block all HTTP/HTTPS requests while allowing local resource loading (data:, blob:, file: URLs).
+
+* **FR-WE-5.8 (CSP Header Configuration):** The Reader SHALL set Content Security Policy headers for embedded applications with the following policy:
+  * `default-src 'self' 'unsafe-inline' 'unsafe-eval'`
+  * `script-src 'self' 'unsafe-inline' 'unsafe-eval'`
+  * `style-src 'self' 'unsafe-inline'`
+  * `connect-src 'none'`
+  * `img-src 'self' data: blob:`
+  * `font-src 'self' data:`
+
+* **FR-WE-5.9 (WebChannel Configuration):** The Reader SHALL configure Qt WebChannel for secure communication between JavaScript and C++ code, registering the `SmartbookBridge` object for each `QWebEngineView` instance.
+
+* **FR-WE-5.10 (Error Handling Configuration):** The Reader and Creator Tool SHALL configure WebEngine error handling to:
+  a. Catch and log JavaScript console errors
+  b. Handle WebEngine process crashes gracefully
+  c. Provide recovery options (reload, close) without crashing the application
+
+== Design Specification (DDD)
+
+=== Qt WebEngine Version Requirements
+
+**Minimum Qt Version:**
+* **Qt 6.2+** (recommended: Qt 6.5+)
+* **Qt WebEngine Module:** Required module, must be included in build
+
+**Chromium Version:**
+* Qt WebEngine 6.2+ uses Chromium 91+
+* Qt WebEngine 6.5+ uses Chromium 108+
+* **Documentation:** Application SHALL document the exact Chromium version at build time
+
+**V8 JavaScript Engine:**
+* V8 version is determined by Chromium version
+* Qt WebEngine 6.2+ uses V8 9.1+
+* Qt WebEngine 6.5+ uses V8 10.8+
+* **Documentation:** Application SHALL document the exact V8 version at build time
+
+**HTML/CSS Standards:**
+* HTML5 support: Full support for HTML5 specification as implemented by Chromium version
+* CSS3 support: Full support for CSS3 specification as implemented by Chromium version
+* **Standards Compliance:** Chromium's standards compliance level (typically 95%+ for HTML5, 90%+ for CSS3)
+
+=== WebEngine Profile Configuration
+
+==== Reader Content Rendering Profile
+
+**Profile Purpose:** Render cartridge content pages (HTML content from `Content_Pages` table)
+
+**Configuration:**
+[source,cpp]
+----
+QWebEngineProfile* contentProfile = new QWebEngineProfile("ContentProfile", this);
+
+// Security Settings
+contentProfile->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessRemoteUrls, false);
+contentProfile->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessFileUrls, true);
+contentProfile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled, true);
+contentProfile->settings()->setAttribute(QWebEngineSettings::PluginsEnabled, false);
+contentProfile->settings()->setAttribute(QWebEngineSettings::WebGLEnabled, true); // For graphics
+
+// Performance Settings
+contentProfile->settings()->setAttribute(QWebEngineSettings::Accelerated2dCanvasEnabled, true);
+contentProfile->settings()->setAttribute(QWebEngineSettings::AcceleratedCompositingEnabled, true);
+contentProfile->settings()->setAttribute(QWebEngineSettings::SpatialNavigationEnabled, false);
+
+// Cache Settings
+contentProfile->setHttpCacheType(QWebEngineProfile::DiskHttpCache);
+contentProfile->setHttpCacheMaximumSize(50 * 1024 * 1024); // 50MB cache
+
+// Storage Settings
+contentProfile->settings()->setAttribute(QWebEngineSettings::LocalStorageEnabled, true);
+contentProfile->settings()->setAttribute(QWebEngineSettings::SessionStorageEnabled, true);
+
+// Service Workers (disabled for security)
+contentProfile->setHttpCacheType(QWebEngineProfile::NoCache); // Disables service workers
+----
+
+**Settings Explanation:**
+* `LocalContentCanAccessRemoteUrls: false` - Prevents local content from accessing remote URLs
+* `LocalContentCanAccessFileUrls: true` - Allows loading local resources
+* `JavascriptEnabled: true` - Required for interactive content
+* `PluginsEnabled: false` - Disables Flash and other plugins (security)
+* `WebGLEnabled: true` - Enables WebGL for graphics (if needed by content)
+* `Accelerated2dCanvasEnabled: true` - Hardware acceleration for canvas
+* `AcceleratedCompositingEnabled: true` - Hardware-accelerated compositing
+* `LocalStorageEnabled: true` - Allows localStorage for content
+* `SessionStorageEnabled: true` - Allows sessionStorage for content
+
+==== Embedded Application Profile
+
+**Profile Purpose:** Execute embedded JavaScript applications (from `Embedded_Apps` table)
+
+**Configuration:**
+[source,cpp]
+----
+QWebEngineProfile* embeddedAppProfile = new QWebEngineProfile("EmbeddedAppProfile", this);
+
+// Security Settings (Strict)
+embeddedAppProfile->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessRemoteUrls, false);
+embeddedAppProfile->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessFileUrls, false); // Only sandbox
+embeddedAppProfile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled, true);
+embeddedAppProfile->settings()->setAttribute(QWebEngineSettings::PluginsEnabled, false);
+embeddedAppProfile->settings()->setAttribute(QWebEngineSettings::WebGLEnabled, true);
+
+// Performance Settings
+embeddedAppProfile->settings()->setAttribute(QWebEngineSettings::Accelerated2dCanvasEnabled, true);
+embeddedAppProfile->settings()->setAttribute(QWebEngineSettings::AcceleratedCompositingEnabled, true);
+
+// Cache Settings (No cache to prevent service workers)
+embeddedAppProfile->setHttpCacheType(QWebEngineProfile::NoCache);
+
+// Storage Settings (Isolated per app)
+embeddedAppProfile->settings()->setAttribute(QWebEngineSettings::LocalStorageEnabled, true);
+embeddedAppProfile->settings()->setAttribute(QWebEngineSettings::SessionStorageEnabled, true);
+
+// Network Interceptor (Blocks all HTTP/HTTPS)
+EmbeddedAppRequestInterceptor* interceptor = new EmbeddedAppRequestInterceptor(this);
+embeddedAppProfile->setUrlRequestInterceptor(interceptor);
+----
+
+**Network Interceptor Implementation:**
+[source,cpp]
+----
+class EmbeddedAppRequestInterceptor : public QWebEngineUrlRequestInterceptor {
+    Q_OBJECT
+public:
+    void interceptRequest(QWebEngineUrlRequestInfo &info) override {
+        QUrl url = info.requestUrl();
+        QString scheme = url.scheme().toLower();
+        
+        // Allow only data:, blob:, and file: URLs
+        if (scheme == "data" || scheme == "blob") {
+            return; // Allow
+        }
+        
+        // Block all HTTP/HTTPS requests
+        if (scheme == "http" || scheme == "https") {
+            info.block(true);
+            return;
+        }
+        
+        // Block file: URLs (apps should use sandbox API)
+        if (scheme == "file") {
+            info.block(true);
+            return;
+        }
+        
+        // Allow other schemes (about:, etc.)
+    }
+};
+----
+
+==== Creator Tool Editing Profile
+
+**Profile Purpose:** WYSIWYG HTML editing interface in Creator Tool
+
+**Configuration:**
+[source,cpp]
+----
+QWebEngineProfile* editorProfile = new QWebEngineProfile("EditorProfile", this);
+
+// Security Settings (Less restrictive for editing)
+editorProfile->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessRemoteUrls, false);
+editorProfile->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessFileUrls, true);
+editorProfile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled, true);
+editorProfile->settings()->setAttribute(QWebEngineSettings::PluginsEnabled, false);
+
+// Performance Settings
+editorProfile->settings()->setAttribute(QWebEngineSettings::Accelerated2dCanvasEnabled, true);
+editorProfile->settings()->setAttribute(QWebEngineSettings::AcceleratedCompositingEnabled, true);
+
+// Cache Settings
+editorProfile->setHttpCacheType(QWebEngineProfile::DiskHttpCache);
+editorProfile->setHttpCacheMaximumSize(100 * 1024 * 1024); // 100MB cache for editing
+
+// Storage Settings
+editorProfile->settings()->setAttribute(QWebEngineSettings::LocalStorageEnabled, true);
+editorProfile->settings()->setAttribute(QWebEngineSettings::SessionStorageEnabled, true);
+----
+
+=== Content Security Policy (CSP) Configuration
+
+==== CSP Header for Embedded Applications
+
+**CSP Policy String:**
+```
+default-src 'self' 'unsafe-inline' 'unsafe-eval'; 
+script-src 'self' 'unsafe-inline' 'unsafe-eval'; 
+style-src 'self' 'unsafe-inline'; 
+connect-src 'none'; 
+img-src 'self' data: blob:; 
+font-src 'self' data:; 
+object-src 'none'; 
+base-uri 'self'; 
+form-action 'none';
+```
+
+**Policy Explanation:**
+* `default-src 'self' 'unsafe-inline' 'unsafe-eval'` - Default policy allows same-origin, inline scripts/styles, and eval (required for SPAs)
+* `script-src 'self' 'unsafe-inline' 'unsafe-eval'` - Scripts from same origin, inline, and eval allowed
+* `style-src 'self' 'unsafe-inline'` - Styles from same origin and inline allowed
+* `connect-src 'none'` - **No network connections allowed** (primary security)
+* `img-src 'self' data: blob:` - Images from same origin, data URIs, and blob URLs
+* `font-src 'self' data:` - Fonts from same origin and data URIs
+* `object-src 'none'` - No plugins/objects
+* `base-uri 'self'` - Base tag can only point to same origin
+* `form-action 'none'` - Forms cannot submit (apps use WebChannel API)
+
+**CSP Implementation:**
+[source,cpp]
+----
+void ReaderViewInstance::setCSPHeaders(QWebEnginePage* page) {
+    QString cspPolicy = "default-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+                       "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+                       "style-src 'self' 'unsafe-inline'; "
+                       "connect-src 'none'; "
+                       "img-src 'self' data: blob:; "
+                       "font-src 'self' data:; "
+                       "object-src 'none'; "
+                       "base-uri 'self'; "
+                       "form-action 'none'";
+    
+    page->setUrlRequestInterceptor([cspPolicy](QWebEngineUrlRequestInfo &info) {
+        if (info.resourceType() == QWebEngineUrlRequestInfo::ResourceTypeMainFrame ||
+            info.resourceType() == QWebEngineUrlRequestInfo::ResourceTypeSubFrame) {
+            info.setHttpHeader("Content-Security-Policy", cspPolicy.toUtf8());
+        }
+    });
+}
+----
+
+**Note:** CSP is a secondary defense layer. The primary network blocking is via `QWebEngineUrlRequestInterceptor`.
+
+=== WebChannel Configuration
+
+==== WebChannel Setup for Reader
+
+**Bridge Registration:**
+[source,cpp]
+----
+void ReaderViewInstance::setupWebChannel(QWebEngineView* view) {
+    QWebChannel* channel = new QWebChannel(this);
+    SmartbookBridge* bridge = new SmartbookBridge(this, m_cartridgeConnector);
+    
+    // Register bridge object
+    channel->registerObject("SmartbookBridge", bridge);
+    
+    // Set channel on page
+    view->page()->setWebChannel(channel);
+    
+    // Inject WebChannel script
+    QFile webChannelJs(":/qtwebchannel/qwebchannel.js");
+    if (webChannelJs.open(QIODevice::ReadOnly)) {
+        QString script = webChannelJs.readAll();
+        view->page()->runJavaScript(script);
+    }
+}
+----
+
+**WebChannel Script Injection:**
+* Qt WebEngine requires `qwebchannel.js` to be injected into the page
+* Script is typically bundled with Qt WebEngine module
+* Inject script before any JavaScript code that uses WebChannel
+* Script enables JavaScript-to-C++ communication
+
+=== Error Handling Configuration
+
+==== JavaScript Console Error Handling
+
+**Console Message Handler:**
+[source,cpp]
+----
+void ReaderViewInstance::setupErrorHandling(QWebEnginePage* page) {
+    // Connect to JavaScript console messages
+    connect(page, &QWebEnginePage::javascriptConsoleMessage,
+            this, &ReaderViewInstance::onJavaScriptConsoleMessage);
+}
+
+void ReaderViewInstance::onJavaScriptConsoleMessage(
+    QWebEnginePage::JavaScriptConsoleMessageLevel level,
+    const QString& message,
+    int lineNumber,
+    const QString& sourceID) {
+    
+    // Log JavaScript errors
+    if (level == QWebEnginePage::ErrorMessageLevel) {
+        qWarning() << "JavaScript Error:" << message 
+                   << "at line" << lineNumber 
+                   << "in" << sourceID;
+        // Log to application log file
+    }
+}
+----
+
+==== WebEngine Process Crash Handling
+
+**Crash Detection:**
+[source,cpp]
+----
+void ReaderViewInstance::setupCrashHandling(QWebEngineView* view) {
+    // Connect to render process terminated signal
+    connect(view->page(), &QWebEnginePage::renderProcessTerminated,
+            this, &ReaderViewInstance::onRenderProcessTerminated);
+}
+
+void ReaderViewInstance::onRenderProcessTerminated(
+    QWebEnginePage::RenderProcessTerminationStatus status,
+    int exitCode) {
+    
+    QString statusText;
+    switch (status) {
+        case QWebEnginePage::NormalTerminationStatus:
+            statusText = "Normal termination";
+            break;
+        case QWebEnginePage::AbnormalTerminationStatus:
+            statusText = "Abnormal termination (crash)";
+            break;
+        case QWebEnginePage::CrashedTerminationStatus:
+            statusText = "Process crashed";
+            break;
+        case QWebEnginePage::KilledTerminationStatus:
+            statusText = "Process killed";
+            break;
+    }
+    
+    qCritical() << "WebEngine process terminated:" << statusText 
+                << "Exit code:" << exitCode;
+    
+    // Display recovery dialog to user
+    showRecoveryDialog();
+}
+----
+
+**Recovery Dialog:**
+* Display dialog: "The content viewer encountered an error. What would you like to do?"
+* Options: "Reload Page", "Close Cartridge", "Continue"
+* Reload: Reloads the page content
+* Close: Closes the Reader View Window
+* Continue: Attempts to continue (may not work if process crashed)
+
+=== Performance Configuration
+
+==== Memory Management
+
+**Memory Limits:**
+* Each `QWebEngineView` instance uses approximately 50-100MB RAM
+* Monitor memory usage for multiple simultaneous views
+* Implement view lifecycle management (destroy unused views)
+* Set memory warnings if system memory is low
+
+**View Lifecycle:**
+* Create views on-demand (lazy loading)
+* Destroy views when cartridge is closed
+* Reuse views when possible (but maintain isolation for embedded apps)
+
+==== Cache Configuration
+
+**HTTP Cache:**
+* **Content Rendering:** 50MB disk cache
+* **Creator Tool:** 100MB disk cache
+* **Embedded Apps:** No cache (prevents service workers)
+
+**Cache Location:**
+* Platform-specific cache directories:
+  * Windows: `%LOCALAPPDATA%\SmartBook\cache\`
+  * macOS: `~/Library/Caches/SmartBook/`
+  * Linux: `~/.cache/SmartBook/`
+
+**Cache Cleanup:**
+* Clear cache on application exit (optional)
+* Clear cache on cartridge deletion (if cartridge-specific cache)
+* Manual cache clear option in settings
+
+=== HTML/CSS Standards Support
+
+==== HTML5 Support
+
+**Supported Features:**
+* HTML5 semantic elements (`<article>`, `<section>`, `<nav>`, etc.)
+* HTML5 form elements and validation
+* HTML5 media elements (`<audio>`, `<video>`)
+* HTML5 canvas and SVG
+* HTML5 Web Components (Custom Elements, Shadow DOM)
+
+**Standards Compliance:**
+* Chromium's HTML5 implementation (typically 95%+ compliance)
+* Specific compliance level depends on Chromium version
+* Document exact Chromium version and compliance level
+
+==== CSS3 Support
+
+**Supported Features:**
+* CSS3 selectors
+* CSS3 properties (flexbox, grid, transforms, animations)
+* CSS3 media queries
+* CSS3 variables (custom properties)
+* CSS3 modules (as implemented by Chromium)
+
+**Standards Compliance:**
+* Chromium's CSS3 implementation (typically 90%+ compliance)
+* Specific compliance level depends on Chromium version
+* Document exact Chromium version and compliance level
+
+=== JavaScript Engine Configuration
+
+==== V8 Engine Features
+
+**Supported ECMAScript Versions:**
+* ECMAScript 2022 (ES13) - Full support
+* ECMAScript 2021 (ES12) - Full support
+* ECMAScript 2020 (ES11) - Full support
+* ECMAScript 2019 (ES10) - Full support
+* ECMAScript 2018 (ES9) - Full support
+* ECMAScript 2017 (ES8) - Full support
+* ECMAScript 2016 (ES7) - Full support
+* ECMAScript 2015 (ES6) - Full support
+
+**JavaScript Features:**
+* Classes, modules, async/await
+* Promises, generators, iterators
+* Arrow functions, template literals
+* Destructuring, spread operator
+* Proxy, Reflect, Symbol
+* WebAssembly support
+
+**V8 Engine Version:**
+* Document exact V8 version at build time
+* V8 version determined by Chromium version
+* Check V8 version: `QWebEngineSettings::defaultSettings()->attribute(QWebEngineSettings::JavascriptEnabled)`
+
+=== Additional Settings
+
+==== Accessibility Settings
+
+**Screen Reader Support:**
+* Enable accessibility features: `QWebEngineSettings::ScreenReaderEnabled`
+* Ensure ARIA labels are properly rendered
+* Support keyboard navigation
+
+**High Contrast Mode:**
+* Respect system high contrast settings
+* Apply high contrast CSS when system setting is enabled
+
+==== Developer Tools (Optional)
+
+**Developer Console:**
+* Disable in production builds
+* Enable in debug builds for development
+* Access via: `QWebEngineSettings::DeveloperExtrasEnabled`
+
+**Remote Debugging:**
+* Disable in production (security risk)
+* Enable only in development builds
+* Use `QWebEngineProfile::setHttpUserAgent()` for identification
+
+== Testing Specification
+
+=== Functional Testing
+
+==== WebEngine Configuration Tests
+
+[cols="1, 2, 4, 3", options="headers"]
+|===
+^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
+
+| **T-WE-01** | FR-WE-5.1 (Profile Configuration) | a|
+. Launch Reader application.
+. Open a cartridge.
+. Verify WebEngine profile is configured.
+| **AC:** WebEngine profile is created and configured with appropriate settings. Profile settings match specification (security, performance, cache).
+
+| **T-WE-02** | FR-WE-5.2 (JavaScript Engine Version) | a|
+. Launch Reader application.
+. Check JavaScript engine version information.
+| **AC:** Application reports V8 engine version. Version matches Qt WebEngine version requirements. Version is documented in application or logs.
+
+| **T-WE-03** | FR-WE-5.3 (HTML/CSS Standards) | a|
+. Create test cartridge with HTML5 features (semantic elements, canvas, video).
+. Create test cartridge with CSS3 features (flexbox, grid, animations).
+. Open cartridges in Reader.
+| **AC:** HTML5 features render correctly. CSS3 features render correctly. Standards compliance matches Chromium version capabilities.
+
+| **T-WE-04** | FR-WE-5.4 (Security Settings) | a|
+. Launch Reader with embedded app.
+. Attempt to access local file system from JavaScript.
+. Attempt to make network request from embedded app.
+| **AC:** Local file system access blocked (except via WebChannel). Network requests blocked by interceptor. Security settings enforced correctly.
+
+| **T-WE-05** | FR-WE-5.5 (Performance Settings) | a|
+. Launch Reader with multiple cartridges open.
+. Monitor memory usage.
+. Check hardware acceleration status.
+| **AC:** Memory usage is reasonable per view (~50-100MB). Hardware acceleration enabled if available. Performance is acceptable.
+
+| **T-WE-06** | FR-WE-5.6 (Profile Isolation) | a|
+. Open cartridge with content.
+. Open embedded app in same cartridge.
+. Verify profiles are separate.
+| **AC:** Content rendering uses separate profile from embedded apps. Each embedded app has isolated profile or view. Profiles do not interfere with each other.
+
+| **T-WE-07** | FR-WE-5.7 (Network Interceptor) | a|
+. Launch embedded app.
+. Attempt to use fetch() to make HTTP request.
+. Attempt to use XMLHttpRequest.
+. Attempt to use WebSocket.
+| **AC:** All network requests are blocked by interceptor. Error messages indicate request was blocked. No network traffic occurs.
+
+| **T-WE-08** | FR-WE-5.8 (CSP Headers) | a|
+. Launch embedded app.
+. Check HTTP headers for CSP policy.
+. Attempt to violate CSP policy.
+| **AC:** CSP headers are set correctly. CSP policy matches specification. CSP violations are logged or blocked.
+
+| **T-WE-09** | FR-WE-5.9 (WebChannel Configuration) | a|
+. Launch Reader with cartridge containing forms.
+. Verify SmartbookBridge is available in JavaScript.
+. Call WebChannel API method.
+| **AC:** SmartbookBridge object is accessible from JavaScript. WebChannel communication works correctly. API methods can be called from JavaScript.
+
+| **T-WE-10** | FR-WE-5.10 (Error Handling) | a|
+. Load cartridge with JavaScript errors.
+. Simulate WebEngine process crash.
+. Verify error handling.
+| **AC:** JavaScript errors are caught and logged. Process crashes are detected. Recovery options are provided. Application does not crash.
+
+|===
+
+=== Security Testing
+
+==== Network Blocking Tests
+
+[cols="1, 2, 4, 3", options="headers"]
+|===
+^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
+
+| **T-WE-11** | Network Blocking - fetch() | a|
+. Create embedded app that uses fetch() API.
+. Launch app in Reader.
+. Monitor network traffic.
+| **AC:** fetch() requests are blocked. No network traffic occurs. Error is returned to JavaScript.
+
+| **T-WE-12** | Network Blocking - XMLHttpRequest | a|
+. Create embedded app that uses XMLHttpRequest.
+. Launch app in Reader.
+. Monitor network traffic.
+| **AC:** XMLHttpRequest is blocked. No network traffic occurs. Error is returned to JavaScript.
+
+| **T-WE-13** | Network Blocking - WebSocket | a|
+. Create embedded app that uses WebSocket.
+. Launch app in Reader.
+. Monitor network traffic.
+| **AC:** WebSocket connections are blocked. No network traffic occurs. Connection fails.
+
+| **T-WE-14** | Network Blocking - Image Loading | a|
+. Create embedded app with `<img src="http://example.com/image.png">`.
+. Launch app in Reader.
+. Monitor network traffic.
+| **AC:** External image loading is blocked. Image fails to load. No network traffic occurs.
+
+| **T-WE-15** | Network Blocking - Script Loading | a|
+. Create embedded app with `<script src="http://example.com/script.js">`.
+. Launch app in Reader.
+. Monitor network traffic.
+| **AC:** External script loading is blocked. Script fails to load. No network traffic occurs.
+
+| **T-WE-16** | Network Blocking - Service Workers | a|
+. Create embedded app that registers service worker.
+. Launch app in Reader.
+. Verify service worker is not registered.
+| **AC:** Service workers are disabled. Registration fails. No service worker is created.
+
+|===
+
+=== Performance Testing
+
+==== Memory and Performance Tests
+
+[cols="1, 2, 4, 3", options="headers"]
+|===
+^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
+
+| **T-WE-17** | Memory Usage per View | a|
+. Open single cartridge in Reader.
+. Measure memory usage of WebEngine process.
+. Open multiple cartridges.
+. Measure total memory usage.
+| **AC:** Single view uses ~50-100MB RAM. Multiple views scale linearly. Memory usage is reasonable.
+
+| **T-WE-18** | Hardware Acceleration | a|
+. Launch Reader on system with hardware acceleration.
+. Verify acceleration is enabled.
+. Test rendering performance.
+| **AC:** Hardware acceleration is enabled if available. Rendering performance is improved. No visual artifacts.
+
+| **T-WE-19** | Cache Performance | a|
+. Load cartridge with large resources.
+. Reload cartridge.
+. Measure load time.
+| **AC:** Second load is faster due to cache. Cache is working correctly. Cache size is within limits.
+
+| **T-WE-20** | Multiple Embedded Apps | a|
+. Open cartridge with multiple embedded apps.
+. Launch all apps simultaneously.
+. Monitor memory and performance.
+| **AC:** All apps run without performance degradation. Memory usage is acceptable. No crashes or freezes.
+
+|===
+
+=== Standards Compliance Testing
+
+==== HTML5/CSS3 Compliance Tests
+
+[cols="1, 2, 4, 3", options="headers"]
+|===
+^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
+
+| **T-WE-21** | HTML5 Semantic Elements | a|
+. Create cartridge with HTML5 semantic elements.
+. Open in Reader.
+. Verify rendering.
+| **AC:** Semantic elements render correctly. Elements are properly styled. Structure is maintained.
+
+| **T-WE-22** | HTML5 Canvas | a|
+. Create cartridge with HTML5 canvas element.
+. Draw graphics on canvas.
+. Verify rendering.
+| **AC:** Canvas renders correctly. Graphics are drawn properly. Performance is acceptable.
+
+| **T-WE-23** | CSS3 Flexbox | a|
+. Create cartridge with CSS3 flexbox layout.
+. Open in Reader.
+. Verify layout.
+| **AC:** Flexbox layout renders correctly. Elements are positioned properly. Layout is responsive.
+
+| **T-WE-24** | CSS3 Grid | a|
+. Create cartridge with CSS3 grid layout.
+. Open in Reader.
+. Verify layout.
+| **AC:** Grid layout renders correctly. Elements are positioned properly. Layout matches specification.
+
+| **T-WE-25** | CSS3 Animations | a|
+. Create cartridge with CSS3 animations.
+. Open in Reader.
+. Verify animations.
+| **AC:** Animations play correctly. Performance is smooth. No visual artifacts.
+
+| **T-WE-26** | ECMAScript 2022 Features | a|
+. Create embedded app using ES2022 features.
+. Launch app in Reader.
+. Verify execution.
+| **AC:** ES2022 features work correctly. JavaScript executes without errors. Features are supported.
+
+|===
+
+== Implementation Checklist
+
+=== Reader Application
+
+- [ ] Create `QWebEngineProfile` for content rendering
+- [ ] Configure security settings (disable plugins, block remote URLs)
+- [ ] Configure performance settings (hardware acceleration, cache)
+- [ ] Create `QWebEngineProfile` for embedded applications
+- [ ] Implement `QWebEngineUrlRequestInterceptor` for network blocking
+- [ ] Set CSP headers for embedded applications
+- [ ] Configure WebChannel for SmartbookBridge
+- [ ] Implement JavaScript console error handling
+- [ ] Implement WebEngine process crash handling
+- [ ] Document Chromium and V8 versions
+
+=== Creator Tool
+
+- [ ] Create `QWebEngineProfile` for WYSIWYG editor
+- [ ] Configure editor-specific settings
+- [ ] Configure cache for editing performance
+- [ ] Implement error handling for editor
+- [ ] Document WebEngine configuration
+
+== Summary
+
+This specification provides comprehensive requirements, design, and testing for Qt WebEngine configuration:
+
+* **Requirements:** 10 functional requirements covering profile configuration, JavaScript engine, HTML/CSS standards, security, performance, isolation, network blocking, CSP, WebChannel, and error handling
+* **Design:** Complete implementation specifications with code examples for profiles, network interceptor, CSP headers, WebChannel setup, and error handling
+* **Testing:** 26 test cases covering functional, security, performance, and standards compliance testing
+* **Implementation Checklist:** Step-by-step checklist for implementation
+
+The specification ensures Qt WebEngine is properly configured for security, performance, and functionality in both Reader and Creator Tool applications.

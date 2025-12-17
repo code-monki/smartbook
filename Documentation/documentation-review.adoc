@@ -106,7 +106,7 @@ The documentation is generally well-structured and comprehensive for the Reader 
 
 **Recommendation:** [line-through]#Consolidate into a single SRS document or clearly document the relationship (e.g., addendum supersedes base, or vice versa).# **COMPLETED**
 
-=== Metadata Schema Differences
+=== Metadata Schema Differences [OK] RESOLVED
 
 **Issue:** Product Concept shows different metadata fields than DDD:
 
@@ -115,10 +115,17 @@ The documentation is generally well-structured and comprehensive for the Reader 
 * `cover_image_path` (path reference)
 
 **DDD:**
-* No `publisher` field
+* No `publisher` field (author field described as "Author/Publisher name")
 * `cover_image_path` exists but relationship to `cover_image_data` in manifest unclear
 
-**Recommendation:** Align schemas across all documents.
+**Status:** [OK] **RESOLVED** - Metadata schema has been aligned:
+* **Publisher Field Added:** `publisher` field (TEXT, nullable) added to `Metadata` table in DDD
+* **Author Field Clarified:** `author` field now explicitly for author name(s) only
+* **Publisher Optional:** Publisher field is nullable to support self-published works
+* **Manifest Cache:** `publisher` field added to `Local_Library_Manifest` table for fast queries
+* **Bibliographic Accuracy:** Author and publisher are now distinct entities as required for proper bibliographic metadata
+
+**Recommendation:** ~~Align schemas across all documents.~~ **COMPLETED** - Publisher field added to Metadata table, schemas aligned.
 
 === Settings Table Missing
 
@@ -538,7 +545,7 @@ The documentation is generally well-structured and comprehensive for the Reader 
 
 **Recommendation:** Add detailed warning UI specifications to DDD.
 
-=== Consent Dialog Details
+=== Consent Dialog Details [OK] RESOLVED
 
 **Issue:** Consent dialog is specified, but:
 * Exact dialog text/templates not provided
@@ -546,11 +553,22 @@ The documentation is generally well-structured and comprehensive for the Reader 
 * Accessibility requirements
 * Internationalization considerations
 
-**Recommendation:** Add detailed dialog specifications with example text.
+**Status:** [OK] **RESOLVED** - Comprehensive Cartridge Loading Consent Dialog specifications have been added to DDD Section 11.2.1:
+
+* **Dialog Appearance and Positioning:** Native OS modal dialog, centered horizontally and vertically, minimum 400px width, auto-height (max 600px), full keyboard navigation and screen reader support
+* **Dialog Content and Verbiage:** Complete text templates for Level 2 (Self-Signed) and Level 3 (No Signature) cartridges with specific warning messages and cartridge information
+* **Dismissal Behavior:** Detailed behavior specification for each option:
+  * "Load and Always Trust" - Adds to whitelist, loads cartridge, bypasses future dialogs
+  * "Load for This Session Only" - Loads temporarily, no whitelist, dialog appears again
+  * "Cancel" - Cartridge not loaded, user returned to Library Manager
+* **Implementation Details:** Dialog trigger conditions, dismissal methods, error handling
+* **Accessibility:** Keyboard navigation (Tab, Enter, Escape), screen reader support specified
+
+**Recommendation:** ~~Add detailed dialog specifications with example text.~~ **COMPLETED** - Complete dialog specifications added to DDD Section 11.2.1.
 
 == TESTING GAPS
 
-=== Creator Tool Testing
+=== Creator Tool Testing [OK] RESOLVED
 
 **Issue:** Test Plan focuses on Reader, but:
 * No test cases for Creator Tool
@@ -558,9 +576,32 @@ The documentation is generally well-structured and comprehensive for the Reader 
 * No test cases for form definition creation
 * No test cases for signing process
 
-**Recommendation:** Add Creator Tool test cases to Test Plan.
+**Status:** [OK] **RESOLVED** - Comprehensive Creator Tool test cases have been added to the Test Plan:
 
-=== Error Scenario Testing
+* **90 Test Cases Added:** Complete test coverage for all Creator Tool functional areas (T-CT-01 through T-CT-90)
+* **Test Coverage Areas:**
+  * Content Authoring and Editing (5 test cases)
+  * Page Management (4 test cases)
+  * Cartridge Creation and Export (12 test cases)
+  * Metadata and Resource Management (5 test cases)
+  * Form Definition Management (4 test cases)
+  * Auto-Save and Recovery (4 test cases)
+  * Error Handling (6 test cases)
+  * Stylesheet and Settings Management (6 test cases)
+  * JavaScript and Embedded Applications (3 test cases)
+  * Search and Import Capabilities (6 test cases)
+  * Draft and Publishing States (4 test cases)
+  * Content Templates (4 test cases)
+  * Version History (5 test cases)
+  * Accessibility (6 test cases)
+  * UI Theming Support (7 test cases)
+  * Content Theme Management (9 test cases)
+* **Acceptance Criteria:** All test cases include explicit acceptance criteria linked to specific FR-CT requirements
+* **Test Structure:** Each test case includes Test Case ID, Requirement Covered, Test Steps, and Expected Result (Acceptance Criteria)
+
+**Recommendation:** ~~Add Creator Tool test cases to Test Plan.~~ **COMPLETED** - 90 comprehensive test cases added covering all Creator Tool functionality.
+
+=== Error Scenario Testing [OK] RESOLVED
 
 **Issue:** Test Plan has limited error scenario coverage:
 * No tests for corrupted cartridge files
@@ -568,9 +609,39 @@ The documentation is generally well-structured and comprehensive for the Reader 
 * No tests for database failures
 * No tests for file system errors
 
-**Recommendation:** Add error scenario test cases.
+**Status:** [OK] **RESOLVED** - Comprehensive error scenario test cases have been added to the Test Plan:
 
-=== Performance Testing
+* **49 Error Scenario Test Cases Added:** Complete error coverage for both Reader and Creator Tool (T-ERR-01 through T-ERR-49)
+
+* **Reader Application Error Scenarios (24 test cases):**
+  * Cartridge File Errors (4 test cases: T-ERR-01 to T-ERR-04) - File not found, invalid SQLite format, file corruption, permission errors
+  * Database Connection Errors (4 test cases: T-ERR-05 to T-ERR-08) - Database locked, disk full, SQLite corruption, connection timeout
+  * Signature Verification Errors (5 test cases: T-ERR-09 to T-ERR-13) - Invalid signature, expired certificate, untrusted CA, corrupted security data, hash mismatch (tampering)
+  * File System Errors (4 test cases: T-ERR-14 to T-ERR-17) - Disk full, permission denied, path too long, invalid characters
+  * Manifest Update Errors (1 test case: T-ERR-18) - Manifest update failure with error dialog
+  * Sandbox Operation Errors (4 test cases: T-ERR-19 to T-ERR-22) - Path traversal, invalid filename, file size limit, disk space exhaustion
+  * WebEngine Errors (2 test cases: T-ERR-23 to T-ERR-24) - WebEngine crash, JavaScript errors
+
+* **Creator Tool Error Scenarios (25 test cases):**
+  * Content Validation Errors (5 test cases: T-ERR-25 to T-ERR-29) - Invalid HTML, malformed JSON schema, missing required metadata, invalid form definition, resource reference errors
+  * Cartridge Creation Errors (3 test cases: T-ERR-30 to T-ERR-32) - Database initialization failure, GUID generation failure, schema creation error
+  * Signing Errors (5 test cases: T-ERR-33 to T-ERR-37) - Invalid certificate format, expired certificate, missing private key, signing failure, certificate import error
+  * Export Errors (4 test cases: T-ERR-38 to T-ERR-41) - File write error, disk full, permission error, hash calculation failure
+  * Import Errors (4 test cases: T-ERR-42 to T-ERR-45) - Unsupported file format, corrupted source file, missing resources, import validation errors
+  * Resource Management Errors (4 test cases: T-ERR-46 to T-ERR-49) - Resource file not found, invalid image format, file size limit exceeded, resource path error
+
+* **Test Coverage:**
+  * All FR-ERR-4.1 through FR-ERR-4.13 requirements covered
+  * Specific error messages validated per DDD error handling specifications
+  * Error logging and recovery behavior verified
+  * User-friendly error messages and actionable guidance tested
+  * Graceful degradation and data preservation verified
+
+* **Acceptance Criteria:** All test cases include explicit acceptance criteria specifying expected error messages, logging behavior, recovery options, and user experience
+
+**Recommendation:** ~~Add error scenario test cases.~~ **COMPLETED** - 49 comprehensive error scenario test cases added covering all error handling requirements.
+
+=== Performance Testing [OK] RESOLVED
 
 **Issue:** Only library load performance is specified:
 * No performance requirements for:
@@ -579,84 +650,431 @@ The documentation is generally well-structured and comprehensive for the Reader 
 ** Content rendering
 ** Search operations
 
-**Recommendation:** Add comprehensive performance requirements and tests.
+**Status:** [OK] **RESOLVED** - Pragmatic performance testing strategy defined:
+
+* **Performance Testing Philosophy:**
+  * Acknowledge that as a native desktop application using SQLite, most operations will be near-instantaneous (< 100ms)
+  * Focus performance testing on scenarios where degradation is possible or measurable
+  * Use user-perceived performance thresholds (what feels slow to a user) rather than arbitrary technical metrics
+  * Emphasize regression testing (ensuring performance doesn't degrade over time) over absolute thresholds for most operations
+
+* **Specific Performance Requirements (Where Measurable and Meaningful):**
+  * **Library Load (NFR-3.1):** 500ms for 100+ cartridges - Already specified and testable (T-UI-01)
+  * **Search Performance (FR-2.9.8):** < 2 seconds for 100+ pages - Already specified with optional indexing/caching
+
+* **Performance Testing Strategy:**
+  * **Near-Instantaneous Operations (No Specific Thresholds):**
+    * Cartridge opening (SQLite file open is typically < 50ms)
+    * Form data save/load (single-row SQLite operations are < 10ms)
+    * Content rendering (HTML rendering is typically < 100ms for typical pages)
+    * Page navigation (SQLite queries are < 10ms)
+    * Metadata operations (all use indexed SQLite queries)
+    * **Testing Approach:** Verify operations complete without noticeable delay (< 200ms is acceptable for user-perceived "instant"). Focus on regression testing to ensure performance doesn't degrade.
+
+  * **Operations with Measurable Performance Characteristics:**
+    * **Library Load:** 500ms threshold for 100+ cartridges (NFR-3.1, T-UI-01)
+    * **Search Operations:** < 2 seconds for 100+ pages (FR-2.9.8)
+    * **Large Cartridge Opening:** Test with very large cartridges (1000+ pages, 100MB+ database) to ensure reasonable performance
+    * **Concurrent Operations:** Test multiple windows/operations simultaneously to identify contention issues
+
+  * **Performance Regression Testing:**
+    * Establish baseline performance metrics during initial development
+    * Re-test periodically to ensure performance doesn't degrade with code changes
+    * Focus on operations that could be impacted by new features or refactoring
+
+  * **Stress Testing (Identify Breaking Points):**
+    * Very large cartridges (1000+ pages, large embedded resources)
+    * Many simultaneous Reader windows (5+ open cartridges)
+    * Large library (500+ cartridges in manifest)
+    * **Goal:** Identify performance degradation points, not set strict thresholds
+
+* **Performance Test Cases Added:**
+  * T-PERF-01: Library Load Performance (NFR-3.1) - 500ms for 100+ cartridges
+  * T-PERF-02: Search Performance (FR-2.9.8) - < 2 seconds for 100+ pages
+  * T-PERF-03: Large Cartridge Opening - Verify reasonable performance with 1000+ page cartridge
+  * T-PERF-04: Concurrent Window Operations - Multiple windows open simultaneously
+  * T-PERF-05: Large Library Performance - 500+ cartridges in library
+
+* **Rationale:**
+  * Native desktop apps with SQLite are inherently fast for typical operations
+  * Setting arbitrary thresholds for near-instantaneous operations is not meaningful
+  * User-perceived performance (feels instant) is more important than microsecond measurements
+  * Focus should be on identifying actual performance problems (regressions, large datasets) rather than optimizing already-fast operations
+  * SQLite performance is well-understood and predictable for typical use cases
+
+**Recommendation:** ~~Add comprehensive performance requirements and tests.~~ **COMPLETED** - Pragmatic performance testing strategy defined focusing on measurable scenarios and regression testing.
 
 == PHASE 2 PREPARATION GAPS
 
-=== User Identity
+=== User Identity [OK] RESOLVED
 
 **Issue:** Phase 2 mentions multi-user, but Phase 1:
 * `User_Data` table has `user_id` field mentioned in Product Concept but not in DDD
 * No user identity model for Phase 1
 * Unclear if Phase 1 is truly single-user or just local-only
 
-**Recommendation:** Clarify user model for Phase 1 and Phase 2 transition.
+**Status:** [OK] **RESOLVED** - Comprehensive Phase 2 User Identity and Authentication specification has been created:
 
-=== Remote Library Integration
+* **User Identity Model:**
+  * UUID v4 user IDs (consistent with Phase 1 cartridge_guid pattern)
+  * Username, email, password hash, account status
+  * Account states: active, suspended, deleted, pending_verification
+  * Login tracking and account lockout support
+
+* **Authentication System:**
+  * HTTP REST API over HTTPS
+  * JWT or opaque token-based authentication
+  * Two-tier session expiry (24h regular, 30d persistent "Remember Me")
+  * Token refresh mechanism
+  * Secure credential storage (OS Keychain/Credential Manager)
+
+* **Login Logging:**
+  * Comprehensive logging of all login attempts
+  * Daily log rotation with compression
+  * 90 days active retention, 1 year archived
+  * Admin and user access to logs
+
+* **Password Reset:**
+  * Complete password reset flow for forgotten passwords
+  * Automatically unlocks locked accounts
+  * Secure token-based reset (24-hour expiry, one-time use)
+  * Rate limiting and security measures
+
+* **Security Features:**
+  * Account lockout (5 failed attempts → 30-minute lockout)
+  * Rate limiting on login and password reset
+  * Password hashing (Bcrypt/Argon2id)
+  * HTTPS-only communication
+  * Token security best practices
+
+* **Phase 1 Clarification:**
+  * Phase 1 is local-only, single-user (no user identity required)
+  * `user_id` field in `User_Data` table reserved for Phase 2
+  * Phase 1 operates without user authentication
+  * Phase 2 introduces user identity for remote library access
+
+**Recommendation:** ~~Clarify user model for Phase 1 and Phase 2 transition.~~ **COMPLETED** - Complete Phase 2 User Identity and Authentication specification created, Phase 1 clarified as local-only single-user.
+
+=== Remote Library Integration [OK] RESOLVED
 
 **Issue:** `location_status` field exists but:
 * No specification for how it's used in Phase 1
 * No specification for Phase 2 remote library API
 * No specification for sync mechanisms
 
-**Recommendation:** Document Phase 1 usage and Phase 2 requirements.
+**Status:** [OK] **RESOLVED** - Comprehensive Phase 2 Remote Library Integration specification has been created:
+
+* **Multiple Remote Library Support:** Users can configure and use multiple remote libraries simultaneously, each with independent configuration, authentication, and sync settings
+
+* **Location Status Tracking:**
+  * `local_only` - Phase 1 default, manually imported cartridges
+  * `remote_only` - Available on remote library, not downloaded locally
+  * `both` - Exists both locally and remotely (synced)
+  * `local_modified` - Local copy has been modified
+  * `remote_updated` - Remote version is newer than local copy
+
+* **UI Indicators:**
+  * Visual icons for each location status (cloud, checkmark, warning, update)
+  * Library source badges on cartridge tiles
+  * Library filtering in List View
+  * Context menu options based on location status
+
+* **Sync Mechanisms:**
+  * Manual sync (user-triggered)
+  * Automatic sync (configurable intervals)
+  * On-demand sync (when opening/downloading)
+  * Conflict resolution for version conflicts
+
+* **Remote Library API:**
+  * Library discovery endpoints
+  * Cartridge catalog browsing and search
+  * Download endpoints
+  * Sync status endpoints
+  * Library management endpoints
+
+* **Database Schema:**
+  * `Remote_Library_Config` table for library configurations
+  * Enhanced `Local_Library_Manifest` with remote tracking fields
+  * `Sync_Log` table for sync history
+
+* **Security:**
+  * Encrypted credential storage per library
+  * Token refresh support per library
+  * Secure authentication handling
+  * Offline support and error handling
+
+* **Phase 1 Usage:**
+  * `location_status` defaults to `local_only` for Phase 1
+  * All Phase 1 cartridges are local-only
+  * Backward compatible with existing Phase 1 functionality
+
+**Recommendation:** ~~Document Phase 1 usage and Phase 2 requirements.~~ **COMPLETED** - Complete Phase 2 Remote Library Integration specification created with multiple library support.
 
 == TECHNICAL SPECIFICATION GAPS
 
-=== Qt WebEngine Configuration
+=== Qt WebEngine Configuration [OK] RESOLVED
 
 **Issue:** Qt WebEngine is mentioned but:
 * No specification for WebEngine settings/configuration
 * No specification for JavaScript engine version
 * No specification for HTML/CSS standards compliance level
 
-**Recommendation:** Add WebEngine configuration specifications to DDD.
+**Status:** [OK] **RESOLVED** - Comprehensive Qt WebEngine configuration specifications have been created:
 
-=== SQLite Configuration
+* **Requirements Added (SRS):** 10 functional requirements (FR-WE-5.1 through FR-WE-5.10) covering:
+  * WebEngine profile configuration
+  * JavaScript engine version documentation
+  * HTML/CSS standards compliance
+  * Security settings (file system access, network blocking, CSP, plugins)
+  * Performance settings (hardware acceleration, cache, memory limits)
+  * Profile isolation (separate profiles for content, embedded apps, editor)
+  * Network interceptor configuration
+  * CSP header configuration
+  * WebChannel configuration
+  * Error handling configuration
+
+* **Design Specification (DDD):** Complete implementation specification added to DDD including:
+  * Qt WebEngine version requirements (Qt 6.2+, Chromium version, V8 version)
+  * Profile configuration for Reader content rendering
+  * Profile configuration for embedded applications (with network interceptor)
+  * Profile configuration for Creator Tool editing interface
+  * Network request interceptor implementation (code examples)
+  * Content Security Policy (CSP) header configuration
+  * WebChannel setup and configuration
+  * JavaScript console error handling
+  * WebEngine process crash handling
+  * Performance configuration (memory management, cache settings)
+  * HTML5/CSS3 standards support documentation
+  * V8 JavaScript engine features and ECMAScript support
+  * Additional settings (accessibility, developer tools)
+
+* **Test Cases Added (Test Plan):** 26 comprehensive test cases (T-WE-01 through T-WE-26) covering:
+  * WebEngine configuration and standards (10 test cases)
+  * Network blocking security tests (6 test cases)
+  * Performance and standards tests (10 test cases)
+
+* **Specification Document:** Complete standalone specification document created (`qt-webengine-configuration.adoc`) with requirements, design, and testing details
+
+**Recommendation:** ~~Add WebEngine configuration specifications to DDD.~~ **COMPLETED** - Complete Qt WebEngine configuration specifications added to SRS, DDD, and Test Plan.
+
+=== SQLite Configuration [OK] RESOLVED
 
 **Issue:** SQLite is used but:
 * No specification for SQLite version requirements
 * No specification for SQLite configuration (WAL mode, etc.)
 * No specification for database optimization
 
-**Recommendation:** Add SQLite configuration specifications to DDD.
+**Status:** [OK] **RESOLVED** - Comprehensive SQLite configuration specifications have been created:
 
-=== Platform-Specific Considerations
+* **Requirements Added (SRS):** 23 functional requirements (FR-SQL-6.1 through FR-SQL-6.23) covering:
+  * SQLite version requirements (minimum 3.51) and version detection
+  * WAL mode configuration for local database and cartridge files
+  * WAL checkpoint configuration (10MB or 1000 pages threshold)
+  * WAL mode detection and automatic conversion
+  * Database optimization (page size 4KB, cache size, synchronous mode)
+  * Foreign key constraints
+  * Query optimizer configuration (ANALYZE)
+  * Index optimization
+  * Vacuum and optimization operations
+  * Connection management (pooling, timeout, busy handler)
+  * Transaction management (usage, isolation, savepoints)
+  * Error handling and recovery (integrity checks, corruption recovery, backup/restore)
+
+* **Design Specification (DDD):** Complete implementation specification added to DDD including:
+  * SQLite version requirements and detection (code examples)
+  * WAL mode implementation for local database and cartridge files
+  * WAL checkpoint configuration and monitoring
+  * Page size configuration (4096 bytes)
+  * Cache size configuration (2000 pages for local, 1000 for cartridges)
+  * Synchronous mode configuration (NORMAL with WAL)
+  * Foreign key constraints enablement
+  * Query optimizer statistics (ANALYZE)
+  * Connection setup and configuration
+  * Transaction usage examples (form data save, cartridge deletion)
+  * Savepoint usage for complex operations
+  * Vacuum operation implementation
+  * Integrity checks (quick and full)
+  * Backup and restore implementation
+
+* **Test Cases Added (Test Plan):** 34 comprehensive test cases (T-SQL-01 through T-SQL-34) covering:
+  * SQLite configuration and optimization (15 test cases)
+  * Connection and transaction testing (6 test cases)
+  * Error handling and recovery testing (4 test cases)
+  * Performance and stress testing (9 test cases)
+
+* **Specification Document:** Complete standalone specification document created (`sqlite-configuration.adoc`) with requirements, design, testing, and best practices
+
+* **Best Practices:** Summary of configuration, performance, and security best practices included
+
+**Recommendation:** ~~Add SQLite configuration specifications to DDD.~~ **COMPLETED** - Complete SQLite configuration specifications added to SRS, DDD, and Test Plan with comprehensive testing coverage.
+
+=== Platform-Specific Considerations [OK] RESOLVED
 
 **Issue:** Cross-platform is mentioned but:
 * No platform-specific requirements documented
 * No platform-specific UI guidelines
 * No platform-specific security considerations
+* No specification for supported operating systems and versions
+* No specification for architecture support (ARM64, X86_64)
+* No specification for universal binary support (macOS)
 
-**Recommendation:** Add platform-specific considerations document or section.
+**Status:** [OK] **RESOLVED** - Comprehensive platform-specific considerations specifications have been created:
+
+* **Requirements Added (SRS):** 24 functional requirements (FR-PLAT-7.1 through FR-PLAT-7.24) covering:
+  * Supported operating systems (Arch Linux 2025.09.01+, Debian 13+, Fedora 43+, Ubuntu 24.04 LTS+, macOS 26.1+, Windows 11+)
+  * Architecture support (ARM64, X86_64)
+  * Cross-platform compatibility (client-server on different platforms)
+  * Universal binary support (macOS)
+  * UI framework (Qt Fusion widget set for uniform appearance)
+  * UI consistency across platforms
+  * Platform security standards (Credential Manager, Keychain, libsecret)
+  * Secure storage implementation
+  * Certificate validation (platform-specific stores)
+  * File system permissions
+  * Distribution formats (MSI/EXE, .app/DMG, DEB/RPM/PKG)
+  * Code signing requirements
+  * Installation locations
+  * Data storage locations (application data, cache, logs, backups)
+  * Platform-specific features (menu bar, system tray, file associations, URL schemes)
+
+* **Design Specification (DDD):** Complete implementation specification added to DDD including:
+  * Platform detection (Windows, macOS, Linux) with code examples
+  * Architecture detection (ARM64, X86_64) with code examples
+  * Qt Fusion style configuration with code examples
+  * Platform-specific data directory resolution using QStandardPaths
+  * Secure storage implementation (Windows Credential Manager, macOS Keychain, Linux libsecret) with code examples
+  * Certificate validation configuration
+  * Universal binary support (CMake configuration, build instructions, verification)
+  * File associations (Windows Registry, macOS Info.plist, Linux .desktop)
+  * URL scheme handling (Windows Registry, macOS Info.plist, Linux .desktop)
+
+* **Test Cases Added (Test Plan):** 15 comprehensive test cases (T-PLAT-01 through T-PLAT-15) covering:
+  * Platform support testing (5 test cases)
+  * UI framework testing (2 test cases)
+  * Security testing (3 test cases)
+  * Distribution and packaging testing (3 test cases)
+  * File association and URL scheme testing (2 test cases)
+
+* **Specification Document:** Complete standalone specification document created (`platform-specific-considerations.adoc`) with requirements, design, testing, and best practices
+
+**Recommendation:** ~~Add platform-specific considerations document or section.~~ **COMPLETED** - Complete platform-specific considerations specifications added to SRS, DDD, and Test Plan with comprehensive testing coverage.
 
 == DOCUMENTATION STRUCTURE ISSUES
 
-=== Missing Glossary
+=== Missing Glossary [OK] RESOLVED
 
 **Issue:** Technical terms are used throughout but:
 * No centralized glossary
 * Terms like "cartridge", "H1", "H2", "L1/L2/L3" not defined in one place
 
-**Recommendation:** Add glossary to main documentation.
+**Status:** [OK] **RESOLVED** - Comprehensive glossary has been created:
 
-=== Missing Architecture Diagrams
+* **Glossary Document Created:** `glossary.adoc` with 100+ technical terms defined
+* **Comprehensive Coverage:** Includes all key project terminology:
+  * Core concepts (Cartridge, Cartridge GUID, Embedded Application, Form Definition)
+  * Security terms (Level 1/2/3, H1/H2, Tampering Detection, Trust Registry, Signature Verifier)
+  * Architecture terms (Library Manager, Reader View Instance, Multi-Window Architecture, DML)
+  * Technical terms (SQLite, WAL, Qt, WebEngine, WebChannel Bridge, SmartbookBridge)
+  * Platform terms (ARM64, X86_64, Universal Binary, Application Data Directory)
+  * Phase 2 terms (JWT, Authentication, Remote Library)
+  * And many more...
+
+* **Organization:** Alphabetically organized with cross-references
+* **Cross-References:** Terms link to related concepts using AsciiDoc xref syntax
+* **Index:** Quick reference index by letter
+* **Related Documentation:** Links to detailed documentation
+
+**Recommendation:** ~~Add glossary to main documentation.~~ **COMPLETED** - Comprehensive glossary document created with 100+ terms defined and cross-referenced.
+
+=== Missing Architecture Diagrams [OK] RESOLVED
 
 **Issue:** Architecture is described textually but:
 * No visual architecture diagrams
 * No data flow diagrams
 * No sequence diagrams for key processes
 
-**Recommendation:** Add visual diagrams to HLD and DDD.
+**Status:** [OK] **RESOLVED** - Comprehensive visual diagrams have been created:
 
-=== Missing API Examples
+* **Diagrams Document Created:** `diagrams.adoc` with 15+ diagrams covering:
+  * **Architecture Diagrams (3):**
+    * System Architecture Overview - Multi-window architecture with Library Manager and Reader View Instances
+    * Component Interaction Diagram - Component interactions during cartridge loading and embedded app execution
+    * Data Management Layer Architecture - Singleton and per-instance components
+  
+  * **Sequence Diagrams (6):**
+    * 4-Phase Verification Algorithm - Complete security verification process
+    * Cartridge Loading Process - From user action to content display
+    * Embedded Application Execution Flow - App execution and consent flow
+    * Form Data Save Flow - Form data persistence process
+    * Cartridge Import Process - Import from file selection to manifest update
+    * Trust Revocation Process - User trust revocation flow
+  
+  * **Data Flow Diagrams (2):**
+    * Cartridge Data Flow - Data flow when loading and displaying cartridges
+    * Form Data Persistence Flow - Form data from user input to storage
+  
+  * **State Diagrams (1):**
+    * Cartridge Trust State Machine - Trust states and transitions
+  
+  * **Deployment Diagrams (2):**
+    * Phase 1 Deployment (Single User) - Local deployment architecture
+    * Phase 2 Deployment (Multi-User) - Server-client architecture
+
+* **Diagram Format:** Mermaid syntax for compatibility with AsciiDoc, Markdown processors, and documentation systems
+* **Integration:** Diagrams referenced in HLD and DDD documents
+* **Coverage:** All key processes, architectures, and data flows visualized
+
+**Recommendation:** ~~Add visual diagrams to HLD and DDD.~~ **COMPLETED** - Comprehensive diagrams document created with 15+ diagrams covering architecture, sequences, data flows, states, and deployment.
+
+=== Missing API Examples [OK] RESOLVED
 
 **Issue:** WebChannel API is specified but:
 * No complete JavaScript usage examples
 * No error handling examples
 * No integration examples
 
-**Recommendation:** Add comprehensive API usage examples to WebChannel API spec.
+**Status:** [OK] **RESOLVED** - Comprehensive JavaScript usage examples have been added:
+
+* **Examples Added to WebChannel API Specification:**
+  * **WebChannel Initialization:** Basic and simplified initialization examples
+  * **Form Data Examples:**
+    * Basic form save with success/error handling
+    * Form load on page load
+    * Auto-save form with debouncing
+  * **Embedded Application Consent Examples:**
+    * Basic consent request
+    * Consent with retry logic
+  * **Sandbox File System Examples:**
+    * Saving configuration file
+    * Loading configuration file
+    * Listing sandbox files
+    * File picker usage (open/save)
+    * Complete file management class with CRUD operations
+  * **Logging Examples:**
+    * Basic logging (debug, info, warn, error)
+    * Comprehensive error logging helper class
+  * **Integration Examples:**
+    * Complete form application with save/load/auto-save
+    * Embedded app with file management
+  * **Best Practices:**
+    * Error handling best practices
+    * Async/await wrapper pattern
+    * Validation before API calls
+  * **Common Patterns and Gotchas:**
+    * Check bridge availability
+    * Retry logic for transient errors
+    * Callback execution context (`this` binding)
+  * **Testing Examples:**
+    * Mock bridge for unit testing
+
+* **Coverage:** Examples cover all API methods with:
+  * Complete working code
+  * Error handling patterns
+  * Real-world usage scenarios
+  * Best practices and common pitfalls
+  * Testing strategies
+
+**Recommendation:** ~~Add comprehensive API usage examples to WebChannel API spec.~~ **COMPLETED** - Comprehensive JavaScript usage examples added to WebChannel API specification covering all methods, error handling, integration patterns, and best practices.
 
 == SUMMARY OF PRIORITIES
 
@@ -669,25 +1087,31 @@ The documentation is generally well-structured and comprehensive for the Reader 
 
 === Should Fix Soon:
 
-. Form rendering specifications
-. Content navigation details
-. Certificate management details
-. JavaScript sandboxing specifications
+. [line-through]#Form rendering specifications# [OK] **RESOLVED** - Form rendering and interaction fully specified (FR-2.7.1 through FR-2.7.10, DDD "Form Rendering and Interaction Specification")
+. [line-through]#Content navigation details# [OK] **RESOLVED** - Content navigation fully specified (FR-2.8.1 through FR-2.8.8, DDD "Content Navigation Implementation Specification")
+. [line-through]#Certificate management details# [OK] **RESOLVED** - Certificate management fully specified (certificate validation, expiration handling, system certificate store integration, DDD "Certificate Validation Implementation")
+. [line-through]#JavaScript sandboxing specifications# [OK] **RESOLVED** - JavaScript sandboxing fully specified (API restrictions, CSP configuration, network interceptor, DDD "JavaScript Security Sandbox and API Restrictions")
 
 === Nice to Have:
 
-. Visual diagrams
-. API usage examples
-. Platform-specific considerations
-. Comprehensive glossary
+. [line-through]#Visual diagrams# [OK] **RESOLVED** - Comprehensive diagrams document created with 15+ Mermaid diagrams
+. [line-through]#API usage examples# [OK] **RESOLVED** - Comprehensive JavaScript usage examples added to WebChannel API specification
+. [line-through]#Platform-specific considerations# [OK] **RESOLVED** - Complete platform-specific considerations specification created
+. [line-through]#Comprehensive glossary# [OK] **RESOLVED** - Comprehensive glossary created with 100+ technical terms
+. [line-through]#Help system and user manual# [OK] **RESOLVED** - Complete help system and user manual specifications added (FR-HELP-8.1 through FR-HELP-8.16, DDD "Help System and User Manual Implementation", 15 test cases)
+. [line-through]#Custom navigation bar for magazine collections# [OK] **RESOLVED** - Complete custom navigation bar specifications added (FR-NAV-9.1 through FR-NAV-9.10, DDD "Custom Navigation Bar Implementation", HLD "Custom Navigation Bar Architecture", 19 test cases)
+. [line-through]#Series and edition grouping# [OK] **RESOLVED** - Complete series and edition grouping specifications added (FR-SERIES-10.1 through FR-SERIES-10.12, DDD "Series and Edition Grouping Implementation", HLD "Series and Edition Grouping Architecture", 15 test cases)
 
 == RECOMMENDATIONS
 
 . [line-through]#**Create Creator Tool SRS:** Dedicated requirements document for the Creator Tool# **COMPLETED** - Comprehensive requirements added to main SRS (73 requirements)
 . **Resolve Schema Conflicts:** Align all schema definitions across documents
-. **Add Error Handling:** Comprehensive error handling specifications
-. **Complete Embedded Apps:** Full schema and execution flow
-. **Enhance Test Plan:** Add Creator Tool and error scenario tests
-. **Add Visual Aids:** Architecture and data flow diagrams
-. **Create Glossary:** Centralized definitions of all terms
+. [line-through]#**Add Error Handling:** Comprehensive error handling specifications# **COMPLETED** - Error handling specifications added (18 requirements, WebChannel API error handling, DDD error handling strategy)
+. [line-through]#**Complete Embedded Apps:** Full schema and execution flow# **COMPLETED** - Embedded apps schema defined, security model specified, execution flow documented
+. [line-through]#**Enhance Test Plan:** Add Creator Tool and error scenario tests# **COMPLETED** - 90 Creator Tool test cases added with acceptance criteria, error scenario tests included
+. [line-through]#**Add Consent Dialog Specifications:** Detailed dialog specifications with example text# **COMPLETED** - Complete Cartridge Loading Consent Dialog specifications added to DDD Section 11.2.1
+. [line-through]#**Add Visual Aids:** Architecture and data flow diagrams# **COMPLETED** - Comprehensive diagrams document created with 15+ Mermaid diagrams covering architecture, sequences, data flows, states, and deployment
+. [line-through]#**Create Glossary:** Centralized definitions of all terms# **COMPLETED** - Comprehensive glossary created with 100+ technical terms, alphabetically organized with cross-references
+. [line-through]#**Help System and User Manual:** User documentation and help system# **COMPLETED** - Complete help system and user manual specifications added (16 requirements, DDD implementation, 15 test cases, PDF distribution)
+. [line-through]#**Resolve Schema Conflicts:** Align all schema definitions across documents# **COMPLETED** - Publisher field added to Metadata table, author and publisher are now distinct fields, schemas aligned across all documents
 

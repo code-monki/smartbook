@@ -229,7 +229,7 @@ Both applications are documented in a single SRS document as they are tightly co
 
 * **FR-2.5.1 (Manifest Creation):** The Reader SHALL maintain a separate local database (`Local_Library_Manifest`) to store browsing metadata for all imported cartridges. This manifest SHALL be populated upon the cartridge's initial import.
 
-* **FR-2.5.2 (Mandatory Metadata):** The manifest SHALL store, at a minimum: `cartridge_guid`, `title`, `author`, `local_path`, and the compressed binary data of the `cover_image_data`.
+* **FR-2.5.2 (Mandatory Metadata):** The manifest SHALL store, at a minimum: `cartridge_guid`, `title`, `author`, `local_path`, and the compressed binary data of the `cover_image_data`. The manifest SHALL also store `publisher` if present in the cartridge metadata.
 
 * **FR-2.5.3 (Manifest Update):** The Reader SHALL update the manifest entry if a cartridge with a known `cartridge_guid` is detected at a new `local_path`, or if the content has changed (new hash).
 
@@ -261,7 +261,7 @@ Both applications are documented in a single SRS document as they are tightly co
      * Replace the existing cartridge (delete old file, import new file)
      * Skip the duplicate (abort import for this cartridge)
      * Keep both (rename new file to avoid conflict)
-  b. The dialog SHALL display information about both cartridges (title, author, file paths, file sizes, modification dates)
+  b. The dialog SHALL display information about both cartridges (title, author, publisher, file paths, file sizes, modification dates)
   c. The dialog SHALL allow the user to make a choice for each duplicate cartridge when importing multiple files
 
 * **FR-2.5.10 (Import Validation):** The Reader SHALL validate imported cartridges before adding them to the library:
@@ -273,7 +273,7 @@ Both applications are documented in a single SRS document as they are tightly co
 
 * **FR-2.5.11 (Import Completion):** Upon successful import, the Reader SHALL:
   a. Copy the cartridge file to the library directory (if not already there)
-  b. Extract metadata (title, author, publication_year, cover_image_data)
+  b. Extract metadata (title, author, publisher, publication_year, cover_image_data)
   c. Calculate content hash (H2)
   d. Create manifest entry in `Local_Library_Manifest` table
   e. Refresh the library view to display the newly imported cartridge
@@ -351,7 +351,7 @@ Both applications are documented in a single SRS document as they are tightly co
 
 === Metadata Management
 
-* **FR-CT-3.20 (Document Metadata):** The Creator Tool SHALL provide an interface for managing document-level metadata including: title, author, publication year, version, tags, and cover image.
+* **FR-CT-3.20 (Document Metadata):** The Creator Tool SHALL provide an interface for managing document-level metadata including: title, author, publisher (optional), publication year, version, tags, and cover image.
 
 * **FR-CT-3.21 (Cover Image Management):** The Creator Tool SHALL allow users to select, import, and manage the cover image for the smartbook, storing it both in the `Metadata` table (`cover_image_path`) and ensuring it is available for the manifest.
 
@@ -498,7 +498,7 @@ Both applications are documented in a single SRS document as they are tightly co
 
 * **FR-CT-3.73 (Language Pack Management):** The Creator Tool SHALL support loading and managing language packs for UI translation, allowing users or third parties to provide translations.
 
-* **FR-CT-3.74 (Metadata Localization):** The Creator Tool SHALL allow users to provide localized versions of metadata fields (title, author, tags) for multi-language smartbook distribution.
+* **FR-CT-3.74 (Metadata Localization):** The Creator Tool SHALL allow users to provide localized versions of metadata fields (title, author, publisher, tags) for multi-language smartbook distribution.
 
 === UI Theming Support
 
@@ -623,6 +623,443 @@ Both applications are documented in a single SRS document as they are tightly co
 | **NFR-3.2** | Global Uniqueness (UUID v4) | Every cartridge edition SHALL contain an immutable UUID Version 4 identifier (`cartridge_guid`) to ensure global uniqueness for security and persistence tracking. | Essential for persistent trust registry mapping.
 | **NFR-3.3** | Integrity Hash (H2) | A second, verifiable content hash (H2) SHALL be calculated and stored locally to verify content integrity against potential tampering upon subsequent loads. | Essential for Tampering Detection (FR-2.4.4).
 |===
+
+== Qt WebEngine Configuration Requirements (FR-WE)
+
+=== WebEngine Configuration
+
+* **FR-WE-5.1 (WebEngine Profile Configuration):** The Reader and Creator Tool SHALL configure Qt WebEngine profiles with appropriate settings for security, performance, and functionality. Each `QWebEngineView` instance SHALL use a properly configured `QWebEngineProfile`.
+
+* **FR-WE-5.2 (JavaScript Engine Version):** The Reader and Creator Tool SHALL use the JavaScript engine version provided by Qt WebEngine (V8 engine, version determined by Qt WebEngine version). The application SHALL document the minimum Qt WebEngine version required and the corresponding V8 engine version.
+
+* **FR-WE-5.3 (HTML/CSS Standards Compliance):** The Reader and Creator Tool SHALL support HTML5 and CSS3 standards as implemented by the Chromium engine version used by Qt WebEngine. The application SHALL document the Chromium version and corresponding HTML/CSS standards support level.
+
+* **FR-WE-5.4 (Security Settings):** The Reader and Creator Tool SHALL configure WebEngine security settings to:
+  a. Disable JavaScript access to local file system (except via WebChannel API)
+  b. Block network requests for embedded applications (via interceptor)
+  c. Enforce Content Security Policy (CSP) headers
+  d. Disable service workers
+  e. Disable plugins (Flash, etc.)
+
+* **FR-WE-5.5 (Performance Settings):** The Reader and Creator Tool SHALL configure WebEngine performance settings to:
+  a. Enable hardware acceleration (if available)
+  b. Configure appropriate cache settings
+  c. Set memory limits for embedded applications
+  d. Optimize rendering performance
+
+* **FR-WE-5.6 (Profile Isolation):** The Reader SHALL use separate `QWebEngineProfile` instances for:
+  a. Content rendering (Reader View)
+  b. Embedded applications (each app gets its own profile or isolated profile)
+  c. Creator Tool editing interface
+
+* **FR-WE-5.7 (Network Interceptor Configuration):** The Reader SHALL configure `QWebEngineUrlRequestInterceptor` for embedded applications to block all HTTP/HTTPS requests while allowing local resource loading (data:, blob:, file: URLs).
+
+* **FR-WE-5.8 (CSP Header Configuration):** The Reader SHALL set Content Security Policy headers for embedded applications with the following policy:
+  * `default-src 'self' 'unsafe-inline' 'unsafe-eval'`
+  * `script-src 'self' 'unsafe-inline' 'unsafe-eval'`
+  * `style-src 'self' 'unsafe-inline'`
+  * `connect-src 'none'`
+  * `img-src 'self' data: blob:`
+  * `font-src 'self' data:`
+
+* **FR-WE-5.9 (WebChannel Configuration):** The Reader SHALL configure Qt WebChannel for secure communication between JavaScript and C++ code, registering the `SmartbookBridge` object for each `QWebEngineView` instance.
+
+* **FR-WE-5.10 (Error Handling Configuration):** The Reader and Creator Tool SHALL configure WebEngine error handling to:
+  a. Catch and log JavaScript console errors
+  b. Handle WebEngine process crashes gracefully
+  c. Provide recovery options (reload, close) without crashing the application
+
+== SQLite Configuration Requirements (FR-SQL)
+
+=== SQLite Version and Compatibility
+
+* **FR-SQL-6.1 (Minimum SQLite Version):** The Reader and Creator Tool SHALL require SQLite version 3.51 or higher. The application SHALL detect the SQLite version at runtime and SHALL display an error if the version is insufficient.
+
+* **FR-SQL-6.2 (Version Detection):** The Reader and Creator Tool SHALL detect and log the SQLite version at application startup. The version information SHALL be available in application logs and optionally in the About dialog.
+
+=== WAL Mode Configuration
+
+* **FR-SQL-6.3 (WAL Mode for Local Database):** The Reader SHALL configure the local reader database (`local_reader.sqlite`) to use Write-Ahead Logging (WAL) mode. WAL mode SHALL be enabled immediately after database creation or on first connection to existing databases.
+
+* **FR-SQL-6.4 (WAL Mode for Cartridge Files):** The Creator Tool SHALL configure cartridge files to use WAL mode during creation and editing. Cartridge files exported for distribution MAY use WAL mode or rollback journal mode (design decision: WAL for better performance, rollback journal for maximum compatibility).
+
+* **FR-SQL-6.5 (WAL Checkpoint Configuration):** The Reader and Creator Tool SHALL configure automatic WAL checkpointing with appropriate thresholds. WAL checkpoint SHALL occur when WAL file size exceeds 10MB or when 1000 pages are written, whichever comes first.
+
+* **FR-SQL-6.6 (WAL Mode Detection):** The Reader SHALL detect if an existing database is not in WAL mode and SHALL automatically convert it to WAL mode on first access (if writable) or SHALL log a warning (if read-only).
+
+=== Database Optimization
+
+* **FR-SQL-6.7 (Page Size Configuration):** The Reader and Creator Tool SHALL configure SQLite page size to 4096 bytes (4KB) for optimal performance on modern systems. Page size SHALL be set at database creation time and SHALL NOT be changed for existing databases.
+
+* **FR-SQL-6.8 (Cache Size Configuration):** The Reader and Creator Tool SHALL configure SQLite cache size to appropriate values:
+  a. Local reader database: 2000 pages (8MB with 4KB pages)
+  b. Cartridge files: 1000 pages (4MB with 4KB pages)
+  c. Cache size SHALL be set per connection
+
+* **FR-SQL-6.9 (Synchronous Configuration):** The Reader and Creator Tool SHALL configure synchronous mode to `NORMAL` for databases using WAL mode. Synchronous mode SHALL NOT be set to `OFF` (data integrity risk).
+
+* **FR-SQL-6.10 (Journal Mode Configuration):** The Reader and Creator Tool SHALL configure journal mode to `WAL` for all databases. For read-only cartridge files, journal mode detection SHALL be performed but conversion SHALL NOT be attempted.
+
+* **FR-SQL-6.11 (Foreign Key Constraints):** The Reader and Creator Tool SHALL enable foreign key constraints for all databases. Foreign key enforcement SHALL be enabled per connection using `PRAGMA foreign_keys = ON`.
+
+* **FR-SQL-6.12 (Query Optimizer):** The Reader and Creator Tool SHALL enable the SQLite query optimizer statistics. Statistics SHALL be updated using `ANALYZE` after significant data changes (e.g., after import, after bulk operations).
+
+* **FR-SQL-6.13 (Index Optimization):** The Reader and Creator Tool SHALL ensure all frequently queried columns have appropriate indexes. Indexes SHALL be created as specified in the database schema (DDD Section 3 and 4).
+
+* **FR-SQL-6.14 (Vacuum and Optimization):** The Reader SHALL provide functionality to optimize the local reader database. Optimization SHALL include `VACUUM` and `ANALYZE` operations. Optimization MAY be performed automatically during idle time or manually via user action.
+
+=== Connection Management
+
+* **FR-SQL-6.15 (Connection Pooling):** The Reader SHALL manage database connections efficiently:
+  a. Local database: Single connection (Singleton pattern via `LocalDBManager`)
+  b. Cartridge files: One connection per open cartridge (Per-Instance pattern via `CartridgeDBConnector`)
+  c. Connections SHALL be opened on-demand and closed when no longer needed
+
+* **FR-SQL-6.16 (Connection Timeout):** The Reader and Creator Tool SHALL configure connection timeouts appropriately:
+  a. Default timeout: 30 seconds
+  b. Retry logic with exponential backoff for locked databases
+  c. Maximum 3 retry attempts
+
+* **FR-SQL-6.17 (Busy Handler):** The Reader and Creator Tool SHALL configure SQLite busy handler to handle database lock contention gracefully. Busy handler SHALL wait up to 5 seconds with exponential backoff before returning SQLITE_BUSY error.
+
+=== Transaction Management
+
+* **FR-SQL-6.18 (Transaction Usage):** The Reader and Creator Tool SHALL use transactions for all multi-step database operations to ensure atomicity and data integrity. Transactions SHALL be used for:
+  a. Form data saves
+  b. Manifest updates
+  c. Trust registry updates
+  d. Cartridge deletions
+  e. Bulk imports
+
+* **FR-SQL-6.19 (Transaction Isolation):** The Reader and Creator Tool SHALL use appropriate transaction isolation levels. SQLite's default isolation (SERIALIZABLE) SHALL be used. Explicit locking SHALL be avoided unless necessary.
+
+* **FR-SQL-6.20 (Savepoint Support):** The Creator Tool SHALL use savepoints for complex operations that may need partial rollback (e.g., form version migration, multi-step imports).
+
+=== Error Handling and Recovery
+
+* **FR-SQL-6.21 (Integrity Checks):** The Reader SHALL perform periodic integrity checks on databases:
+  a. On cartridge open: Quick integrity check (`PRAGMA quick_check`)
+  b. On corruption suspicion: Full integrity check (`PRAGMA integrity_check`)
+  c. Integrity check results SHALL be logged
+
+* **FR-SQL-6.22 (Corruption Recovery):** The Reader and Creator Tool SHALL attempt recovery from database corruption when possible:
+  a. Use `.dump` and `.read` for recovery
+  b. Recover as much data as possible
+  c. Log recovery attempts and results
+  d. Notify user of corruption and recovery status
+
+* **FR-SQL-6.23 (Backup and Restore):** The Reader SHALL create automatic backups of the local reader database before major operations (e.g., schema migrations). Backups SHALL be stored in a backup directory and SHALL be retained for 7 days.
+
+== Platform-Specific Considerations Requirements (FR-PLAT)
+
+=== Supported Operating Systems
+
+* **FR-PLAT-7.1 (Linux Distribution Support):** The Reader and Creator Tool SHALL support the following Linux distributions:
+  a. Arch Linux 2025.09.01 or later
+  b. Debian 13 or later
+  c. Fedora Linux 43 or later
+  d. Ubuntu Linux 24.04 LTS or later
+
+* **FR-PLAT-7.2 (macOS Support):** The Reader and Creator Tool SHALL support macOS 26.1 or later.
+
+* **FR-PLAT-7.3 (Windows Support):** The Reader and Creator Tool SHALL support Windows 11 or later.
+
+* **FR-PLAT-7.4 (Architecture Support):** The Reader and Creator Tool SHALL support the following architectures where feasible:
+  a. ARM64 (Apple Silicon, ARM-based Linux)
+  b. X86_64 (Intel/AMD 64-bit)
+
+* **FR-PLAT-7.5 (Cross-Platform Compatibility):** The client and server applications SHALL be capable of running on different platforms. Client-server communication SHALL use platform-agnostic protocols (HTTP REST API, JSON).
+
+* **FR-PLAT-7.6 (Universal Binary Support):** For platforms that support universal binaries (macOS), the application SHALL be distributed as a universal binary when feasible. Universal binaries SHALL support both ARM64 and X86_64 architectures.
+
+=== UI Framework and Appearance
+
+* **FR-PLAT-7.7 (Qt Fusion Widget Set):** The Reader and Creator Tool SHALL use the Qt Fusion widget set to provide a uniform appearance across all supported operating systems. The Fusion style SHALL be applied to all UI components.
+
+* **FR-PLAT-7.8 (UI Consistency):** The application UI SHALL maintain consistent appearance and behavior across all platforms, with platform-specific adaptations only where necessary for platform integration (e.g., menu bar on macOS, system tray icons).
+
+=== Security Best Practices
+
+* **FR-PLAT-7.9 (Platform Security Standards):** The Reader and Creator Tool SHALL utilize standard security best practices for each operating system:
+  a. Windows: Windows Credential Manager for secure credential storage, Windows Certificate Store for certificate validation
+  b. macOS: Keychain Services for secure credential storage, Keychain for certificate validation
+  c. Linux: libsecret or similar for secure credential storage, system CA bundle for certificate validation
+
+* **FR-PLAT-7.10 (Secure Storage):** Application credentials, tokens, and sensitive data SHALL be stored using platform-specific secure storage mechanisms:
+  a. Windows: Windows Credential Manager API
+  b. macOS: Keychain Services API
+  c. Linux: libsecret API or equivalent
+
+* **FR-PLAT-7.11 (Certificate Validation):** Certificate validation SHALL use platform-specific certificate stores:
+  a. Windows: Windows Certificate Store
+  b. macOS: Keychain (System Roots)
+  c. Linux: System CA bundle (typically `/etc/ssl/certs/ca-certificates.crt` or distribution-specific location)
+
+* **FR-PLAT-7.12 (File System Permissions):** The application SHALL respect and utilize platform-specific file system permissions:
+  a. Windows: NTFS permissions, user profile isolation
+  b. macOS: File system permissions, sandboxing (if applicable)
+  c. Linux: POSIX permissions, user home directory isolation
+
+=== Distribution and Packaging
+
+* **FR-PLAT-7.13 (Distribution Format):** The Reader and Creator Tool SHALL be distributed in platform-appropriate formats:
+  a. Windows: Installer (MSI or EXE installer)
+  b. macOS: Application bundle (.app) or DMG
+  c. Linux: Distribution-specific packages (DEB for Debian/Ubuntu, RPM for Fedora, PKG for Arch)
+
+* **FR-PLAT-7.14 (Universal Binary - macOS):** For macOS, the application SHALL be distributed as a universal binary (fat binary) supporting both ARM64 and X86_64 architectures when feasible. The universal binary SHALL be the preferred distribution format for macOS.
+
+* **FR-PLAT-7.15 (Code Signing):** The application SHALL be code-signed on platforms that support it:
+  a. Windows: Code signing certificate (optional but recommended)
+  b. macOS: Code signing and notarization (required for distribution outside App Store)
+  c. Linux: GPG signing for packages (optional but recommended)
+
+* **FR-PLAT-7.16 (Installation Locations):** The application SHALL install to platform-appropriate locations:
+  a. Windows: `%ProgramFiles%\SmartBook\` or `%LocalAppData%\Programs\SmartBook\`
+  b. macOS: `/Applications/SmartBook.app`
+  c. Linux: `/usr/bin/` (executables), `/usr/share/smartbook/` (data files)
+
+=== Data Storage Locations
+
+* **FR-PLAT-7.17 (Application Data Directory):** The application SHALL store user data in platform-appropriate directories:
+  a. Windows: `%APPDATA%\SmartBook\`
+  b. macOS: `~/Library/Application Support/SmartBook/`
+  c. Linux: `~/.local/share/SmartBook/`
+
+* **FR-PLAT-7.18 (Cache Directory):** The application SHALL store cache data in platform-appropriate directories:
+  a. Windows: `%LOCALAPPDATA%\SmartBook\cache\`
+  b. macOS: `~/Library/Caches/SmartBook/`
+  c. Linux: `~/.cache/SmartBook/`
+
+* **FR-PLAT-7.19 (Log Directory):** The application SHALL store log files in platform-appropriate directories:
+  a. Windows: `%APPDATA%\SmartBook\logs\`
+  b. macOS: `~/Library/Application Support/SmartBook/logs/`
+  c. Linux: `~/.local/share/SmartBook/logs/`
+
+* **FR-PLAT-7.20 (Backup Directory):** The application SHALL store backup files in platform-appropriate directories:
+  a. Windows: `%APPDATA%\SmartBook\backups\`
+  b. macOS: `~/Library/Application Support/SmartBook/backups/`
+  c. Linux: `~/.local/share/SmartBook/backups/`
+
+=== Platform-Specific Features
+
+* **FR-PLAT-7.21 (Menu Bar Integration):** On macOS, the application SHALL integrate with the macOS menu bar. Menu items SHALL follow macOS Human Interface Guidelines.
+
+* **FR-PLAT-7.22 (System Tray Integration):** On Windows and Linux, the application MAY provide system tray integration for background operations. System tray icons SHALL follow platform-specific design guidelines.
+
+* **FR-PLAT-7.23 (File Associations):** The application SHALL register file associations for `.sqlite` cartridge files on all platforms:
+  a. Windows: Registry entries for file association
+  b. macOS: Launch Services registration
+  c. Linux: Desktop entry file associations
+
+* **FR-PLAT-7.24 (URL Scheme Handling):** The application SHALL support URL scheme handling (e.g., `smartbook://`) on platforms that support it:
+  a. Windows: Protocol handler registration
+  b. macOS: URL scheme registration in Info.plist
+  c. Linux: Desktop entry MIME type and protocol handling
+
+== Help System and User Manual Requirements (FR-HELP)
+
+=== Help System Access
+
+* **FR-HELP-8.1 (Help Menu Access):** The Reader and Creator Tool SHALL provide access to the help system via:
+  a. Menu bar: "Help" menu with "User Manual" option
+  b. Keyboard shortcut: F1 (standard help key) or platform-appropriate shortcut
+  c. About dialog: Link to user manual from About dialog
+
+* **FR-HELP-8.2 (Help System Format):** The help system SHALL be provided as:
+  a. Integrated help viewer (HTML-based, rendered in application window or external browser)
+  b. Platform-native help system integration where available (e.g., macOS Help Book, Windows Help)
+  c. PDF user manual included with application distribution
+
+* **FR-HELP-8.3 (Help Content Location):** The help content SHALL be stored in:
+  a. Application installation directory: `{install_dir}/help/` or `{install_dir}/Resources/help/` (macOS)
+  b. Help content SHALL be accessible offline (no network connection required)
+  c. Help content SHALL be included in application distribution package
+
+=== User Manual Content
+
+* **FR-HELP-8.4 (User Manual Scope):** The user manual SHALL provide comprehensive documentation covering:
+  a. Getting started guide (installation, first launch, basic operations)
+  b. Reader application features (library management, reading, navigation, search, forms, embedded apps)
+  c. Creator Tool features (content authoring, form building, cartridge creation, signing, export)
+  d. Security model explanation (trust levels, consent dialogs, certificate management)
+  e. Keyboard shortcuts reference
+  f. Troubleshooting guide (common issues and solutions)
+  g. FAQ (frequently asked questions)
+
+* **FR-HELP-8.5 (User Manual Structure):** The user manual SHALL be organized with:
+  a. Table of contents with navigation links
+  b. Chapter/section organization for logical flow
+  c. Index for quick topic lookup
+  d. Cross-references between related topics
+  e. Search functionality (if integrated help viewer supports it)
+
+* **FR-HELP-8.6 (User Manual Format):** The user manual SHALL be provided in:
+  a. HTML format for integrated help viewer (with CSS styling)
+  b. PDF format for distribution and offline reading
+  c. Both formats SHALL contain identical content
+
+=== PDF User Manual Distribution
+
+* **FR-HELP-8.7 (PDF Manual Inclusion):** The Reader and Creator Tool distributions SHALL include a PDF version of the user manual:
+  a. Windows: PDF included in installer package and installed to `{install_dir}/docs/SmartBook_User_Manual.pdf`
+  b. macOS: PDF included in application bundle at `SmartBook.app/Contents/Resources/SmartBook_User_Manual.pdf` or DMG package
+  c. Linux: PDF included in package and installed to `/usr/share/doc/smartbook/SmartBook_User_Manual.pdf` or user-accessible location
+
+* **FR-HELP-8.8 (PDF Manual Access):** The PDF user manual SHALL be accessible via:
+  a. Help menu: "Open User Manual (PDF)" option that opens the PDF in the system's default PDF viewer
+  b. Installation directory: Users can manually open the PDF file
+  c. About dialog: Link to open PDF manual
+
+* **FR-HELP-8.9 (PDF Manual Naming):** The PDF user manual SHALL be named consistently across platforms:
+  a. Base name: `SmartBook_User_Manual.pdf`
+  b. Version information MAY be included in filename (e.g., `SmartBook_User_Manual_v1.0.pdf`)
+  c. Filename SHALL be documented in installation instructions
+
+* **FR-HELP-8.10 (PDF Manual Generation):** The PDF user manual SHALL be generated from the same source as the HTML help content:
+  a. Single source of truth (e.g., AsciiDoc source document)
+  b. Automated PDF generation as part of build/distribution process
+  c. PDF SHALL maintain formatting, images, tables, and cross-references from HTML version
+
+=== Help System Integration
+
+* **FR-HELP-8.11 (Context-Sensitive Help):** The Reader and Creator Tool SHALL support context-sensitive help where feasible:
+  a. Help button or "?" icon in dialogs linking to relevant manual sections
+  b. Tooltips with brief help text for UI elements
+  c. "What's This?" mode (Qt feature) for detailed help on UI elements
+
+* **FR-HELP-8.12 (Help Viewer):** If using an integrated help viewer, the application SHALL:
+  a. Display help content in a dedicated help window or tab
+  b. Provide navigation controls (back, forward, home, search)
+  c. Support printing help content
+  d. Maintain help window state (size, position) across sessions
+
+* **FR-HELP-8.13 (Help Content Updates):** The help system SHALL support content updates:
+  a. Help content MAY be updated independently of application updates
+  a. Help content version SHALL be displayed in help viewer or About dialog
+  b. Users SHALL be notified if help content is outdated compared to application version
+
+=== Platform-Specific Help Integration
+
+* **FR-HELP-8.14 (macOS Help Book):** On macOS, the application SHALL integrate with macOS Help system:
+  a. Help content SHALL be provided as a Help Book bundle
+  b. Help menu SHALL integrate with macOS Help Viewer
+  c. Spotlight search SHALL index help content
+  d. PDF manual SHALL be accessible via Help menu
+
+* **FR-HELP-8.15 (Windows Help):** On Windows, the application SHALL:
+  a. Provide HTML help content accessible via F1 key
+  b. Integrate with Windows Help system where feasible
+  c. PDF manual SHALL be accessible via Help menu and installation directory
+
+* **FR-HELP-8.16 (Linux Help):** On Linux, the application SHALL:
+  a. Provide HTML help content accessible via F1 key or Help menu
+  b. Integrate with desktop environment help system where feasible (e.g., KDE Help Center, GNOME Help)
+  c. PDF manual SHALL be accessible via Help menu and standard documentation directory
+
+== Content Navigation Structure Requirements (FR-NAV)
+
+=== Custom Navigation Bar
+
+* **FR-NAV-9.1 (Custom Navigation Bar Support):** The Reader SHALL support custom navigation bars defined within cartridges that are separate from the application menu. Custom navigation bars SHALL be displayed within the Reader View Window, above or integrated with the content area.
+
+* **FR-NAV-9.2 (Navigation Bar Definition):** Custom navigation bars SHALL be defined in the cartridge using a navigation structure specification (see DDD Section 3 for schema). The navigation structure SHALL support:
+  a. Multiple dropdown menu groups (e.g., "Browse", "Departments", "Bibliographies")
+  b. Menu items within each group
+  c. Navigation targets (page_id, anchor_id, or custom navigation handlers)
+  d. Optional icons or labels for menu items
+
+* **FR-NAV-9.3 (Browse Navigation):** The Reader SHALL support "Browse" navigation groups that allow users to filter or navigate content by:
+  a. Creator/Author
+  b. Issue/Publication
+  c. Title
+  d. Other metadata-based categories as defined in the navigation structure
+
+* **FR-NAV-9.4 (Department Navigation):** The Reader SHALL support "Department" navigation groups that organize content into departmental groupings (e.g., "Department 1", "Department 2"). Department navigation SHALL:
+  a. Display all departments defined in the navigation structure
+  b. Allow users to navigate to department-specific content sections
+  c. Support hierarchical department structures (departments with sub-departments) if defined
+
+* **FR-NAV-9.5 (Bibliography Navigation):** The Reader SHALL support "Bibliography" navigation groups that provide access to citation formats (e.g., "APA Format", "CMS Format"). Bibliography navigation SHALL:
+  a. Display all bibliography formats defined in the navigation structure
+  b. Navigate to bibliography reference pages or sections
+  c. Support multiple citation format standards
+
+* **FR-NAV-9.6 (Navigation Bar Rendering):** The custom navigation bar SHALL be rendered:
+  a. As a horizontal menu bar with dropdown menus
+  b. Using standard HTML/CSS for styling (consistent with cartridge styling)
+  c. Above or integrated with the main content area
+  d. Responsive to window resizing
+  e. Accessible via keyboard navigation (Tab, Arrow keys, Enter)
+
+* **FR-NAV-9.7 (Navigation Bar Visibility):** The Reader SHALL:
+  a. Display the custom navigation bar if defined in the cartridge
+  b. Hide the custom navigation bar if not defined (standard behavior)
+  c. Allow users to toggle navigation bar visibility (show/hide) if supported by the cartridge
+
+* **FR-NAV-9.8 (Navigation Target Resolution):** When a user selects a navigation menu item, the Reader SHALL:
+  a. Resolve the navigation target (page_id, anchor_id, or custom handler)
+  b. Navigate to the target page or anchor
+  c. Update the reading position (as specified in FR-2.8.6)
+  d. Add the navigation to the navigation history (as specified in FR-2.8.7)
+
+* **FR-NAV-9.9 (Navigation Structure Storage):** The navigation structure SHALL be stored in the cartridge database (see DDD Section 3 for schema). The navigation structure SHALL be:
+  a. Defined at cartridge creation time by the Creator Tool
+  b. Immutable after cartridge creation (changes require cartridge re-export)
+  c. Versioned with the cartridge schema version
+
+* **FR-NAV-9.10 (Creator Tool Navigation Support):** The Creator Tool SHALL provide functionality to:
+  a. Define custom navigation bar structures
+  b. Create navigation groups (Browse, Departments, Bibliographies, custom groups)
+  c. Add menu items to navigation groups
+  d. Link menu items to pages, anchors, or custom navigation targets
+  e. Preview navigation bar appearance
+  f. Export navigation structure as part of cartridge creation
+
+== Series and Edition Grouping Requirements (FR-SERIES)
+
+=== Series and Edition Metadata
+
+* **FR-SERIES-10.1 (Series Name Metadata):** The cartridge `Metadata` table SHALL support an optional `series_name` field that identifies the series to which a cartridge belongs (e.g., "Lensman Series", "Harry Potter", "Foundation Series").
+
+* **FR-SERIES-10.2 (Edition Name Metadata):** The cartridge `Metadata` table SHALL support an optional `edition_name` field that identifies the edition or variant to which a cartridge belongs (e.g., "Classic Traveller", "Mongoose Traveller", "D&D 5th Edition").
+
+* **FR-SERIES-10.3 (Series Order Metadata):** The cartridge `Metadata` table SHALL support an optional `series_order` field (INTEGER) that specifies the position of a cartridge within a series, enabling proper ordering when displaying series collections.
+
+* **FR-SERIES-10.4 (Creator Tool Series Support):** The Creator Tool SHALL provide functionality to:
+  a. Set `series_name` when creating or editing cartridge metadata
+  b. Set `edition_name` when creating or editing cartridge metadata
+  c. Set `series_order` when creating or editing cartridge metadata
+  d. Display series and edition information in cartridge metadata editor
+
+=== Library Grouping and Organization
+
+* **FR-SERIES-10.5 (Auto-Grouping by Series):** The Library Manager SHALL automatically group cartridges by `series_name` when multiple cartridges share the same series name. The Library Manager SHALL provide a "Browse by Series" view or filter that displays all series and allows users to view all cartridges within a selected series.
+
+* **FR-SERIES-10.6 (Auto-Grouping by Edition):** The Library Manager SHALL automatically group cartridges by `edition_name` when multiple cartridges share the same edition name. The Library Manager SHALL provide a "Browse by Edition" view or filter that displays all editions and allows users to view all cartridges within a selected edition.
+
+* **FR-SERIES-10.7 (Series Display Ordering):** When displaying cartridges within a series, the Library Manager SHALL order cartridges by `series_order` (ascending) if available, falling back to alphabetical by title if `series_order` is not specified.
+
+* **FR-SERIES-10.8 (Custom Collections):** The Library Manager SHALL allow users to create custom collections (user-defined groups) that can contain any combination of cartridges, independent of series or edition metadata. Custom collections SHALL be stored in the local reader database.
+
+* **FR-SERIES-10.9 (Collection Management):** The Library Manager SHALL provide functionality to:
+  a. Create new custom collections with user-defined names
+  b. Add cartridges to custom collections
+  c. Remove cartridges from custom collections
+  d. Rename custom collections
+  e. Delete custom collections
+  f. View all cartridges in a custom collection
+
+* **FR-SERIES-10.10 (Grouping Display):** The Library Manager SHALL provide UI elements (filters, views, or navigation) that allow users to:
+  a. Browse all series (grouped by series_name)
+  b. Browse all editions (grouped by edition_name)
+  c. Browse custom collections
+  d. View cartridges within a selected series, edition, or collection
+  e. Search or filter cartridges by series name or edition name
+
+* **FR-SERIES-10.11 (Grouping Persistence):** Custom collections SHALL be persisted in the local reader database and SHALL persist across application sessions. Series and edition groupings based on metadata SHALL be automatically maintained as cartridges are imported or removed.
+
+* **FR-SERIES-10.12 (Grouping Performance):** Series, edition, and custom collection views SHALL load and display within performance requirements (NFR-3.1: < 500ms for library display). Grouping operations SHALL rely on manifest data and local grouping tables, not cartridge file parsing.
 
 == Data Structures (Reference)
 

@@ -1,0 +1,914 @@
+= SmartBook Project Diagrams
+:author: AI Assistant
+:revdate: 2025-12-14
+:doctype: article
+:toc: left
+:toclevels: 2
+:sectnums:
+
+== Introduction
+
+This document contains visual diagrams that illustrate the SmartBook system architecture, data flows, and key processes. Diagrams are created using Mermaid syntax, which can be rendered in AsciiDoc-compatible documentation systems and many Markdown processors.
+
+== Architecture Diagrams
+
+=== System Architecture Overview
+
+This diagram shows the high-level architecture of the SmartBook Reader application, illustrating the Multi-Window Architecture with Library Manager and Reader View Instances.
+
+[mermaid, system-architecture, svg]
+----
+graph TB
+    subgraph App["SmartBook Reader Application"]
+        LM[Library Manager]
+        RVI1[Reader View Instance 1]
+        RVI2[Reader View Instance 2]
+        RVIN[Reader View Instance N]
+    end
+    
+    subgraph DML["Data Management Layer"]
+        LocalDB[LocalDBManager<br/>Singleton]
+        CartDB1[CartridgeDBConnector 1]
+        CartDB2[CartridgeDBConnector 2]
+        CartDBN[CartridgeDBConnector N]
+    end
+    
+    subgraph Security["Security Layer"]
+        SV[Signature Verifier]
+    end
+    
+    subgraph LocalDBFile["local_reader.sqlite"]
+        Manifest[Local_Library_Manifest]
+        TrustReg[Local_Trust_Registry]
+    end
+    
+    Cart1[(cartridge1.sqlite)]
+    Cart2[(cartridge2.sqlite)]
+    CartN[(cartridgeN.sqlite)]
+    
+    LM -->|uses| LocalDB
+    LM -->|uses| SV
+    RVI1 -->|owns| CartDB1
+    RVI2 -->|owns| CartDB2
+    RVIN -->|owns| CartDBN
+    RVI1 -->|uses| SV
+    RVI2 -->|uses| SV
+    RVIN -->|uses| SV
+    
+    LocalDB -->|connects to| LocalDBFile
+    LocalDB -->|queries| Manifest
+    LocalDB -->|queries| TrustReg
+    
+    CartDB1 -->|connects to| Cart1
+    CartDB2 -->|connects to| Cart2
+    CartDBN -->|connects to| CartN
+    
+    SV -->|queries trust registry| LocalDB
+    
+    style LM fill:#e1f5ff
+    style RVI1 fill:#fff4e1
+    style RVI2 fill:#fff4e1
+    style RVIN fill:#fff4e1
+    style LocalDB fill:#e8f5e9
+    style SV fill:#fce4ec
+----
+
+*Note: Library Manager is a single instance. Reader View Instances are per-cartridge instances with isolated data and security.*
+
+=== Component Interaction Diagram
+
+This diagram shows how components interact during cartridge loading and embedded application execution.
+
+[mermaid, component-interaction, svg]
+----
+graph LR
+    subgraph RVI["Reader View Instance"]
+        RVI_Inst[ReaderViewInstance]
+        WebView[QWebEngineView]
+        Bridge[SmartbookBridge]
+        CartDB[CartridgeDBConnector]
+    end
+    
+    SV[Signature Verifier]
+    LocalDB[LocalDBManager]
+    Dialog[Native Consent Dialog]
+    
+    CartFile[(Cartridge File)]
+    LocalDBFile[(local_reader.sqlite)]
+    
+    RVI_Inst -->|renders content| WebView
+    RVI_Inst -->|exposes API| Bridge
+    RVI_Inst -->|manages data| CartDB
+    RVI_Inst -->|verifies trust| SV
+    
+    WebView -->|JavaScript calls| Bridge
+    Bridge -->|checks trust policy| RVI_Inst
+    Bridge -->|requests consent| Dialog
+    Bridge -->|saves form data| CartDB
+    
+    SV -->|reads H1, signature| CartFile
+    SV -->|queries trust registry| LocalDB
+    SV -->|returns trust policy| RVI_Inst
+    
+    CartDB -->|reads/writes data| CartFile
+    LocalDB -->|queries manifest/trust| LocalDBFile
+    
+    style Bridge fill:#e1f5ff
+    style SV fill:#fce4ec
+----
+
+*Note: SmartbookBridge provides WebChannel IPC for secure API exposure. Signature Verifier executes the 4-Phase Verification Algorithm.*
+
+=== Data Management Layer Architecture
+
+This diagram illustrates the Data Management Layer (DML) with its singleton and per-instance components.
+
+[mermaid, dml-architecture, svg]
+----
+graph TB
+    subgraph Global["Global Components (Singleton)"]
+        LocalDB[LocalDBManager]
+    end
+    
+    subgraph PerInstance["Per-Instance Components"]
+        CartDB1[CartridgeDBConnector 1]
+        CartDB2[CartridgeDBConnector 2]
+        CartDBN[CartridgeDBConnector N]
+    end
+    
+    subgraph LocalDBFile["local_reader.sqlite"]
+        Manifest[Local_Library_Manifest]
+        TrustReg[Local_Trust_Registry]
+    end
+    
+    subgraph Cart1["cartridge1.sqlite"]
+        Meta1[Metadata]
+        Content1[Content_Pages]
+        UserData1[User_Data]
+        Forms1[Form_Definitions]
+        Apps1[Embedded_Apps]
+    end
+    
+    Cart2[(cartridge2.sqlite)]
+    CartN[(cartridgeN.sqlite)]
+    
+    LocalDB -->|single connection| LocalDBFile
+    LocalDB -->|queries| Manifest
+    LocalDB -->|queries| TrustReg
+    
+    CartDB1 -->|per-instance connection| Cart1
+    CartDB1 -->|reads| Meta1
+    CartDB1 -->|reads| Content1
+    CartDB1 -->|reads/writes| UserData1
+    CartDB1 -->|reads| Forms1
+    CartDB1 -->|reads| Apps1
+    
+    CartDB2 -->|per-instance connection| Cart2
+    CartDBN -->|per-instance connection| CartN
+    
+    style LocalDB fill:#e8f5e9
+    style CartDB1 fill:#fff4e1
+    style CartDB2 fill:#fff4e1
+    style CartDBN fill:#fff4e1
+----
+
+*Note: LocalDBManager uses Singleton Pattern for global access. CartridgeDBConnector uses Per-Instance Pattern (one per open cartridge) to ensure data isolation.*
+
+== Sequence Diagrams
+
+=== 4-Phase Verification Algorithm
+
+This sequence diagram illustrates the 4-Phase Verification Algorithm executed by the Signature Verifier.
+
+[mermaid, verification-algorithm, svg]
+----
+sequenceDiagram
+    actor User
+    participant RVI as Reader View Instance
+    participant SV as Signature Verifier
+    participant Cart as Cartridge File
+    participant LocalDB as LocalDBManager
+    participant DB as local_reader.sqlite
+    
+    User->>RVI: Open cartridge
+    activate RVI
+    
+    RVI->>SV: verifyCartridge(cartridgePath)
+    activate SV
+    
+    Note over SV: Phase 1: Identity
+    SV->>Cart: Read cartridge_guid
+    SV->>Cart: Read H1 hash
+    SV->>Cart: Read signature data
+    Cart-->>SV: cartridge_guid, H1, signature
+    
+    Note over SV: Phase 2: Integrity Check
+    SV->>Cart: Calculate H2 (current content hash)
+    Cart-->>SV: H2 hash
+    SV->>SV: Compare H1 vs H2
+    
+    alt H1 == H2
+        Note right of SV: Content integrity verified
+    else H1 != H2
+        Note right of SV: Tampering detected!
+        SV-->>RVI: TAMPERING_DETECTED
+        deactivate SV
+        deactivate RVI
+    end
+    
+    Note over SV: Phase 3: Trust Lookup
+    SV->>LocalDB: Query Local_Trust_Registry
+    activate LocalDB
+    LocalDB->>DB: SELECT app_trust_policy WHERE cartridge_guid
+    DB-->>LocalDB: trust_policy (PERSISTENT/SESSION/REVOKED/null)
+    LocalDB-->>SV: trust_policy
+    deactivate LocalDB
+    
+    Note over SV: Phase 4: Policy Determination
+    SV->>SV: Determine Effective Trust Policy
+    
+    alt Level 1 (CA-signed) AND H1==H2
+        SV->>SV: Policy = WHITELISTED
+    else Level 2/3 AND Persistent Trust AND H1==H2
+        SV->>SV: Policy = WHITELISTED
+    else Level 2/3 AND No Persistent Trust
+        SV->>SV: Policy = CONSENT_REQUIRED
+    else Trust Revoked
+        SV->>SV: Policy = REVOKED
+    end
+    
+    SV-->>RVI: Effective Trust Policy
+    deactivate SV
+    
+    RVI->>RVI: Load cartridge content
+    RVI->>User: Display cartridge
+    deactivate RVI
+----
+
+=== Cartridge Loading Process
+
+This sequence diagram shows the complete cartridge loading process from user action to content display.
+
+[mermaid, cartridge-loading, svg]
+----
+sequenceDiagram
+    actor User
+    participant LM as Library Manager
+    participant RVI as Reader View Instance
+    participant SV as Signature Verifier
+    participant CartDB as CartridgeDB Connector
+    participant LocalDB as LocalDBManager
+    participant CartFile as Cartridge File
+    participant LocalDBFile as local_reader.sqlite
+    
+    User->>LM: Double-click cartridge
+    activate LM
+    
+    LM->>LocalDB: Query manifest for metadata
+    activate LocalDB
+    LocalDB->>LocalDBFile: SELECT title, author, cover_image
+    LocalDBFile-->>LocalDB: metadata
+    LocalDB-->>LM: metadata
+    deactivate LocalDB
+    
+    LM->>RVI: Create ReaderViewInstance(cartridgePath)
+    activate RVI
+    
+    RVI->>SV: verifyCartridge(cartridgePath)
+    activate SV
+    
+    SV->>CartFile: Read security data (H1, signature)
+    CartFile-->>SV: H1, signature, cartridge_guid
+    
+    SV->>CartFile: Calculate H2 hash
+    CartFile-->>SV: H2
+    
+    SV->>SV: Compare H1 vs H2
+    
+    alt H1 != H2
+        SV-->>RVI: TAMPERING_DETECTED
+        RVI->>User: Display tampering warning
+        deactivate SV
+        deactivate RVI
+    end
+    
+    SV->>LocalDB: Query trust registry
+    activate LocalDB
+    LocalDB->>LocalDBFile: SELECT app_trust_policy
+    LocalDBFile-->>LocalDB: trust_policy
+    LocalDB-->>SV: trust_policy
+    deactivate LocalDB
+    
+    SV->>SV: Determine Effective Trust Policy
+    SV-->>RVI: Trust Policy (WHITELISTED/CONSENT_REQUIRED)
+    deactivate SV
+    
+    alt Trust Policy == WHITELISTED
+        RVI->>CartDB: Open cartridge connection
+        activate CartDB
+        CartDB->>CartFile: Open SQLite connection
+        CartFile-->>CartDB: connection established
+        CartDB-->>RVI: connection ready
+        deactivate CartDB
+        
+        RVI->>CartDB: Load content pages
+        activate CartDB
+        CartDB->>CartFile: SELECT * FROM Content_Pages
+        CartFile-->>CartDB: content pages
+        CartDB-->>RVI: content
+        deactivate CartDB
+        
+        RVI->>RVI: Render content in WebEngine
+        RVI->>User: Display cartridge content
+    else Trust Policy == CONSENT_REQUIRED
+        RVI->>User: Display consent dialog
+        User->>RVI: Grant/Deny consent
+        
+        alt User grants consent
+            RVI->>LocalDB: Update trust registry
+            activate LocalDB
+            LocalDB->>LocalDBFile: INSERT/UPDATE trust_policy
+            LocalDBFile-->>LocalDB: success
+            LocalDB-->>RVI: trust updated
+            deactivate LocalDB
+            RVI->>RVI: Continue loading (same as WHITELISTED)
+        else User denies consent
+            RVI->>User: Block cartridge loading
+            deactivate RVI
+        end
+    end
+    
+    deactivate RVI
+----
+
+=== Embedded Application Execution Flow
+
+This sequence diagram shows how embedded applications execute and request consent when needed.
+
+[mermaid, embedded-app-execution, svg]
+----
+sequenceDiagram
+    participant JS as Embedded JavaScript
+    participant Bridge as SmartbookBridge
+    participant RVI as Reader View Instance
+    participant Dialog as Native Consent Dialog
+    participant LocalDB as LocalDBManager
+    participant DB as local_reader.sqlite
+    participant WebView as QWebEngineView
+    
+    JS->>Bridge: requestAppConsent(appId, appName, description)
+    activate Bridge
+    
+    Bridge->>RVI: Check Effective Trust Policy
+    activate RVI
+    RVI->>RVI: Get trust policy from Signature Verifier
+    
+    alt Trust Policy == WHITELISTED
+        RVI-->>Bridge: Consent granted (skip dialog)
+        Bridge-->>JS: consentGranted = true
+        deactivate RVI
+        deactivate Bridge
+    else Trust Policy == CONSENT_REQUIRED
+        RVI-->>Bridge: Consent required
+        deactivate RVI
+        
+        Bridge->>Dialog: Show native consent dialog
+        activate Dialog
+        Dialog->>User: Display consent options
+        User->>Dialog: Select trust option
+        Dialog-->>Bridge: User decision (SESSION/PERSISTENT/CANCEL)
+        deactivate Dialog
+        
+        alt User selected CANCEL
+            Bridge-->>JS: consentGranted = false, errorCode = USER_CANCELLED
+            deactivate Bridge
+        else User granted consent
+            Bridge->>LocalDB: Update trust registry
+            activate LocalDB
+            LocalDB->>DB: INSERT/UPDATE app_trust_policy
+            DB-->>LocalDB: success
+            LocalDB-->>Bridge: trust updated
+            deactivate LocalDB
+            
+            Bridge->>RVI: Update in-memory trust policy
+            activate RVI
+            RVI-->>Bridge: policy updated
+            deactivate RVI
+            
+            Bridge-->>JS: consentGranted = true, trustPolicy
+            deactivate Bridge
+            
+            JS->>WebView: Execute embedded application
+            activate WebView
+            WebView->>JS: Render app UI and execute code
+            JS->>Bridge: saveFormData(formKey, data)
+            activate Bridge
+            Bridge->>RVI: Save form data
+            activate RVI
+            RVI->>RVI: Validate and sanitize data
+            RVI->>RVI: Save to User_Data table via CartridgeDBConnector
+            RVI-->>Bridge: success
+            deactivate RVI
+            Bridge-->>JS: data saved
+            deactivate Bridge
+            deactivate WebView
+        end
+    end
+----
+
+=== Form Data Save Flow
+
+This sequence diagram illustrates how form data is saved from JavaScript to the cartridge database.
+
+[mermaid, form-data-save, svg]
+----
+sequenceDiagram
+    participant FormJS as Form JavaScript
+    participant Bridge as SmartbookBridge
+    participant RVI as Reader View Instance
+    participant CartDB as CartridgeDB Connector
+    participant CartFile as Cartridge File
+    
+    FormJS->>FormJS: User fills form and clicks Save
+    FormJS->>FormJS: Validate form data (client-side)
+    FormJS->>Bridge: saveFormData(formKey, formData)
+    activate Bridge
+    
+    Bridge->>Bridge: Validate formKey and data format
+    
+    alt Invalid format
+        Bridge-->>FormJS: errorCode = INVALID_FORMAT
+        deactivate Bridge
+    else Valid format
+        Bridge->>RVI: Request form data save
+        activate RVI
+        
+        RVI->>RVI: Sanitize and validate data (server-side)
+        
+        alt Data validation fails
+            RVI-->>Bridge: errorCode = VALIDATION_FAILED
+            deactivate RVI
+            Bridge-->>FormJS: validation error
+            deactivate Bridge
+        else Data valid
+            RVI->>CartDB: saveFormData(formKey, sanitizedData)
+            activate CartDB
+            
+            CartDB->>CartDB: Begin transaction
+            CartDB->>CartFile: DELETE FROM User_Data WHERE form_key = ?
+            CartFile-->>CartDB: deleted
+            
+            CartDB->>CartFile: INSERT INTO User_Data (form_key, serialized_data, timestamp)
+            CartFile-->>CartDB: inserted
+            
+            CartDB->>CartDB: Commit transaction
+            
+            alt Transaction fails
+                CartDB->>CartDB: Rollback transaction
+                CartDB-->>RVI: errorCode = DATABASE_ERROR
+                deactivate CartDB
+                RVI-->>Bridge: database error
+                deactivate RVI
+                Bridge-->>FormJS: database error
+                deactivate Bridge
+            else Transaction success
+                CartDB-->>RVI: success
+                deactivate CartDB
+                
+                RVI-->>Bridge: success
+                deactivate RVI
+                
+                Bridge-->>FormJS: success
+                deactivate Bridge
+                
+                FormJS->>FormJS: Display success message to user
+            end
+        end
+    end
+----
+
+=== Cartridge Import Process
+
+This sequence diagram shows the cartridge import process from file selection to manifest update.
+
+[mermaid, cartridge-import, svg]
+----
+sequenceDiagram
+    actor User
+    participant LM as Library Manager
+    participant LocalDB as LocalDBManager
+    participant SV as Signature Verifier
+    participant CartFile as Cartridge File
+    participant LocalDBFile as local_reader.sqlite
+    
+    User->>LM: Import cartridge (file dialog)
+    activate LM
+    
+    LM->>LM: Select cartridge file (.sqlite)
+    LM->>LM: Validate file exists and is readable
+    
+    LM->>SV: Verify cartridge (for import)
+    activate SV
+    
+    SV->>CartFile: Read cartridge_guid
+    CartFile-->>SV: cartridge_guid
+    
+    SV->>CartFile: Read metadata (title, author, year)
+    CartFile-->>SV: metadata
+    
+    SV->>CartFile: Calculate H2 hash
+    CartFile-->>SV: H2
+    
+    SV->>CartFile: Read cover image
+    CartFile-->>SV: cover_image_data
+    
+    SV-->>LM: cartridge info (guid, metadata, H2, cover)
+    deactivate SV
+    
+    LM->>LocalDB: Check if cartridge already exists
+    activate LocalDB
+    LocalDB->>LocalDBFile: SELECT cartridge_guid FROM Local_Library_Manifest
+    LocalDBFile-->>LocalDB: existing_guid or null
+    LocalDB-->>LM: exists or not
+    deactivate LocalDB
+    
+    alt Cartridge already exists
+        LM->>User: Prompt: Replace existing cartridge?
+        User->>LM: Confirm or cancel
+        
+        alt User cancels
+            LM->>User: Import cancelled
+            deactivate LM
+        else User confirms
+            LM->>LocalDB: Begin transaction
+            activate LocalDB
+            
+            LocalDB->>LocalDBFile: UPDATE Local_Library_Manifest SET ...
+            LocalDBFile-->>LocalDB: success
+            
+            LocalDB->>LocalDBFile: Commit transaction
+            
+            alt Transaction fails
+                LocalDB->>LocalDBFile: Rollback transaction
+                LocalDB-->>LM: error
+                deactivate LocalDB
+                LM->>User: Display import error
+                deactivate LM
+            else Transaction success
+                LocalDB-->>LM: import successful
+                deactivate LocalDB
+                
+                LM->>LM: Refresh library view
+                LM->>User: Display updated library
+                deactivate LM
+            end
+        end
+    else Cartridge new
+        LM->>LocalDB: Begin transaction
+        activate LocalDB
+        
+        LocalDB->>LocalDBFile: INSERT INTO Local_Library_Manifest ...
+        LocalDBFile-->>LocalDB: success
+        
+        LocalDB->>LocalDBFile: Commit transaction
+        
+        alt Transaction fails
+            LocalDB->>LocalDBFile: Rollback transaction
+            LocalDB-->>LM: error
+            deactivate LocalDB
+            LM->>User: Display import error
+            deactivate LM
+        else Transaction success
+            LocalDB-->>LM: import successful
+            deactivate LocalDB
+            
+            LM->>LM: Refresh library view
+            LM->>User: Display updated library
+            deactivate LM
+        end
+    end
+----
+
+=== Trust Revocation Process
+
+This sequence diagram illustrates how users revoke trust for a cartridge or embedded application.
+
+[mermaid, trust-revocation, svg]
+----
+sequenceDiagram
+    actor User
+    participant LM as Library Manager
+    participant LocalDB as LocalDBManager
+    participant LocalDBFile as local_reader.sqlite
+    participant RVI as Reader View Instance
+    
+    User->>LM: Right-click cartridge → Revoke Trust
+    activate LM
+    
+    LM->>User: Confirm revocation dialog
+    User->>LM: Confirm revocation
+    
+    alt User cancels
+        LM->>User: Operation cancelled
+        deactivate LM
+    else User confirms
+        LM->>LocalDB: Revoke trust for cartridge
+        activate LocalDB
+        
+        LocalDB->>LocalDB: Begin transaction
+        
+        LocalDB->>LocalDBFile: UPDATE Local_Trust_Registry<br/>SET app_trust_policy = 'REVOKED'<br/>WHERE cartridge_guid = ?
+        LocalDBFile-->>LocalDB: updated
+        
+        LocalDB->>LocalDBFile: Commit transaction
+        
+        alt Transaction fails
+            LocalDB->>LocalDBFile: Rollback transaction
+            LocalDB-->>LM: error
+            deactivate LocalDB
+            LM->>User: Display revocation error
+            deactivate LM
+        else Transaction success
+            LocalDB-->>LM: trust revoked
+            deactivate LocalDB
+            
+            alt Cartridge is currently open
+                LM->>RVI: Notify trust revoked
+                activate RVI
+                RVI->>RVI: Update Effective Trust Policy
+                RVI->>RVI: Block embedded app execution
+                RVI->>User: Display trust revoked warning
+                deactivate RVI
+            end
+            
+            LM->>LM: Refresh library view
+            LM->>User: Display updated status
+            deactivate LM
+        end
+    end
+----
+
+== Data Flow Diagrams
+
+=== Cartridge Data Flow
+
+This diagram shows how data flows through the system when loading and displaying a cartridge.
+
+[mermaid, cartridge-data-flow, svg]
+----
+flowchart TD
+    Start([User opens cartridge]) --> LM[Library Manager]
+    LM --> QueryManifest[Query Local_Library_Manifest]
+    Note1[Fast metadata lookup<br/>< 500ms requirement]
+    QueryManifest -.-> Note1
+    
+    QueryManifest --> CreateRVI[Create Reader View Instance]
+    CreateRVI --> SV[Signature Verifier]
+    SV --> ReadCart[Read cartridge file]
+    Note2[Read H1, signature,<br/>cartridge_guid]
+    ReadCart -.-> Note2
+    
+    ReadCart --> CalcH2[Calculate H2 hash]
+    CalcH2 --> Compare{Compare H1 vs H2}
+    
+    Compare -->|H1 == H2| QueryTrust[Query Local_Trust_Registry]
+    Compare -->|H1 != H2| Tampering[Tampering detected!]
+    Tampering --> Error[Display error]
+    Error --> End1([Stop])
+    
+    QueryTrust --> DeterminePolicy[Determine Trust Policy]
+    DeterminePolicy --> PolicyCheck{Trust Policy?}
+    
+    PolicyCheck -->|WHITELISTED| LoadContent[Load cartridge content]
+    PolicyCheck -->|CONSENT_REQUIRED| ConsentDialog[Show consent dialog]
+    
+    LoadContent --> CartDB[CartridgeDBConnector]
+    CartDB --> ReadPages[Read Content_Pages]
+    CartDB --> ReadForms[Read Form_Definitions]
+    CartDB --> ReadApps[Read Embedded_Apps]
+    ReadPages --> Render[Render in WebEngine]
+    ReadForms --> Render
+    ReadApps --> Render
+    Render --> Display[Display to user]
+    Display --> End2([Stop])
+    
+    ConsentDialog --> UserDecision{User grants consent?}
+    UserDecision -->|Yes| UpdateTrust[Update Trust Registry]
+    UserDecision -->|No| Block[Block cartridge]
+    Block --> End3([Stop])
+    
+    UpdateTrust --> LoadContent
+    
+    style Tampering fill:#ffebee
+    style Error fill:#ffebee
+    style Block fill:#ffebee
+    style Display fill:#e8f5e9
+----
+
+=== Form Data Persistence Flow
+
+This diagram illustrates how form data flows from user input to persistent storage.
+
+[mermaid, form-data-flow, svg]
+----
+flowchart TD
+    Start([User fills form]) --> JSValidate[JavaScript validation]
+    JSValidate --> Valid1{Valid?}
+    
+    Valid1 -->|No| DisplayError[Display validation error]
+    DisplayError --> End1([Stop])
+    
+    Valid1 -->|Yes| FormJS[Form JavaScript]
+    FormJS --> CallBridge[Call SmartbookBridge.saveFormData]
+    CallBridge --> Bridge[SmartbookBridge]
+    Bridge --> Validate[Validate and sanitize data]
+    Validate --> Valid2{Valid?}
+    
+    Valid2 -->|No| ReturnError[Return error]
+    ReturnError --> End2([Stop])
+    
+    Valid2 -->|Yes| RVI[Reader View Instance]
+    RVI --> CartDB[CartridgeDBConnector]
+    CartDB --> BeginTx[Begin transaction]
+    BeginTx --> Delete[Delete existing form data]
+    Delete --> Insert[Insert new form data]
+    Insert --> TxSuccess{Transaction success?}
+    
+    TxSuccess -->|No| Rollback[Rollback transaction]
+    Rollback --> ReturnError2[Return error]
+    ReturnError2 --> End3([Stop])
+    
+    TxSuccess -->|Yes| Commit[Commit transaction]
+    Commit --> ReturnSuccess[Return success]
+    ReturnSuccess --> DisplaySuccess[Display success message]
+    DisplaySuccess --> End4([Stop])
+    
+    style DisplayError fill:#ffebee
+    style ReturnError fill:#ffebee
+    style ReturnError2 fill:#ffebee
+    style DisplaySuccess fill:#e8f5e9
+----
+
+== State Diagrams
+
+=== Cartridge Trust State Machine
+
+This state diagram shows the possible trust states for a cartridge and the transitions between them.
+
+[mermaid, trust-state-machine, svg]
+----
+stateDiagram-v2
+    [*] --> Untrusted: Cartridge imported
+    
+    Untrusted --> ConsentRequired: User opens cartridge<br/>(Level 2/3)
+    Untrusted --> Whitelisted: User opens cartridge<br/>(Level 1, H1==H2)
+    
+    ConsentRequired --> Whitelisted: User grants<br/>persistent trust
+    ConsentRequired --> SessionTrust: User grants<br/>session trust
+    ConsentRequired --> Revoked: User denies consent
+    
+    SessionTrust --> ConsentRequired: Session ends<br/>or cartridge closed
+    
+    Whitelisted --> Revoked: User revokes trust
+    
+    Revoked --> ConsentRequired: User re-grants trust<br/>(requires consent)
+    
+    Whitelisted --> [*]: Cartridge deleted
+    Revoked --> [*]: Cartridge deleted
+    
+    note right of Whitelisted
+        No consent required
+        Embedded apps execute
+        automatically
+    end note
+    
+    note right of ConsentRequired
+        User consent required
+        for embedded apps
+    end note
+    
+    note right of Revoked
+        Execution blocked
+        User must re-grant trust
+    end note
+----
+
+== Deployment Diagrams
+
+=== Phase 1 Deployment (Single User)
+
+This diagram shows the Phase 1 deployment architecture for single-user operation.
+
+[mermaid, phase1-deployment, svg]
+----
+graph TB
+    subgraph UserPC["User's Computer"]
+        Reader[Reader Application]
+        Creator[Creator Tool]
+        LocalDB[(local_reader.sqlite)]
+        
+        subgraph CartFiles["Cartridge Files"]
+            Cart1[cartridge1.sqlite]
+            Cart2[cartridge2.sqlite]
+        end
+    end
+    
+    Reader -->|reads/writes| LocalDB
+    Reader -->|opens cartridges| CartFiles
+    Creator -->|creates cartridges| CartFiles
+    
+    style Reader fill:#e1f5ff
+    style Creator fill:#fff4e1
+    style LocalDB fill:#e8f5e9
+    
+    Note1[Single-user application<br/>Local library management<br/>No network required]
+    Reader -.-> Note1
+----
+
+=== Phase 2 Deployment (Multi-User)
+
+This diagram illustrates the Phase 2 deployment architecture with centralized server.
+
+[mermaid, phase2-deployment, svg]
+----
+graph TB
+    subgraph Internet["Internet"]
+    end
+    
+    subgraph Client1["Client 1 (Windows)"]
+        Reader1[Reader Application]
+        LocalDB1[(local_reader.sqlite)]
+    end
+    
+    subgraph Client2["Client 2 (macOS)"]
+        Reader2[Reader Application]
+        LocalDB2[(local_reader.sqlite)]
+    end
+    
+    subgraph Client3["Client 3 (Linux)"]
+        Reader3[Reader Application]
+        LocalDB3[(local_reader.sqlite)]
+    end
+    
+    subgraph Server["Library Server"]
+        APIServer[REST API Server]
+        ServerDB[(Library Database)]
+        Storage[Cartridge Storage]
+    end
+    
+    Reader1 -->|HTTP/HTTPS| APIServer
+    Reader2 -->|HTTP/HTTPS| APIServer
+    Reader3 -->|HTTP/HTTPS| APIServer
+    
+    APIServer -->|queries| ServerDB
+    APIServer -->|serves cartridges| Storage
+    
+    style APIServer fill:#e1f5ff
+    style ServerDB fill:#e8f5e9
+    
+    Note1[Centralized library<br/>User authentication<br/>Role-based access control<br/>Cartridge distribution]
+    APIServer -.-> Note1
+----
+
+== Usage Notes
+
+=== Rendering Diagrams
+
+These diagrams are written in Mermaid syntax. To render them:
+
+1. **AsciiDoc with Mermaid:** If your AsciiDoc processor supports Mermaid (e.g., Asciidoctor with asciidoctor-diagram and Mermaid support), the diagrams will render automatically.
+
+2. **Standalone Mermaid:** Use the Mermaid CLI or online editor to generate images:
+   ```
+   mmdc -i diagram.mmd -o diagram.png
+   ```
+
+3. **Online Rendering:** Copy Mermaid code blocks to https://mermaid.live/ for online rendering and editing.
+
+4. **Markdown:** Mermaid diagrams work natively in many Markdown processors (GitHub, GitLab, etc.) using code blocks with `mermaid` language identifier.
+
+=== Diagram Maintenance
+
+When updating diagrams:
+* Keep Mermaid syntax consistent
+* Test diagram rendering after changes
+* Update related documentation when diagram changes
+* Maintain diagram references in HLD and DDD documents
+* Use consistent styling and color schemes across diagrams
+
+=== Mermaid Syntax Reference
+
+Key Mermaid diagram types used:
+* `graph` / `flowchart` - Flowcharts and architecture diagrams
+* `sequenceDiagram` - Sequence diagrams for process flows
+* `stateDiagram-v2` - State machine diagrams
+* See https://mermaid.js.org/ for complete syntax reference
+
+== Related Documentation
+
+For more detailed information, see:
+
+* **HLD:** `hld.adoc` - High-Level Design with architecture details
+* **DDD:** `ddd.adoc` - Detailed Design Document with implementation details
+* **SRS:** `srs.adoc` - Software Requirements Specification
+* **Glossary:** `glossary.adoc` - Technical terms and definitions

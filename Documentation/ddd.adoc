@@ -45,7 +45,8 @@ The following tables define the structure of the Smartbook Cartridge (`.sqlite` 
 | `id` | INTEGER | PRIMARY KEY | Internal primary key.
 | **`cartridge_guid`** | **TEXT** | **NOT NULL, UNIQUE** | **A UUID Version 4 string. The definitive, immutable unique identifier for the content edition (NFR-3.2).**
 | `title` | TEXT | NOT NULL | Human-readable title of the Smartbook.
-| `author` | TEXT | NOT NULL | Author/Publisher name.
+| `author` | TEXT | NOT NULL | Author name(s).
+| `publisher` | TEXT | | Publisher name. May be NULL for self-published works.
 | `version` | TEXT | NOT NULL | Content Edition/Revision (e.g., "2.0").
 | **`publication_year`** | **TEXT** | **NOT NULL** | **The year the content was first published (e.g., "2025").**
 | `tags_json` | TEXT | | JSON array of descriptive tags/subjects.
@@ -210,6 +211,60 @@ The following tables define the structure of the Smartbook Cartridge (`.sqlite` 
 | `certificate_data` | BLOB | | The X.509 certificate (DER or PEM format) used for signing. Required for Level 1 (CA-signed) and Level 2 (self-signed) cartridges.
 |===
 
+=== `Navigation_Structure` Table
+
+[cols="2, ^1, ^3, 4"]
+|===
+^.^| Column Name ^.^| SQLite Type ^.^| Constraints ^.^| Description
+
+| `nav_id` | INTEGER | PRIMARY KEY | Unique ID for the navigation entry.
+| `group_name` | TEXT | NOT NULL | Name of the navigation group (e.g., "Browse", "Departments", "Bibliographies").
+| `group_order` | INTEGER | NOT NULL | Display order of the navigation group (lower numbers appear first).
+| `item_label` | TEXT | NOT NULL | Display label for the menu item.
+| `item_order` | INTEGER | NOT NULL | Display order of the item within its group.
+| `target_type` | TEXT | NOT NULL | Type of navigation target: `page_id`, `anchor_id`, `page_and_anchor`, `custom_handler`.
+| `target_value` | TEXT | NOT NULL | Navigation target value:
+  * For `page_id`: The page_id to navigate to
+  * For `anchor_id`: The anchor ID (assumes current page)
+  * For `page_and_anchor`: Format "page_id#anchor_id"
+  * For `custom_handler`: Custom JavaScript handler identifier
+| `parent_item_id` | INTEGER | | Optional parent item ID for hierarchical navigation (sub-menus). NULL for top-level items.
+| `metadata_json` | TEXT | | Optional JSON object containing additional metadata (e.g., icon path, tooltip, filter criteria for Browse navigation).
+|===
+
+**Purpose:** Stores custom navigation bar structure for cartridges. This enables magazine collections and similar content to provide specialized navigation (Browse by Creator/Issue/Title, Departments, Bibliographies, etc.) separate from the application menu.
+
+**Navigation Structure Examples:**
+
+**Browse Group:**
+* Group: "Browse" (group_order: 1)
+  * Item: "By Creator" (item_order: 1, target_type: "custom_handler", target_value: "browse_by_creator")
+  * Item: "By Issue" (item_order: 2, target_type: "custom_handler", target_value: "browse_by_issue")
+  * Item: "By Title" (item_order: 3, target_type: "custom_handler", target_value: "browse_by_title")
+
+**Departments Group:**
+* Group: "Departments" (group_order: 2)
+  * Item: "Department 1" (item_order: 1, target_type: "page_id", target_value: "42")
+  * Item: "Department 2" (item_order: 2, target_type: "page_id", target_value: "58")
+
+**Bibliographies Group:**
+* Group: "Bibliographies" (group_order: 3)
+  * Item: "APA Format" (item_order: 1, target_type: "page_and_anchor", target_value: "100#apa-bibliography")
+  * Item: "CMS Format" (item_order: 2, target_type: "page_and_anchor", target_value: "100#cms-bibliography")
+
+**Metadata JSON Structure:**
+[source,json]
+----
+{
+  "icon": "path/to/icon.png",
+  "tooltip": "Browse articles by creator name",
+  "filter_criteria": {
+    "type": "creator",
+    "field": "author"
+  }
+}
+----
+
 == Reader Local Persistence Schema
 
 These tables exist in a separate, local SQLite database maintained by the Reader Application for user preferences, security, and library management.
@@ -226,11 +281,15 @@ These tables exist in a separate, local SQLite database maintained by the Reader
 | `local_path` | TEXT | NOT NULL | Full file path on the user's system.
 | `title` | TEXT | NOT NULL | Extracted Title.
 | `author` | TEXT | NOT NULL | Extracted Author.
+| `publisher` | TEXT | | Cached publisher name from cartridge Metadata table (for fast queries).
 | `version` | TEXT | | Extracted Content Version.
 | **`publication_year`** | **TEXT** | **NOT NULL** | **Cached publication year for fast List-View display.**
 | `cover_image_data` | BLOB | | The binary data of the cover image for fast browsing.
 | `last_opened` | INTEGER | | Timestamp of last access.
 | `location_status` | TEXT | | **Phase 2:** Tracks local/remote status (`local_only`, `remote_only`, `both`).
+| `series_name` | TEXT | | Cached series name from cartridge Metadata table (for fast grouping queries).
+| `edition_name` | TEXT | | Cached edition name from cartridge Metadata table (for fast grouping queries).
+| `series_order` | INTEGER | | Cached series order from cartridge Metadata table (for fast series ordering).
 |===
 
 === `Local_Trust_Registry` Table
@@ -302,6 +361,46 @@ These tables exist in a separate, local SQLite database maintained by the Reader
 |===
 
 **Purpose:** Stores the last reading position for each cartridge, enabling automatic restoration of reading position when cartridge is reopened.
+
+=== `Local_Cartridge_Groups` Table
+
+[cols="2, ^1, ^3, 4", options="headers"]
+|===
+^.^| Column Name ^.^| SQLite Type ^.^| Constraints ^.^| Description
+
+|| `group_id` | INTEGER | PRIMARY KEY | Unique ID for the group.
+|| `group_name` | TEXT | NOT NULL | User-defined name for the group/collection.
+|| `group_type` | TEXT | NOT NULL | Type of group: `custom_collection` (user-defined), `series` (auto-grouped by series_name), `edition` (auto-grouped by edition_name).
+|| `created_timestamp` | INTEGER | NOT NULL | UNIX timestamp when the group was created.
+|| `last_modified_timestamp` | INTEGER | NOT NULL | UNIX timestamp when the group was last modified.
+|| `description` | TEXT | | Optional user-provided description of the group.
+|===
+
+**Purpose:** Stores user-defined custom collections and metadata for auto-grouped series/editions. Custom collections allow users to organize cartridges independently of author-defined series/edition metadata.
+
+**Group Types:**
+* **`custom_collection`:** User-created collection (e.g., "My RPG Collection", "Favorites")
+* **`series`:** Auto-grouped by `series_name` metadata (read-only, managed by system)
+* **`edition`:** Auto-grouped by `edition_name` metadata (read-only, managed by system)
+
+=== `Local_Cartridge_Group_Members` Table
+
+[cols="2, ^1, ^3, 4", options="headers"]
+|===
+^.^| Column Name ^.^| SQLite Type ^.^| Constraints ^.^| Description
+
+|| `membership_id` | INTEGER | PRIMARY KEY | Unique ID for the membership record.
+|| `group_id` | INTEGER | NOT NULL | Foreign key to `Local_Cartridge_Groups.group_id`.
+|| `cartridge_guid` | TEXT | NOT NULL | Foreign key to `Local_Library_Manifest.cartridge_guid`.
+|| `added_timestamp` | INTEGER | NOT NULL | UNIX timestamp when the cartridge was added to the group.
+|| `display_order` | INTEGER | | Optional display order within the group (for custom collections). NULL for auto-grouped series/editions (uses series_order from metadata).
+|===
+
+**Purpose:** Junction table linking cartridges to groups (custom collections, series, or editions). For custom collections, users can manually add/remove cartridges. For series/editions, memberships are automatically maintained based on metadata.
+
+**Constraints:**
+* Unique constraint on (`group_id`, `cartridge_guid`) to prevent duplicate memberships
+* Foreign key constraints ensure referential integrity
 
 === `Local_Window_State` Table
 
@@ -846,6 +945,239 @@ Migration rules are stored in `Form_Definitions.migration_rules_json` as a JSON 
 * Visual feedback: Text changes immediately when undo/redo is triggered
 * No separate undo/redo UI needed (uses standard keyboard shortcuts)
 * Context menu may optionally include "Undo" and "Redo" options when appropriate
+
+== Custom Navigation Bar Implementation Specification
+
+This section defines how custom navigation bars (e.g., Browse, Departments, Bibliographies) are implemented in the Reader application.
+
+=== Navigation Structure Loading
+
+**Load Navigation Structure:**
+1. On cartridge open, query `Navigation_Structure` table:
+   `SELECT * FROM Navigation_Structure ORDER BY group_order, item_order`
+2. Group results by `group_name`
+3. Build navigation structure object:
+   ```
+   {
+     "groups": [
+       {
+         "name": "Browse",
+         "order": 1,
+         "items": [
+           {
+             "label": "By Creator",
+             "order": 1,
+             "target_type": "custom_handler",
+             "target_value": "browse_by_creator",
+             "metadata": {...}
+           },
+           ...
+         ]
+       },
+       ...
+     ]
+   }
+   ```
+
+**Navigation Bar Rendering:**
+1. If navigation structure exists, render custom navigation bar
+2. Navigation bar is rendered as HTML/CSS within the Reader View
+3. Navigation bar is positioned above main content area
+4. Navigation bar uses cartridge styling (CSS from `Content_Pages` or `Content_Themes`)
+
+=== Navigation Bar HTML Structure
+
+[source,html]
+----
+<nav class="smartbook-navbar" id="custom-navbar">
+  <div class="nav-group" data-group="Browse">
+    <button class="nav-group-button">Browse ▼</button>
+    <ul class="nav-dropdown">
+      <li><a href="#" data-target-type="custom_handler" data-target-value="browse_by_creator">By Creator</a></li>
+      <li><a href="#" data-target-type="custom_handler" data-target-value="browse_by_issue">By Issue</a></li>
+      <li><a href="#" data-target-type="custom_handler" data-target-value="browse_by_title">By Title</a></li>
+    </ul>
+  </div>
+  <div class="nav-group" data-group="Departments">
+    <button class="nav-group-button">Departments ▼</button>
+    <ul class="nav-dropdown">
+      <li><a href="#" data-target-type="page_id" data-target-value="42">Department 1</a></li>
+      <li><a href="#" data-target-type="page_id" data-target-value="58">Department 2</a></li>
+    </ul>
+  </div>
+  <div class="nav-group" data-group="Bibliographies">
+    <button class="nav-group-button">Bibliographies ▼</button>
+    <ul class="nav-dropdown">
+      <li><a href="#" data-target-type="page_and_anchor" data-target-value="100#apa-bibliography">APA Format</a></li>
+      <li><a href="#" data-target-type="page_and_anchor" data-target-value="100#cms-bibliography">CMS Format</a></li>
+    </ul>
+  </div>
+</nav>
+----
+
+=== Navigation Target Resolution
+
+**Page ID Navigation:**
+1. Extract `target_value` (page_id)
+2. Load page: `SELECT html_content FROM Content_Pages WHERE page_id = ?`
+3. Navigate to page (update reading position, add to history)
+
+**Anchor Navigation:**
+1. Extract `target_value` (anchor_id)
+2. If on current page: Scroll to anchor element
+3. If anchor is on different page: Load page first, then scroll to anchor
+4. Update reading position with `anchor_id`
+
+**Page and Anchor Navigation:**
+1. Parse `target_value` format: "page_id#anchor_id"
+2. Load page: `SELECT html_content FROM Content_Pages WHERE page_id = ?`
+3. After page loads, scroll to anchor element
+4. Update reading position with both `page_id` and `anchor_id`
+
+**Custom Handler Navigation:**
+1. Extract `target_value` (handler identifier)
+2. Execute custom JavaScript handler (if defined in embedded app or content)
+3. Custom handlers may:
+   * Filter content by metadata (Browse by Creator/Issue/Title)
+   * Display search results
+   * Show filtered content views
+   * Navigate to dynamically determined targets
+
+=== Browse Navigation Implementation
+
+**Browse by Creator:**
+1. Custom handler: `browse_by_creator`
+2. Query `Content_Pages` for pages with metadata matching creator filter
+3. Display filtered results or navigate to creator index page
+4. Filter criteria stored in `metadata_json`:
+   ```json
+   {
+     "filter_criteria": {
+       "type": "creator",
+       "field": "author",
+       "match": "exact"
+     }
+   }
+   ```
+
+**Browse by Issue:**
+1. Custom handler: `browse_by_issue`
+2. Query pages filtered by issue metadata
+3. Display issue index or filtered content view
+
+**Browse by Title:**
+1. Custom handler: `browse_by_title`
+2. Query pages filtered by title metadata
+3. Display title index or filtered content view
+
+=== Department Navigation Implementation
+
+**Department Structure:**
+1. Departments are defined as navigation items in `Navigation_Structure` table
+2. Each department item links to a specific page or section
+3. Departments may have hierarchical structure (parent_item_id for sub-departments)
+
+**Department Navigation:**
+1. User selects department from dropdown
+2. Resolve target (page_id, anchor, or custom handler)
+3. Navigate to department content
+4. Update reading position and navigation history
+
+=== Bibliography Navigation Implementation
+
+**Bibliography Formats:**
+1. Bibliography items link to citation format reference pages
+2. Target format: `page_and_anchor` (e.g., "100#apa-bibliography")
+3. Navigation loads bibliography reference page and scrolls to format section
+
+**Bibliography Display:**
+1. Load target page
+2. Scroll to anchor (format section)
+3. Display citation format guidelines and examples
+
+=== Navigation Bar CSS Styling
+
+**Default Navigation Bar Styles:**
+[source,css]
+----
+.smartbook-navbar {
+  display: flex;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #ddd;
+  padding: 8px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-group {
+  position: relative;
+  margin-right: 16px;
+}
+
+.nav-group-button {
+  background: none;
+  border: none;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.nav-group-button:hover {
+  background-color: #e0e0e0;
+}
+
+.nav-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: white;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  min-width: 200px;
+}
+
+.nav-group:hover .nav-dropdown {
+  display: block;
+}
+
+.nav-dropdown li {
+  padding: 0;
+}
+
+.nav-dropdown a {
+  display: block;
+  padding: 8px 16px;
+  text-decoration: none;
+  color: #333;
+}
+
+.nav-dropdown a:hover {
+  background-color: #f0f0f0;
+}
+----
+
+**Custom Styling:**
+* Navigation bar styling can be customized via cartridge CSS
+* Styles defined in `Content_Pages.associated_css` or `Content_Themes` apply to navigation bar
+* Navigation bar respects cartridge theme colors and fonts
+
+=== Keyboard Navigation
+
+**Navigation Bar Keyboard Access:**
+1. Tab key: Navigate between navigation groups
+2. Arrow keys: Navigate within dropdown menus
+3. Enter/Space: Activate selected menu item
+4. Escape: Close open dropdown menu
+
+**Implementation:**
+* Navigation bar elements have proper ARIA attributes for accessibility
+* Keyboard event handlers attached to navigation elements
+* Focus management for dropdown menus
 
 == Content Navigation Implementation Specification
 
@@ -1993,6 +2325,13 @@ This section defines how text selection, copying, and pasting are implemented in
 
 == Cartridge Signature Verification Process Algorithm
 
+=== 4-Phase Verification Algorithm Sequence Diagram
+
+[NOTE]
+====
+See `diagrams.adoc` (4-Phase Verification Algorithm sequence diagram) for a complete visual representation of the security verification process showing all four phases: Identity, Integrity Check, Trust Lookup, and Policy Determination.
+====
+
 === Phase 1: Integrity Check and Identity Establishment
 
 [cols="2, 2, 4", option="headers"]
@@ -2975,6 +3314,14 @@ The Smartbook Reader SHALL implement a Multi-Window Architecture: a single **Lib
 
 == C++ Class Hierarchy and Data Flow (Implementation Design)
 
+[NOTE]
+====
+See `diagrams.adoc` for visual representations including:
+* Component Interaction Diagram - Shows how components interact during cartridge loading
+* Data Flow Diagrams - Illustrate cartridge data flow and form data persistence flow
+* Sequence Diagrams - Cartridge loading, embedded app execution, form data save, import, and trust revocation processes
+====
+
 === Core Application Management Classes
 
 [cols="1, 1, 3, 2", options="header", grid="all"]
@@ -3041,8 +3388,106 @@ The Library Manager MUST allow the user to toggle between two modes: the visual 
 ^.^| Element ^.^| Component / Function ^.^| Security Display Requirement
 
 | **Integrity Warning Bar** | Persistent, non-dismissible colored banner fixed above content. | Must be visible for Level 2 and Level 3 cartridges.
-| **App Consent Dialog** | Native modal window triggered by `requestAppConsent`. | Detailed requirements in 11.2.1.
+| **Cartridge Loading Consent Dialog** | Native modal dialog displayed when opening Level 2 or Level 3 cartridges. | Detailed requirements in 11.2.1.
+| **App Consent Dialog** | Native modal window triggered by `requestAppConsent`. | Detailed requirements in 11.2.2.
 |===
+
+==== Cartridge Loading Consent Dialog Requirements
+
+This dialog appears when a user attempts to open a Level 2 (Self-Signed Trust) or Level 3 (No Signature) cartridge, before the cartridge content is loaded. The dialog allows the user to decide whether to load the cartridge and optionally add it to the whitelist for future loads.
+
+=== Dialog Appearance and Positioning
+
+**Modal Dialog Requirements:**
+* **Type:** Native OS modal dialog (Qt `QMessageBox` or custom modal dialog)
+* **Positioning:** Centered horizontally and vertically on the primary screen
+* **Size:** Minimum 400px width, auto-height based on content (maximum 600px height)
+* **Modal Behavior:** Blocks all interaction with the Reader application until dismissed
+* **Accessibility:** Keyboard navigation (Tab, Enter, Escape), screen reader support
+
+=== Dialog Content and Verbiage
+
+==== For Level 2 (Self-Signed Certificate) Cartridges
+
+**Title:** "Security Warning: Self-Signed Cartridge"
+
+**Main Message:**
+----
+This cartridge is signed with a self-signed certificate and cannot be verified by a trusted authority.
+
+Cartridge: [Title]
+Author: [Author Name]
+Security Level: Level 2 (Self-Signed Trust)
+
+⚠️ WARNING: This cartridge has not been verified by a trusted certificate authority. The content may have been modified or could contain potentially unsafe embedded applications.
+
+Do you want to load this cartridge?
+----
+
+**Options:**
+. "Load and Always Trust" (Adds to whitelist) — Default button
+. "Load for This Session Only" (Temporary trust)
+. "Cancel" (Do not load)
+
+==== For Level 3 (No Signature) Cartridges
+
+**Title:** "Security Warning: Unsigned Cartridge"
+
+**Main Message:**
+----
+This cartridge has no digital signature and cannot be verified.
+
+Cartridge: [Title]
+Author: [Author Name]
+Security Level: Level 3 (No Signature)
+
+⚠️ WARNING: This cartridge has no digital signature. The content cannot be verified and may have been modified. Embedded applications may pose security risks.
+
+Do you want to load this cartridge?
+----
+
+**Options:**
+. "Load and Always Trust" (Adds to whitelist)
+. "Load for This Session Only" (Temporary trust)
+. "Cancel" (Do not load)
+
+=== Dismissal Behavior
+
+**When "Load and Always Trust" is selected:**
+* Cartridge is added to the `Local_Trust_Registry` with `trust_type = 'PERSISTENT'`
+* Cartridge is loaded and displayed in the Reader View Window
+* Future loads of this cartridge bypass the consent dialog
+* Integrity warning bar is still displayed (as per FR-2.3.2/2.3.3)
+
+**When "Load for This Session Only" is selected:**
+* Cartridge is loaded and displayed in the Reader View Window
+* No entry is added to `Local_Trust_Registry`
+* Consent dialog will appear again on next load
+* Integrity warning bar is displayed
+
+**When "Cancel" is selected (or dialog closed via Escape/X button):**
+* Cartridge is **not loaded**
+* Reader View Window is **not opened**
+* User is returned to the Library Manager
+* No entry is added to `Local_Trust_Registry`
+* No error message is displayed (user choice)
+
+=== Implementation Details
+
+**Dialog Trigger:**
+* Dialog appears immediately when user attempts to open a Level 2 or Level 3 cartridge
+* Triggered before cartridge content is loaded into memory
+* If cartridge is already in `Local_Trust_Registry` with valid trust, dialog is skipped
+
+**Dialog Dismissal Methods:**
+* Clicking one of the three action buttons
+* Pressing Escape key (treated as "Cancel")
+* Clicking the window close button (X) (treated as "Cancel")
+* Alt+F4 / Cmd+Q (application quit) — treated as "Cancel" for that cartridge
+
+**Error Handling:**
+* If dialog cannot be displayed (UI error), log error and treat as "Cancel"
+* If trust registry update fails after "Load and Always Trust", load cartridge but show warning that persistent trust was not saved
 
 ==== Native App Consent Dialog Requirements
 
@@ -3058,6 +3503,2451 @@ The Library Manager MUST allow the user to toggle between two modes: the visual 
 . Block execution.
 |===
 // Removed Image placeholder
+
+== Qt WebEngine Configuration Implementation
+
+This section specifies the detailed configuration of Qt WebEngine for the Reader and Creator Tool applications, including profile settings, security configuration, performance optimization, and standards compliance.
+
+=== Qt WebEngine Version Requirements
+
+**Minimum Qt Version:**
+* **Qt 6.2+** (recommended: Qt 6.5+)
+* **Qt WebEngine Module:** Required module, must be included in build configuration
+
+**Chromium Version:**
+* Qt WebEngine 6.2+ uses Chromium 91+
+* Qt WebEngine 6.5+ uses Chromium 108+
+* **Documentation Requirement:** Application SHALL document the exact Chromium version at build time (display in About dialog or log at startup)
+
+**V8 JavaScript Engine:**
+* V8 version is determined by Chromium version
+* Qt WebEngine 6.2+ uses V8 9.1+
+* Qt WebEngine 6.5+ uses V8 10.8+
+* **Documentation Requirement:** Application SHALL document the exact V8 version at build time
+
+**HTML/CSS Standards:**
+* **HTML5 Support:** Full support for HTML5 specification as implemented by Chromium version (typically 95%+ compliance)
+* **CSS3 Support:** Full support for CSS3 specification as implemented by Chromium version (typically 90%+ compliance)
+* **ECMAScript Support:** Full support for ECMAScript 2022 (ES13) and earlier versions
+
+=== WebEngine Profile Configuration
+
+==== Reader Content Rendering Profile
+
+**Profile Purpose:** Render cartridge content pages (HTML content from `Content_Pages` table)
+
+**Profile Configuration:**
+
+[source,cpp]
+----
+QWebEngineProfile* contentProfile = new QWebEngineProfile("ContentProfile", this);
+
+// Security Settings
+contentProfile->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessRemoteUrls, false);
+contentProfile->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessFileUrls, true);
+contentProfile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled, true);
+contentProfile->settings()->setAttribute(QWebEngineSettings::PluginsEnabled, false);
+contentProfile->settings()->setAttribute(QWebEngineSettings::WebGLEnabled, true);
+
+// Performance Settings
+contentProfile->settings()->setAttribute(QWebEngineSettings::Accelerated2dCanvasEnabled, true);
+contentProfile->settings()->setAttribute(QWebEngineSettings::AcceleratedCompositingEnabled, true);
+contentProfile->settings()->setAttribute(QWebEngineSettings::SpatialNavigationEnabled, false);
+
+// Cache Settings
+contentProfile->setHttpCacheType(QWebEngineProfile::DiskHttpCache);
+contentProfile->setHttpCacheMaximumSize(50 * 1024 * 1024); // 50MB cache
+
+// Storage Settings
+contentProfile->settings()->setAttribute(QWebEngineSettings::LocalStorageEnabled, true);
+contentProfile->settings()->setAttribute(QWebEngineSettings::SessionStorageEnabled, true);
+
+// Service Workers (disabled for security)
+contentProfile->setHttpCacheType(QWebEngineProfile::DiskHttpCache); // Note: Service workers disabled via NoCache for embedded apps
+----
+
+**Settings Rationale:**
+* `LocalContentCanAccessRemoteUrls: false` - Prevents local content from accessing remote URLs (security)
+* `LocalContentCanAccessFileUrls: true` - Allows loading local resources (images, fonts, etc.)
+* `JavascriptEnabled: true` - Required for interactive content and embedded applications
+* `PluginsEnabled: false` - Disables Flash and other plugins (security, plugins are deprecated)
+* `WebGLEnabled: true` - Enables WebGL for graphics rendering (if needed by content)
+* `Accelerated2dCanvasEnabled: true` - Hardware acceleration for canvas operations (performance)
+* `AcceleratedCompositingEnabled: true` - Hardware-accelerated compositing (performance)
+* `LocalStorageEnabled: true` - Allows localStorage for content persistence
+* `SessionStorageEnabled: true` - Allows sessionStorage for temporary data
+
+==== Embedded Application Profile
+
+**Profile Purpose:** Execute embedded JavaScript applications (from `Embedded_Apps` table)
+
+**Profile Configuration:**
+
+[source,cpp]
+----
+QWebEngineProfile* embeddedAppProfile = new QWebEngineProfile("EmbeddedAppProfile", this);
+
+// Security Settings (Strict)
+embeddedAppProfile->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessRemoteUrls, false);
+embeddedAppProfile->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessFileUrls, false);
+embeddedAppProfile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled, true);
+embeddedAppProfile->settings()->setAttribute(QWebEngineSettings::PluginsEnabled, false);
+embeddedAppProfile->settings()->setAttribute(QWebEngineSettings::WebGLEnabled, true);
+
+// Performance Settings
+embeddedAppProfile->settings()->setAttribute(QWebEngineSettings::Accelerated2dCanvasEnabled, true);
+embeddedAppProfile->settings()->setAttribute(QWebEngineSettings::AcceleratedCompositingEnabled, true);
+
+// Cache Settings (No cache to prevent service workers)
+embeddedAppProfile->setHttpCacheType(QWebEngineProfile::NoCache);
+
+// Storage Settings (Isolated per app)
+embeddedAppProfile->settings()->setAttribute(QWebEngineSettings::LocalStorageEnabled, true);
+embeddedAppProfile->settings()->setAttribute(QWebEngineSettings::SessionStorageEnabled, true);
+
+// Network Interceptor (Blocks all HTTP/HTTPS)
+EmbeddedAppRequestInterceptor* interceptor = new EmbeddedAppRequestInterceptor(this);
+embeddedAppProfile->setUrlRequestInterceptor(interceptor);
+----
+
+**Key Differences from Content Profile:**
+* `LocalContentCanAccessFileUrls: false` - Embedded apps cannot access file: URLs (must use sandbox API)
+* `HttpCacheType: NoCache` - Prevents service workers and caching (security)
+* Network interceptor attached to block all network requests
+
+==== Creator Tool Editing Profile
+
+**Profile Purpose:** WYSIWYG HTML editing interface in Creator Tool
+
+**Profile Configuration:**
+
+[source,cpp]
+----
+QWebEngineProfile* editorProfile = new QWebEngineProfile("EditorProfile", this);
+
+// Security Settings (Less restrictive for editing)
+editorProfile->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessRemoteUrls, false);
+editorProfile->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessFileUrls, true);
+editorProfile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled, true);
+editorProfile->settings()->setAttribute(QWebEngineSettings::PluginsEnabled, false);
+
+// Performance Settings
+editorProfile->settings()->setAttribute(QWebEngineSettings::Accelerated2dCanvasEnabled, true);
+editorProfile->settings()->setAttribute(QWebEngineSettings::AcceleratedCompositingEnabled, true);
+
+// Cache Settings (Larger cache for editing performance)
+editorProfile->setHttpCacheType(QWebEngineProfile::DiskHttpCache);
+editorProfile->setHttpCacheMaximumSize(100 * 1024 * 1024); // 100MB cache
+
+// Storage Settings
+editorProfile->settings()->setAttribute(QWebEngineSettings::LocalStorageEnabled, true);
+editorProfile->settings()->setAttribute(QWebEngineSettings::SessionStorageEnabled, true);
+----
+
+**Key Differences:**
+* Larger cache (100MB vs 50MB) for better editing performance
+* File URL access enabled for loading local resources during editing
+* No network interceptor (editing interface may need to load local resources)
+
+=== Network Request Interceptor Implementation
+
+==== Interceptor Class Definition
+
+**Purpose:** Block all HTTP/HTTPS requests from embedded applications while allowing local resource loading
+
+**Implementation:**
+
+[source,cpp]
+----
+class EmbeddedAppRequestInterceptor : public QWebEngineUrlRequestInterceptor {
+    Q_OBJECT
+public:
+    explicit EmbeddedAppRequestInterceptor(QObject* parent = nullptr)
+        : QWebEngineUrlRequestInterceptor(parent) {}
+    
+    void interceptRequest(QWebEngineUrlRequestInfo &info) override {
+        QUrl url = info.requestUrl();
+        QString scheme = url.scheme().toLower();
+        
+        // Allow data: and blob: URLs (for inline resources)
+        if (scheme == "data" || scheme == "blob") {
+            return; // Allow request
+        }
+        
+        // Block all HTTP/HTTPS requests
+        if (scheme == "http" || scheme == "https") {
+            qWarning() << "Blocked network request:" << url.toString();
+            info.block(true);
+            return;
+        }
+        
+        // Block file: URLs (apps should use sandbox API instead)
+        if (scheme == "file") {
+            qWarning() << "Blocked file URL request:" << url.toString();
+            info.block(true);
+            return;
+        }
+        
+        // Allow other schemes (about:, chrome:, etc.) - these are internal
+        // Note: Most internal schemes are already handled by WebEngine
+    }
+};
+----
+
+**Interceptor Usage:**
+* Attach interceptor to embedded application profile: `embeddedAppProfile->setUrlRequestInterceptor(interceptor)`
+* Interceptor applies to all requests from views using that profile
+* Log all blocked requests for debugging and security monitoring
+
+=== Content Security Policy (CSP) Configuration
+
+==== CSP Header for Embedded Applications
+
+**CSP Policy String:**
+```
+default-src 'self' 'unsafe-inline' 'unsafe-eval'; 
+script-src 'self' 'unsafe-inline' 'unsafe-eval'; 
+style-src 'self' 'unsafe-inline'; 
+connect-src 'none'; 
+img-src 'self' data: blob:; 
+font-src 'self' data:; 
+object-src 'none'; 
+base-uri 'self'; 
+form-action 'none';
+```
+
+**Policy Directive Explanation:**
+* `default-src 'self' 'unsafe-inline' 'unsafe-eval'` - Default policy allows same-origin resources, inline scripts/styles, and eval (required for SPAs)
+* `script-src 'self' 'unsafe-inline' 'unsafe-eval'` - Scripts from same origin, inline scripts, and eval() allowed
+* `style-src 'self' 'unsafe-inline'` - Styles from same origin and inline styles allowed
+* `connect-src 'none'` - **No network connections allowed** (primary security directive)
+* `img-src 'self' data: blob:` - Images from same origin, data URIs, and blob URLs
+* `font-src 'self' data:` - Fonts from same origin and data URIs
+* `object-src 'none'` - No plugins/objects (Flash, etc.)
+* `base-uri 'self'` - Base tag can only point to same origin
+* `form-action 'none'` - Forms cannot submit (apps use WebChannel API instead)
+
+**CSP Implementation:**
+
+[source,cpp]
+----
+void ReaderViewInstance::setCSPHeaders(QWebEnginePage* page) {
+    QString cspPolicy = 
+        "default-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+        "style-src 'self' 'unsafe-inline'; "
+        "connect-src 'none'; "
+        "img-src 'self' data: blob:; "
+        "font-src 'self' data:; "
+        "object-src 'none'; "
+        "base-uri 'self'; "
+        "form-action 'none'";
+    
+    // Set CSP header via custom request interceptor or page load
+    // Note: CSP can be set via QWebEngineHttpRequest::setHeader() or
+    // by injecting meta tag into HTML content
+}
+----
+
+**CSP Enforcement:**
+* CSP is a **secondary defense layer** - primary network blocking is via `QWebEngineUrlRequestInterceptor`
+* CSP violations are logged by Chromium (can be captured via JavaScript console)
+* CSP provides defense-in-depth security
+
+=== WebChannel Configuration
+
+==== WebChannel Setup for Reader
+
+**Bridge Registration:**
+
+[source,cpp]
+----
+void ReaderViewInstance::setupWebChannel(QWebEngineView* view) {
+    QWebChannel* channel = new QWebChannel(this);
+    SmartbookBridge* bridge = new SmartbookBridge(this, m_cartridgeConnector);
+    
+    // Register bridge object with name "SmartbookBridge"
+    channel->registerObject("SmartbookBridge", bridge);
+    
+    // Set channel on page
+    view->page()->setWebChannel(channel);
+    
+    // Inject WebChannel script (required for JavaScript-to-C++ communication)
+    QFile webChannelJs(":/qtwebchannel/qwebchannel.js");
+    if (webChannelJs.open(QIODevice::ReadOnly)) {
+        QString script = webChannelJs.readAll();
+        view->page()->runJavaScript(script);
+    } else {
+        qWarning() << "Failed to load qwebchannel.js";
+    }
+}
+----
+
+**WebChannel Script Injection:**
+* Qt WebEngine requires `qwebchannel.js` to be injected into the page
+* Script is typically bundled with Qt WebEngine module (resource file)
+* Script must be injected before any JavaScript code that uses WebChannel
+* Script enables JavaScript-to-C++ communication via `SmartbookBridge` object
+
+**JavaScript Usage:**
+* After script injection, JavaScript can access: `new QWebChannel(qt.webChannelTransport, function(channel) { ... })`
+* Access bridge object: `channel.objects.SmartbookBridge`
+* Call C++ methods: `SmartbookBridge.saveFormData(...)`
+
+=== Error Handling Configuration
+
+==== JavaScript Console Error Handling
+
+**Console Message Handler:**
+
+[source,cpp]
+----
+void ReaderViewInstance::setupErrorHandling(QWebEnginePage* page) {
+    // Connect to JavaScript console messages
+    connect(page, &QWebEnginePage::javascriptConsoleMessage,
+            this, &ReaderViewInstance::onJavaScriptConsoleMessage);
+}
+
+void ReaderViewInstance::onJavaScriptConsoleMessage(
+    QWebEnginePage::JavaScriptConsoleMessageLevel level,
+    const QString& message,
+    int lineNumber,
+    const QString& sourceID) {
+    
+    // Log JavaScript errors and warnings
+    if (level == QWebEnginePage::ErrorMessageLevel) {
+        qWarning() << "JavaScript Error:" << message 
+                   << "at line" << lineNumber 
+                   << "in" << sourceID;
+        // Log to application log file with ERROR level
+    } else if (level == QWebEnginePage::WarningMessageLevel) {
+        qInfo() << "JavaScript Warning:" << message;
+        // Log to application log file with WARN level
+    }
+    
+    // Optionally display error overlay in UI for critical errors
+    if (level == QWebEnginePage::ErrorMessageLevel) {
+        // Show non-intrusive error indicator
+    }
+}
+----
+
+==== WebEngine Process Crash Handling
+
+**Crash Detection:**
+
+[source,cpp]
+----
+void ReaderViewInstance::setupCrashHandling(QWebEngineView* view) {
+    // Connect to render process terminated signal
+    connect(view->page(), &QWebEnginePage::renderProcessTerminated,
+            this, &ReaderViewInstance::onRenderProcessTerminated);
+}
+
+void ReaderViewInstance::onRenderProcessTerminated(
+    QWebEnginePage::RenderProcessTerminationStatus status,
+    int exitCode) {
+    
+    QString statusText;
+    switch (status) {
+        case QWebEnginePage::NormalTerminationStatus:
+            statusText = "Normal termination";
+            break;
+        case QWebEnginePage::AbnormalTerminationStatus:
+            statusText = "Abnormal termination (crash)";
+            break;
+        case QWebEnginePage::CrashedTerminationStatus:
+            statusText = "Process crashed";
+            break;
+        case QWebEnginePage::KilledTerminationStatus:
+            statusText = "Process killed";
+            break;
+    }
+    
+    qCritical() << "WebEngine process terminated:" << statusText 
+                << "Exit code:" << exitCode;
+    
+    // Log to application log file with ERROR level
+    // Display recovery dialog to user
+    showRecoveryDialog();
+}
+
+void ReaderViewInstance::showRecoveryDialog() {
+    QMessageBox dialog(this);
+    dialog.setIcon(QMessageBox::Critical);
+    dialog.setWindowTitle("Content Viewer Error");
+    dialog.setText("The content viewer encountered an error.");
+    dialog.setInformativeText("What would you like to do?");
+    dialog.addButton("Reload Page", QMessageBox::ActionRole);
+    dialog.addButton("Close Cartridge", QMessageBox::ActionRole);
+    dialog.addButton("Continue", QMessageBox::ActionRole);
+    
+    int result = dialog.exec();
+    
+    switch (result) {
+        case 0: // Reload Page
+            reloadPage();
+            break;
+        case 1: // Close Cartridge
+            close();
+            break;
+        case 2: // Continue
+            // Attempt to continue (may not work if process crashed)
+            break;
+    }
+}
+----
+
+**Recovery Options:**
+* **Reload Page:** Reloads the page content (creates new renderer process)
+* **Close Cartridge:** Closes the Reader View Window
+* **Continue:** Attempts to continue (may not work if process crashed)
+
+=== Performance Configuration
+
+==== Memory Management
+
+**Memory Usage:**
+* Each `QWebEngineView` instance uses approximately 50-100MB RAM
+* Monitor memory usage for multiple simultaneous views
+* Implement view lifecycle management (destroy unused views)
+* Set memory warnings if system memory is low
+
+**View Lifecycle:**
+* Create views on-demand (lazy loading)
+* Destroy views when cartridge is closed
+* Reuse views when possible (but maintain isolation for embedded apps)
+
+**Memory Monitoring:**
+* Track memory usage per view
+* Display warning if total memory usage exceeds threshold (e.g., 500MB)
+* Offer to close other cartridges to free memory
+
+==== Cache Configuration
+
+**HTTP Cache:**
+* **Content Rendering:** 50MB disk cache
+* **Creator Tool:** 100MB disk cache
+* **Embedded Apps:** No cache (prevents service workers)
+
+**Cache Location:**
+* Platform-specific cache directories:
+  * Windows: `%LOCALAPPDATA%\SmartBook\cache\`
+  * macOS: `~/Library/Caches/SmartBook/`
+  * Linux: `~/.cache/SmartBook/`
+
+**Cache Cleanup:**
+* Clear cache on application exit (optional, user preference)
+* Clear cache on cartridge deletion (if cartridge-specific cache)
+* Manual cache clear option in settings
+
+=== HTML/CSS Standards Support
+
+==== HTML5 Support
+
+**Supported Features:**
+* HTML5 semantic elements (`<article>`, `<section>`, `<nav>`, `<header>`, `<footer>`, etc.)
+* HTML5 form elements and validation
+* HTML5 media elements (`<audio>`, `<video>`)
+* HTML5 canvas and SVG
+* HTML5 Web Components (Custom Elements, Shadow DOM)
+
+**Standards Compliance:**
+* Chromium's HTML5 implementation (typically 95%+ compliance)
+* Specific compliance level depends on Chromium version
+* Document exact Chromium version and compliance level in application
+
+==== CSS3 Support
+
+**Supported Features:**
+* CSS3 selectors (attribute selectors, pseudo-classes, pseudo-elements)
+* CSS3 properties (flexbox, grid, transforms, animations, transitions)
+* CSS3 media queries
+* CSS3 variables (custom properties)
+* CSS3 modules (as implemented by Chromium)
+
+**Standards Compliance:**
+* Chromium's CSS3 implementation (typically 90%+ compliance)
+* Specific compliance level depends on Chromium version
+* Document exact Chromium version and compliance level in application
+
+=== JavaScript Engine Configuration
+
+==== V8 Engine Features
+
+**Supported ECMAScript Versions:**
+* ECMAScript 2022 (ES13) - Full support
+* ECMAScript 2021 (ES12) - Full support
+* ECMAScript 2020 (ES11) - Full support
+* ECMAScript 2019 (ES10) - Full support
+* ECMAScript 2018 (ES9) - Full support
+* ECMAScript 2017 (ES8) - Full support
+* ECMAScript 2016 (ES7) - Full support
+* ECMAScript 2015 (ES6) - Full support
+
+**JavaScript Features:**
+* Classes, modules (ES6 modules), async/await
+* Promises, generators, iterators
+* Arrow functions, template literals
+* Destructuring, spread operator
+* Proxy, Reflect, Symbol
+* WebAssembly support
+
+**V8 Engine Version Detection:**
+* Document exact V8 version at build time
+* V8 version determined by Chromium version
+* Can be queried at runtime (if needed): Check Qt WebEngine version information
+
+=== Additional Settings
+
+==== Accessibility Settings
+
+**Screen Reader Support:**
+* Enable accessibility features: `QWebEngineSettings::ScreenReaderEnabled`
+* Ensure ARIA labels are properly rendered
+* Support keyboard navigation
+
+**High Contrast Mode:**
+* Respect system high contrast settings
+* Apply high contrast CSS when system setting is enabled
+
+==== Developer Tools (Optional)
+
+**Developer Console:**
+* Disable in production builds: `QWebEngineSettings::DeveloperExtrasEnabled = false`
+* Enable in debug builds for development
+* Access via: Right-click context menu or keyboard shortcut (if enabled)
+
+**Remote Debugging:**
+* Disable in production (security risk)
+* Enable only in development builds
+* Use `QWebEngineProfile::setHttpUserAgent()` for identification
+
+== SQLite Configuration Implementation
+
+This section specifies the detailed SQLite configuration for the Reader and Creator Tool applications, including version requirements, WAL mode configuration, database optimization settings, connection management, and maintenance operations.
+
+=== SQLite Version Requirements
+
+**Minimum Version:** SQLite 3.51
+
+**Rationale:**
+* SQLite 3.51 (released 2024) includes important bug fixes and performance improvements
+* WAL mode improvements and checkpoint optimizations
+* Better handling of large databases
+* Enhanced foreign key constraint support
+* Improved query optimizer
+
+**Version Detection:**
+
+[source,cpp]
+----
+void LocalDBManager::checkSQLiteVersion() {
+    QSqlDatabase db = QSqlDatabase::database();
+    QVariant versionVar = db.driver()->property("SQLiteVersion");
+    QString sqliteVersion = versionVar.toString();
+    
+    qInfo() << "SQLite version:" << sqliteVersion;
+    
+    // Parse version string (format: "3.51.0" or similar)
+    QStringList parts = sqliteVersion.split(".");
+    if (parts.size() >= 2) {
+        int major = parts[0].toInt();
+        int minor = parts[1].toInt();
+        
+        if (major < 3 || (major == 3 && minor < 51)) {
+            qCritical() << "SQLite version" << sqliteVersion 
+                        << "is below minimum required version 3.51";
+            // Display error dialog to user
+            QMessageBox::critical(nullptr, "SQLite Version Error",
+                QString("SQLite version %1 is below minimum required version 3.51.\n"
+                       "Please update SQLite or contact support.").arg(sqliteVersion));
+        }
+    }
+}
+----
+
+**Version Documentation:**
+* Log SQLite version at application startup
+* Include version in About dialog (optional)
+* Document version in application logs
+* Store version information for debugging
+
+=== WAL Mode Configuration
+
+==== WAL Mode Overview
+
+**Write-Ahead Logging (WAL) Benefits:**
+* Better concurrency (readers don't block writers, writers don't block readers)
+* Improved performance for mixed read/write workloads
+* Reduced lock contention
+* Better for multi-threaded applications
+* Faster checkpoint operations
+
+**WAL Mode Trade-offs:**
+* Slightly larger database files (WAL file exists alongside database)
+* Requires checkpointing to maintain WAL file size
+* WAL file must be present for database to function (both files needed)
+
+==== WAL Mode Implementation
+
+**Enable WAL Mode for Local Database:**
+
+[source,cpp]
+----
+void LocalDBManager::enableWALMode() {
+    QSqlDatabase db = QSqlDatabase::database();
+    QSqlQuery query(db);
+    
+    // Check current journal mode
+    if (query.exec("PRAGMA journal_mode")) {
+        if (query.next()) {
+            QString mode = query.value(0).toString().toUpper();
+            if (mode != "WAL") {
+                // Enable WAL mode
+                if (query.exec("PRAGMA journal_mode=WAL")) {
+                    qInfo() << "WAL mode enabled for local database";
+                } else {
+                    qWarning() << "Failed to enable WAL mode:" << query.lastError();
+                }
+            } else {
+                qInfo() << "Database already in WAL mode";
+            }
+        }
+    }
+}
+----
+
+**Enable WAL Mode for Cartridge Files:**
+
+[source,cpp]
+----
+void CartridgeDBConnector::enableWALMode() {
+    QSqlDatabase db = database();
+    if (!isWritable()) {
+        qInfo() << "Cartridge is read-only, skipping WAL mode enable";
+        return;
+    }
+    
+    QSqlQuery query(db);
+    if (query.exec("PRAGMA journal_mode=WAL")) {
+        qInfo() << "WAL mode enabled for cartridge";
+    } else {
+        qWarning() << "Failed to enable WAL mode:" << query.lastError();
+    }
+}
+----
+
+**WAL Checkpoint Configuration:**
+
+[source,cpp]
+----
+void LocalDBManager::configureWALCheckpoint() {
+    QSqlDatabase db = QSqlDatabase::database();
+    QSqlQuery query(db);
+    
+    // Set WAL autocheckpoint threshold (1000 pages = ~4MB with 4KB pages)
+    if (!query.exec("PRAGMA wal_autocheckpoint=1000")) {
+        qWarning() << "Failed to set WAL autocheckpoint:" << query.lastError();
+    }
+    
+    qInfo() << "WAL autocheckpoint configured: 1000 pages";
+}
+----
+
+**WAL File Size Monitoring and Manual Checkpoint:**
+
+[source,cpp]
+----
+qint64 LocalDBManager::getWALFileSize() {
+    QString dbPath = QSqlDatabase::database().databaseName();
+    QString walPath = dbPath + "-wal";
+    QFileInfo walFile(walPath);
+    if (walFile.exists()) {
+        return walFile.size();
+    }
+    return 0;
+}
+
+void LocalDBManager::checkWALSize() {
+    qint64 walSize = getWALFileSize();
+    const qint64 maxWALSize = 10 * 1024 * 1024; // 10MB
+    
+    if (walSize > maxWALSize) {
+        qInfo() << "WAL file size:" << walSize << "bytes, performing checkpoint";
+        performWALCheckpoint();
+    }
+}
+
+void LocalDBManager::performWALCheckpoint() {
+    QSqlDatabase db = QSqlDatabase::database();
+    QSqlQuery query(db);
+    
+    // Perform checkpoint (truncates WAL file)
+    if (query.exec("PRAGMA wal_checkpoint(TRUNCATE)")) {
+        qInfo() << "WAL checkpoint completed";
+    } else {
+        qWarning() << "WAL checkpoint failed:" << query.lastError();
+    }
+}
+----
+
+**WAL Checkpoint Strategy:**
+* Automatic checkpoint: When WAL file exceeds 10MB or 1000 pages written
+* Manual checkpoint: After bulk operations, before backups
+* Periodic checkpoint: During idle time (optional)
+
+=== Database Optimization Configuration
+
+==== Page Size Configuration
+
+**Page Size: 4096 bytes (4KB)**
+
+**Rationale:**
+* 4KB matches modern OS page size (optimal for memory mapping)
+* Good balance between performance and memory usage
+* Standard size for most SQLite databases
+* Optimal for cache efficiency
+
+**Implementation:**
+
+[source,cpp]
+----
+void LocalDBManager::createDatabase() {
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "LocalDB");
+    db.setDatabaseName(localDatabasePath());
+    
+    if (!db.open()) {
+        qCritical() << "Failed to open local database";
+        return;
+    }
+    
+    QSqlQuery query(db);
+    
+    // Set page size (must be done before creating tables, only for new databases)
+    if (!query.exec("PRAGMA page_size=4096")) {
+        qWarning() << "Failed to set page size:" << query.lastError();
+    }
+    
+    // Verify page size was set
+    if (query.exec("PRAGMA page_size")) {
+        if (query.next()) {
+            int pageSize = query.value(0).toInt();
+            qInfo() << "Database page size:" << pageSize << "bytes";
+        }
+    }
+    
+    // Create schema...
+}
+----
+
+**Note:** Page size can only be set for new databases. Existing databases retain their original page size. To change page size of existing database, use `VACUUM INTO` (SQLite 3.27+).
+
+==== Cache Size Configuration
+
+**Cache Size Settings:**
+
+[source,cpp]
+----
+void LocalDBManager::configureCache() {
+    QSqlDatabase db = QSqlDatabase::database();
+    QSqlQuery query(db);
+    
+    // Set cache size to 2000 pages (8MB with 4KB pages)
+    // Negative value = pages (absolute value in KB)
+    if (!query.exec("PRAGMA cache_size=-2000")) {
+        qWarning() << "Failed to set cache size:" << query.lastError();
+    }
+    
+    // Verify cache size
+    if (query.exec("PRAGMA cache_size")) {
+        if (query.next()) {
+            int cacheSize = query.value(0).toInt();
+            qInfo() << "Cache size configured:" << cacheSize << "pages";
+        }
+    }
+}
+
+void CartridgeDBConnector::configureCache() {
+    QSqlDatabase db = database();
+    QSqlQuery query(db);
+    
+    // Set cache size to 1000 pages (4MB with 4KB pages)
+    if (!query.exec("PRAGMA cache_size=-1000")) {
+        qWarning() << "Failed to set cache size:" << query.lastError();
+    }
+}
+----
+
+**Cache Size Rationale:**
+* Local database: 2000 pages (8MB) - larger cache for frequently accessed manifest data
+* Cartridge files: 1000 pages (4MB) - smaller cache per cartridge, multiple cartridges may be open simultaneously
+* Cache size is per-connection, so each cartridge connection has its own cache
+
+==== Synchronous Configuration
+
+**Synchronous Mode: NORMAL (for WAL mode)**
+
+**Implementation:**
+
+[source,cpp]
+----
+void LocalDBManager::configureSynchronous() {
+    QSqlDatabase db = QSqlDatabase::database();
+    QSqlQuery query(db);
+    
+    // Set synchronous mode to NORMAL (safe with WAL mode)
+    if (!query.exec("PRAGMA synchronous=NORMAL")) {
+        qWarning() << "Failed to set synchronous mode:" << query.lastError();
+    }
+    
+    // Verify synchronous mode
+    if (query.exec("PRAGMA synchronous")) {
+        if (query.next()) {
+            int syncMode = query.value(0).toInt();
+            // 1 = NORMAL, 2 = FULL, 0 = OFF
+            qInfo() << "Synchronous mode:" << syncMode << "(1=NORMAL)";
+        }
+    }
+}
+----
+
+**Synchronous Mode Options:**
+* `OFF` (0) - Fastest but unsafe (data loss risk on power failure) - **NOT RECOMMENDED**
+* `NORMAL` (1) - Safe with WAL mode, good performance - **RECOMMENDED**
+* `FULL` (2) - Safest but slower - **NOT NEEDED with WAL mode**
+
+**Rationale:**
+* WAL mode provides durability guarantees even with NORMAL synchronous mode
+* NORMAL mode with WAL is safe and performant
+* FULL mode adds unnecessary overhead with WAL (double-write protection not needed)
+
+==== Foreign Key Constraints
+
+**Enable Foreign Key Enforcement:**
+
+[source,cpp]
+----
+void LocalDBManager::enableForeignKeys() {
+    QSqlDatabase db = QSqlDatabase::database();
+    QSqlQuery query(db);
+    
+    // Enable foreign key constraints (must be done per connection)
+    if (!query.exec("PRAGMA foreign_keys=ON")) {
+        qWarning() << "Failed to enable foreign keys:" << query.lastError();
+        return;
+    }
+    
+    // Verify foreign keys are enabled
+    if (query.exec("PRAGMA foreign_keys")) {
+        if (query.next()) {
+            int enabled = query.value(0).toInt();
+            if (enabled != 1) {
+                qWarning() << "Foreign keys not enabled (expected 1, got" << enabled << ")";
+            } else {
+                qInfo() << "Foreign key constraints enabled";
+            }
+        }
+    }
+}
+----
+
+**Foreign Key Benefits:**
+* Data integrity enforcement at database level
+* Prevents orphaned records
+* Automatic referential integrity checks
+* Cascading deletes/updates (if defined in schema)
+
+**Note:** Foreign keys must be enabled per connection (not persistent in database). Must be enabled after each connection is opened.
+
+==== Query Optimizer Configuration
+
+**Enable Query Optimizer Statistics:**
+
+[source,cpp]
+----
+void LocalDBManager::updateStatistics() {
+    QSqlDatabase db = QSqlDatabase::database();
+    QSqlQuery query(db);
+    
+    qInfo() << "Updating query optimizer statistics";
+    
+    // Update query optimizer statistics
+    if (!query.exec("ANALYZE")) {
+        qWarning() << "Failed to update statistics:" << query.lastError();
+    } else {
+        qInfo() << "Statistics updated successfully";
+    }
+}
+----
+
+**When to Run ANALYZE:**
+* After bulk imports (cartridge imports)
+* After significant data changes (bulk deletes, updates)
+* Periodically (e.g., weekly) for local database
+* After schema changes that affect indexes
+* After VACUUM operations
+
+**Automatic Statistics Update:**
+* Run ANALYZE after import operations complete
+* Run ANALYZE after bulk deletes (e.g., cartridge deletion)
+* Consider running during idle time (background task)
+
+=== Connection Configuration
+
+==== Connection Setup
+
+**Local Database Connection:**
+
+[source,cpp]
+----
+void LocalDBManager::initializeConnection() {
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "LocalDB");
+    db.setDatabaseName(localDatabasePath());
+    
+    // Set connection options (optional)
+    // db.setConnectOptions("QSQLITE_ENABLE_REGEXP"); // Enable regexp function
+    
+    // Set busy timeout (5 seconds)
+    db.setConnectOptions("QSQLITE_BUSY_TIMEOUT=5000");
+    
+    if (!db.open()) {
+        qCritical() << "Failed to open local database:" << db.lastError();
+        return;
+    }
+    
+    // Configure database settings
+    enableWALMode();
+    configureCache();
+    configureSynchronous();
+    enableForeignKeys();
+    configureWALCheckpoint();
+    
+    qInfo() << "Local database connection established and configured";
+}
+----
+
+**Cartridge Database Connection:**
+
+[source,cpp]
+----
+void CartridgeDBConnector::openCartridge(const QString& filePath) {
+    QString connectionName = QString("Cartridge_%1").arg(QUuid::createUuid().toString());
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", connectionName);
+    db.setDatabaseName(filePath);
+    
+    // Set connection timeout (30 seconds) and busy timeout (5 seconds)
+    db.setConnectOptions("QSQLITE_BUSY_TIMEOUT=5000");
+    
+    if (!db.open()) {
+        qCritical() << "Failed to open cartridge:" << db.lastError();
+        return;
+    }
+    
+    // Configure database settings (if writable)
+    if (isWritable()) {
+        enableWALMode();
+        configureCache();
+        configureSynchronous();
+        enableForeignKeys();
+    }
+    
+    qInfo() << "Cartridge database connection established:" << filePath;
+}
+----
+
+**Connection Cleanup:**
+
+[source,cpp]
+----
+void CartridgeDBConnector::closeConnection() {
+    QSqlDatabase db = database();
+    QString connectionName = db.connectionName();
+    
+    db.close();
+    QSqlDatabase::removeDatabase(connectionName);
+    
+    qInfo() << "Cartridge database connection closed";
+}
+----
+
+=== Transaction Management
+
+==== Transaction Usage
+
+**Form Data Save Transaction:**
+
+[source,cpp]
+----
+bool CartridgeDBConnector::saveFormData(const QString& formKey, const QJsonObject& data) {
+    QSqlDatabase db = database();
+    
+    if (!db.transaction()) {
+        qWarning() << "Failed to start transaction";
+        return false;
+    }
+    
+    try {
+        QSqlQuery query(db);
+        
+        // Delete existing data
+        query.prepare("DELETE FROM User_Data WHERE form_key = ?");
+        query.addBindValue(formKey);
+        if (!query.exec()) {
+            throw std::runtime_error("Failed to delete existing data");
+        }
+        
+        // Insert new data
+        query.prepare("INSERT INTO User_Data (form_key, serialized_data, timestamp) VALUES (?, ?, ?)");
+        query.addBindValue(formKey);
+        query.addBindValue(QJsonDocument(data).toJson());
+        query.addBindValue(QDateTime::currentDateTime().toSecsSinceEpoch());
+        if (!query.exec()) {
+            throw std::runtime_error("Failed to insert data");
+        }
+        
+        if (!db.commit()) {
+            throw std::runtime_error("Failed to commit transaction");
+        }
+        
+        return true;
+    } catch (const std::exception& e) {
+        db.rollback();
+        qWarning() << "Transaction rolled back:" << e.what();
+        return false;
+    }
+}
+----
+
+**Atomic Cartridge Deletion:**
+
+[source,cpp]
+----
+bool LocalDBManager::deleteCartridge(const QString& cartridgeGuid) {
+    QSqlDatabase db = QSqlDatabase::database();
+    
+    if (!db.transaction()) {
+        qWarning() << "Failed to start transaction";
+        return false;
+    }
+    
+    try {
+        QSqlQuery query(db);
+        
+        // Delete from manifest
+        query.prepare("DELETE FROM Local_Library_Manifest WHERE cartridge_guid = ?");
+        query.addBindValue(cartridgeGuid);
+        if (!query.exec()) {
+            throw std::runtime_error("Failed to delete from manifest");
+        }
+        
+        // Delete from trust registry
+        query.prepare("DELETE FROM Local_Trust_Registry WHERE cartridge_guid = ?");
+        query.addBindValue(cartridgeGuid);
+        if (!query.exec()) {
+            throw std::runtime_error("Failed to delete from trust registry");
+        }
+        
+        if (!db.commit()) {
+            throw std::runtime_error("Failed to commit transaction");
+        }
+        
+        return true;
+    } catch (const std::exception& e) {
+        db.rollback();
+        qWarning() << "Transaction rolled back:" << e.what();
+        return false;
+    }
+}
+----
+
+==== Savepoint Usage
+
+**Form Version Migration with Savepoints:**
+
+[source,cpp]
+----
+bool CartridgeDBConnector::migrateFormData(const QString& formKey, int fromVersion, int toVersion) {
+    QSqlDatabase db = database();
+    
+    if (!db.transaction()) {
+        return false;
+    }
+    
+    QSqlQuery query(db);
+    
+    // Create savepoint
+    if (!query.exec("SAVEPOINT migration")) {
+        db.rollback();
+        return false;
+    }
+    
+    try {
+        // Step 1: Load existing data
+        // Step 2: Transform data
+        // Step 3: Validate transformed data
+        // If any step fails, rollback to savepoint
+        
+        // Release savepoint (all steps succeeded)
+        if (!query.exec("RELEASE SAVEPOINT migration")) {
+            throw std::runtime_error("Failed to release savepoint");
+        }
+        
+        if (!db.commit()) {
+            throw std::runtime_error("Failed to commit transaction");
+        }
+        
+        return true;
+    } catch (const std::exception& e) {
+        // Rollback to savepoint (partial rollback)
+        query.exec("ROLLBACK TO SAVEPOINT migration");
+        db.rollback();
+        qWarning() << "Migration rolled back:" << e.what();
+        return false;
+    }
+}
+----
+
+=== Database Maintenance
+
+==== Vacuum Operation
+
+**Vacuum Implementation:**
+
+[source,cpp]
+----
+void LocalDBManager::vacuumDatabase() {
+    QSqlDatabase db = QSqlDatabase::database();
+    QSqlQuery query(db);
+    
+    qInfo() << "Starting VACUUM operation";
+    
+    // VACUUM requires exclusive lock
+    if (query.exec("VACUUM")) {
+        qInfo() << "VACUUM completed successfully";
+        
+        // Update statistics after vacuum
+        query.exec("ANALYZE");
+    } else {
+        qWarning() << "VACUUM failed:" << query.lastError();
+    }
+}
+----
+
+**When to Run VACUUM:**
+* After large deletions (e.g., bulk cartridge deletion)
+* Periodically (e.g., monthly) for local database
+* When database file size is significantly larger than data size
+* User-initiated optimization (Settings → Optimize Database)
+
+**VACUUM Considerations:**
+* Requires exclusive database lock (blocks all other operations)
+* Can take time for large databases (show progress if possible)
+* Reduces database file size by removing free space
+* Rebuilds entire database file (creates new file, replaces old)
+
+==== Integrity Checks
+
+**Quick Integrity Check:**
+
+[source,cpp]
+----
+bool CartridgeDBConnector::quickIntegrityCheck() {
+    QSqlDatabase db = database();
+    QSqlQuery query(db);
+    
+    if (query.exec("PRAGMA quick_check")) {
+        if (query.next()) {
+            QString result = query.value(0).toString();
+            if (result == "ok") {
+                qInfo() << "Quick integrity check passed";
+                return true;
+            } else {
+                qWarning() << "Quick check failed:" << result;
+                return false;
+            }
+        }
+    }
+    return false;
+}
+----
+
+**Full Integrity Check:**
+
+[source,cpp]
+----
+bool CartridgeDBConnector::fullIntegrityCheck() {
+    QSqlDatabase db = database();
+    QSqlQuery query(db);
+    
+    qInfo() << "Starting full integrity check";
+    
+    if (query.exec("PRAGMA integrity_check")) {
+        QStringList errors;
+        while (query.next()) {
+            QString result = query.value(0).toString();
+            if (result == "ok") {
+                qInfo() << "Full integrity check passed";
+                return true;
+            } else {
+                errors << result;
+            }
+        }
+        
+        if (!errors.isEmpty()) {
+            qCritical() << "Integrity check failed:" << errors;
+            return false;
+        }
+    }
+    return false;
+}
+----
+
+**Integrity Check Strategy:**
+* Quick check on cartridge open (fast, catches most issues)
+* Full check when corruption is suspected (slower, comprehensive)
+* Log all integrity check results
+* Display error to user if corruption detected
+
+==== Backup and Restore
+
+**Backup Implementation:**
+
+[source,cpp]
+----
+bool LocalDBManager::backupDatabase(const QString& backupPath) {
+    QSqlDatabase db = QSqlDatabase::database();
+    QString dbPath = db.databaseName();
+    
+    QSqlQuery query(db);
+    
+    // Use VACUUM INTO (SQLite 3.27+) for backup
+    QString vacuumSql = QString("VACUUM INTO '%1'").arg(backupPath);
+    if (query.exec(vacuumSql)) {
+        qInfo() << "Database backed up to:" << backupPath;
+        return true;
+    } else {
+        qWarning() << "Backup failed:" << query.lastError();
+        return false;
+    }
+}
+----
+
+**Backup Strategy:**
+* Create backup before schema migrations
+* Create backup before major operations (bulk deletes, etc.)
+* Store backups in backup directory: `{app_data}/backups/`
+* Backup naming: `local_reader.sqlite.backup.YYYY-MM-DD_HH-MM-SS`
+* Retain backups for 7 days
+* Automatic cleanup of old backups
+
+**Backup Directory:**
+* Windows: `%APPDATA%\SmartBook\backups\`
+* macOS: `~/Library/Application Support/SmartBook/backups/`
+* Linux: `~/.local/share/SmartBook/backups/`
+
+== Platform-Specific Considerations Implementation
+
+This section specifies platform-specific implementation details for the Reader and Creator Tool applications, including platform detection, UI framework configuration, secure storage, certificate validation, universal binary support, and file associations.
+
+=== Platform Detection and Configuration
+
+**Platform Detection:**
+
+[source,cpp]
+----
+#include <QtGlobal>
+
+enum class Platform {
+    Windows,
+    macOS,
+    Linux
+};
+
+Platform getPlatform() {
+#ifdef Q_OS_WIN
+    return Platform::Windows;
+#elif defined(Q_OS_MACOS)
+    return Platform::macOS;
+#elif defined(Q_OS_LINUX)
+    return Platform::Linux;
+#else
+    #error "Unsupported platform"
+#endif
+}
+----
+
+**Architecture Detection:**
+
+[source,cpp]
+----
+#include <QtGlobal>
+
+enum class Architecture {
+    X86_64,
+    ARM64,
+    Unknown
+};
+
+Architecture getArchitecture() {
+#if defined(Q_PROCESSOR_X86_64)
+    return Architecture::X86_64;
+#elif defined(Q_PROCESSOR_ARM_64) || defined(Q_PROCESSOR_ARM_V8)
+    return Architecture::ARM64;
+#else
+    return Architecture::Unknown;
+#endif
+}
+----
+
+=== Qt Fusion Widget Set Configuration
+
+**Apply Fusion Style:**
+
+[source,cpp]
+----
+#include <QApplication>
+#include <QStyleFactory>
+
+void applyFusionStyle(QApplication* app) {
+    // Set Fusion style for uniform appearance
+    app->setStyle(QStyleFactory::create("Fusion"));
+    
+    // Optional: Apply custom palette for theming
+    QPalette palette;
+    palette.setColor(QPalette::Window, QColor(240, 240, 240));
+    palette.setColor(QPalette::WindowText, QColor(0, 0, 0));
+    palette.setColor(QPalette::Base, QColor(255, 255, 255));
+    palette.setColor(QPalette::AlternateBase, QColor(245, 245, 245));
+    palette.setColor(QPalette::ToolTipBase, QColor(255, 255, 220));
+    palette.setColor(QPalette::ToolTipText, QColor(0, 0, 0));
+    palette.setColor(QPalette::Text, QColor(0, 0, 0));
+    palette.setColor(QPalette::Button, QColor(240, 240, 240));
+    palette.setColor(QPalette::ButtonText, QColor(0, 0, 0));
+    palette.setColor(QPalette::BrightText, QColor(255, 0, 0));
+    palette.setColor(QPalette::Link, QColor(0, 0, 255));
+    palette.setColor(QPalette::Highlight, QColor(0, 120, 215));
+    palette.setColor(QPalette::HighlightedText, QColor(255, 255, 255));
+    
+    app->setPalette(palette);
+}
+----
+
+**Application Initialization:**
+
+[source,cpp]
+----
+int main(int argc, char *argv[]) {
+    QApplication app(argc, argv);
+    
+    // Apply Fusion style for uniform appearance
+    applyFusionStyle(&app);
+    
+    // Platform-specific initialization
+    Platform platform = getPlatform();
+    switch (platform) {
+        case Platform::macOS:
+            // macOS-specific initialization
+            // Set up menu bar integration
+            break;
+        case Platform::Windows:
+            // Windows-specific initialization
+            // Set up system tray (if needed)
+            break;
+        case Platform::Linux:
+            // Linux-specific initialization
+            // Set up system tray (if needed)
+            break;
+    }
+    
+    // Continue application startup...
+}
+----
+
+=== Platform-Specific Data Directories
+
+**Directory Path Resolution:**
+
+[source,cpp]
+----
+#include <QStandardPaths>
+#include <QDir>
+
+QString getApplicationDataDirectory() {
+    QString basePath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    
+    // Ensure directory exists
+    QDir dir(basePath);
+    if (!dir.exists()) {
+        dir.mkpath(".");
+    }
+    
+    return basePath;
+}
+
+QString getCacheDirectory() {
+    QString cachePath = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
+    QDir dir(cachePath);
+    if (!dir.exists()) {
+        dir.mkpath(".");
+    }
+    return cachePath;
+}
+
+QString getLogDirectory() {
+    QString logPath = getApplicationDataDirectory() + "/logs";
+    QDir dir(logPath);
+    if (!dir.exists()) {
+        dir.mkpath(".");
+    }
+    return logPath;
+}
+
+QString getBackupDirectory() {
+    QString backupPath = getApplicationDataDirectory() + "/backups";
+    QDir dir(backupPath);
+    if (!dir.exists()) {
+        dir.mkpath(".");
+    }
+    return backupPath;
+}
+----
+
+**Platform-Specific Paths:**
+* **Windows:**
+  * Application Data: `%APPDATA%\SmartBook\` (via `QStandardPaths::AppDataLocation`)
+  * Cache: `%LOCALAPPDATA%\SmartBook\cache\` (via `QStandardPaths::CacheLocation`)
+* **macOS:**
+  * Application Data: `~/Library/Application Support/SmartBook/` (via `QStandardPaths::AppDataLocation`)
+  * Cache: `~/Library/Caches/SmartBook/` (via `QStandardPaths::CacheLocation`)
+* **Linux:**
+  * Application Data: `~/.local/share/SmartBook/` (via `QStandardPaths::AppDataLocation`)
+  * Cache: `~/.cache/SmartBook/` (via `QStandardPaths::CacheLocation`)
+
+=== Platform-Specific Secure Storage
+
+**Secure Storage Interface:**
+
+[source,cpp]
+----
+class SecureStorage {
+public:
+    static bool storeCredential(const QString& key, const QString& value);
+    static QString retrieveCredential(const QString& key);
+    static bool deleteCredential(const QString& key);
+    
+private:
+    static QString getServiceName() { return "SmartBook"; }
+};
+----
+
+**Windows Implementation (Credential Manager):**
+
+[source,cpp]
+----
+#ifdef Q_OS_WIN
+#include <windows.h>
+#include <wincred.h>
+
+bool SecureStorage::storeCredential(const QString& key, const QString& value) {
+    QString targetName = getServiceName() + "/" + key;
+    QByteArray targetNameUtf8 = targetName.toUtf8();
+    QByteArray valueUtf8 = value.toUtf8();
+    
+    CREDENTIAL cred = {0};
+    cred.Type = CRED_TYPE_GENERIC;
+    cred.TargetName = const_cast<LPSTR>(targetNameUtf8.data());
+    cred.CredentialBlobSize = valueUtf8.size();
+    cred.CredentialBlob = reinterpret_cast<LPBYTE>(const_cast<char*>(valueUtf8.data()));
+    cred.Persist = CRED_PERSIST_LOCAL_MACHINE;
+    cred.UserName = const_cast<LPSTR>("SmartBook");
+    
+    return CredWrite(&cred, 0) == TRUE;
+}
+
+QString SecureStorage::retrieveCredential(const QString& key) {
+    QString targetName = getServiceName() + "/" + key;
+    QByteArray targetNameUtf8 = targetName.toUtf8();
+    
+    PCREDENTIAL cred = nullptr;
+    if (CredRead(targetNameUtf8.data(), CRED_TYPE_GENERIC, 0, &cred)) {
+        QByteArray blob(reinterpret_cast<const char*>(cred->CredentialBlob), 
+                       cred->CredentialBlobSize);
+        CredFree(cred);
+        return QString::fromUtf8(blob);
+    }
+    return QString();
+}
+#endif
+----
+
+**macOS Implementation (Keychain):**
+
+[source,cpp]
+----
+#ifdef Q_OS_MACOS
+#include <Security/Security.h>
+
+bool SecureStorage::storeCredential(const QString& key, const QString& value) {
+    QString service = getServiceName();
+    QByteArray serviceUtf8 = service.toUtf8();
+    QByteArray keyUtf8 = key.toUtf8();
+    QByteArray valueUtf8 = value.toUtf8();
+    
+    OSStatus status = SecKeychainAddGenericPassword(
+        nullptr,
+        serviceUtf8.length(),
+        serviceUtf8.data(),
+        keyUtf8.length(),
+        keyUtf8.data(),
+        valueUtf8.length(),
+        valueUtf8.data(),
+        nullptr
+    );
+    
+    // If item exists, update it
+    if (status == errSecDuplicateItem) {
+        SecKeychainItemRef itemRef = nullptr;
+        status = SecKeychainFindGenericPassword(
+            nullptr,
+            serviceUtf8.length(),
+            serviceUtf8.data(),
+            keyUtf8.length(),
+            keyUtf8.data(),
+            nullptr,
+            nullptr,
+            &itemRef
+        );
+        
+        if (status == errSecSuccess) {
+            status = SecKeychainItemModifyContent(
+                itemRef,
+                nullptr,
+                valueUtf8.length(),
+                valueUtf8.data()
+            );
+            CFRelease(itemRef);
+        }
+    }
+    
+    return status == errSecSuccess;
+}
+
+QString SecureStorage::retrieveCredential(const QString& key) {
+    QString service = getServiceName();
+    QByteArray serviceUtf8 = service.toUtf8();
+    QByteArray keyUtf8 = key.toUtf8();
+    
+    void* passwordData = nullptr;
+    UInt32 passwordLength = 0;
+    
+    OSStatus status = SecKeychainFindGenericPassword(
+        nullptr,
+        serviceUtf8.length(),
+        serviceUtf8.data(),
+        keyUtf8.length(),
+        keyUtf8.data(),
+        &passwordLength,
+        &passwordData,
+        nullptr
+    );
+    
+    if (status == errSecSuccess) {
+        QByteArray password(reinterpret_cast<const char*>(passwordData), passwordLength);
+        SecKeychainItemFreeContent(nullptr, passwordData);
+        return QString::fromUtf8(password);
+    }
+    
+    return QString();
+}
+#endif
+----
+
+**Linux Implementation (libsecret):**
+
+[source,cpp]
+----
+#ifdef Q_OS_LINUX
+#include <libsecret/secret.h>
+
+bool SecureStorage::storeCredential(const QString& key, const QString& value) {
+    const SecretSchema* schema = secret_schema_new(
+        "com.smartbook.credential",
+        SECRET_SCHEMA_DONT_MATCH_NAME,
+        "key", SECRET_SCHEMA_ATTRIBUTE_STRING,
+        nullptr
+    );
+    
+    GError* error = nullptr;
+    secret_password_store_sync(
+        schema,
+        SECRET_COLLECTION_DEFAULT,
+        getServiceName().toUtf8().constData(),
+        value.toUtf8().constData(),
+        nullptr,
+        &error,
+        "key", key.toUtf8().constData(),
+        nullptr
+    );
+    
+    secret_schema_unref(schema);
+    
+    if (error) {
+        g_error_free(error);
+        return false;
+    }
+    
+    return true;
+}
+
+QString SecureStorage::retrieveCredential(const QString& key) {
+    const SecretSchema* schema = secret_schema_new(
+        "com.smartbook.credential",
+        SECRET_SCHEMA_DONT_MATCH_NAME,
+        "key", SECRET_SCHEMA_ATTRIBUTE_STRING,
+        nullptr
+    );
+    
+    GError* error = nullptr;
+    gchar* password = secret_password_lookup_sync(
+        schema,
+        nullptr,
+        &error,
+        "key", key.toUtf8().constData(),
+        nullptr
+    );
+    
+    secret_schema_unref(schema);
+    
+    if (error) {
+        g_error_free(error);
+        return QString();
+    }
+    
+    if (password) {
+        QString result = QString::fromUtf8(password);
+        secret_password_free(password);
+        return result;
+    }
+    
+    return QString();
+}
+#endif
+----
+
+=== Certificate Validation
+
+**Platform-Specific Certificate Store:**
+
+[source,cpp]
+----
+#include <QSslSocket>
+#include <QSslCertificate>
+
+void configureCertificateValidation() {
+    Platform platform = getPlatform();
+    
+    switch (platform) {
+        case Platform::Windows:
+            // Windows uses Windows Certificate Store automatically via Qt
+            // QSslSocket::defaultCaCertificates() uses system store
+            break;
+        case Platform::macOS:
+            // macOS uses Keychain automatically via Qt
+            // QSslSocket::defaultCaCertificates() uses system store
+            break;
+        case Platform::Linux:
+            // Linux: Use system CA bundle
+            QStringList possiblePaths = {
+                "/etc/ssl/certs/ca-certificates.crt",
+                "/etc/pki/tls/certs/ca-bundle.crt",
+                "/usr/share/ca-certificates/ca-certificates.crt"
+            };
+            
+            QString caBundlePath;
+            for (const QString& path : possiblePaths) {
+                if (QFile::exists(path)) {
+                    caBundlePath = path;
+                    break;
+                }
+            }
+            
+            if (!caBundlePath.isEmpty()) {
+                QList<QSslCertificate> certs = QSslCertificate::fromPath(caBundlePath);
+                QSslSocket::setDefaultCaCertificates(certs);
+            }
+            break;
+    }
+}
+----
+
+=== Universal Binary Support (macOS)
+
+**CMake Configuration for Universal Binary:**
+
+[source,cmake]
+----
+if(APPLE)
+    # Check if building for universal binary
+    if(CMAKE_OSX_ARCHITECTURES)
+        # Already specified
+    else
+        # Set to build universal binary (ARM64 + X86_64)
+        set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
+    endif()
+    
+    # Set minimum macOS version
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "26.1")
+    
+    # Code signing (if certificate available)
+    set(CMAKE_OSX_CODE_SIGN_IDENTITY "Developer ID Application")
+endif()
+----
+
+**Verify Universal Binary:**
+
+[source,bash]
+----
+# Verify architectures in binary
+lipo -info build/SmartBook.app/Contents/MacOS/SmartBook
+
+# Expected output:
+# Architectures in the fat file: build/SmartBook.app/Contents/MacOS/SmartBook are: arm64 x86_64
+----
+
+=== File Associations
+
+**Windows File Association (Registry):**
+
+[source,reg]
+----
+Windows Registry Editor Version 5.00
+
+[HKEY_CURRENT_USER\Software\Classes\.sqlite]
+@="SmartBook.Cartridge"
+
+[HKEY_CURRENT_USER\Software\Classes\SmartBook.Cartridge]
+@="SmartBook Cartridge"
+
+[HKEY_CURRENT_USER\Software\Classes\SmartBook.Cartridge\DefaultIcon]
+@="C:\\Program Files\\SmartBook\\SmartBook.exe,0"
+
+[HKEY_CURRENT_USER\Software\Classes\SmartBook.Cartridge\shell\open\command]
+@="\"C:\\Program Files\\SmartBook\\SmartBook.exe\" \"%1\""
+----
+
+**macOS File Association (Info.plist):**
+
+[source,xml]
+----
+<key>CFBundleDocumentTypes</key>
+<array>
+    <dict>
+        <key>CFBundleTypeExtensions</key>
+        <array>
+            <string>sqlite</string>
+        </array>
+        <key>CFBundleTypeIconFile</key>
+        <string>CartridgeIcon</string>
+        <key>CFBundleTypeName</key>
+        <string>SmartBook Cartridge</string>
+        <key>CFBundleTypeRole</key>
+        <string>Viewer</string>
+        <key>LSItemContentTypes</key>
+        <array>
+            <string>com.smartbook.cartridge</string>
+        </array>
+    </dict>
+</array>
+----
+
+**Linux File Association (.desktop file):**
+
+[source,ini]
+----
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=SmartBook
+Comment=SmartBook Cartridge Reader
+Exec=/usr/bin/smartbook %f
+Icon=smartbook
+MimeType=application/x-sqlite3;application/vnd.sqlite3;
+Terminal=false
+Categories=Office;Viewer;
+----
+
+=== URL Scheme Handling
+
+**macOS URL Scheme (Info.plist):**
+
+[source,xml]
+----
+<key>CFBundleURLTypes</key>
+<array>
+    <dict>
+        <key>CFBundleURLName</key>
+        <string>com.smartbook.cartridge</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
+            <string>smartbook</string>
+        </array>
+    </dict>
+</array>
+----
+
+**Windows URL Scheme (Registry):**
+
+[source,reg]
+----
+Windows Registry Editor Version 5.00
+
+[HKEY_CURRENT_USER\Software\Classes\smartbook]
+@="URL:SmartBook Protocol"
+"URL Protocol"=""
+
+[HKEY_CURRENT_USER\Software\Classes\smartbook\shell\open\command]
+@="\"C:\\Program Files\\SmartBook\\SmartBook.exe\" \"%1\""
+----
+
+**Linux URL Scheme (.desktop file):**
+
+[source,ini]
+----
+[Desktop Entry]
+...
+MimeType=application/x-sqlite3;application/vnd.sqlite3;x-scheme-handler/smartbook;
+----
+
+== Series and Edition Grouping Implementation
+
+This section defines how series, edition, and custom collection grouping is implemented in the Reader application.
+
+=== Series and Edition Metadata
+
+**Metadata Fields:**
+* `series_name` (TEXT, nullable): Series identifier (e.g., "Lensman Series")
+* `edition_name` (TEXT, nullable): Edition identifier (e.g., "Classic Traveller")
+* `series_order` (INTEGER, nullable): Position within series for ordering
+
+**Metadata Usage:**
+* Metadata fields are set by Creator Tool during cartridge creation/editing
+* Metadata fields are read by Library Manager for auto-grouping
+* Metadata fields are stored in cartridge database (portable across systems)
+
+=== Auto-Grouping by Series
+
+**Series Detection:**
+1. On library load or cartridge import, query `Local_Library_Manifest`:
+   `SELECT DISTINCT series_name FROM Local_Library_Manifest WHERE series_name IS NOT NULL`
+2. For each unique `series_name`, create or update `Local_Cartridge_Groups` entry:
+   * `group_type` = "series"
+   * `group_name` = series_name
+   * Auto-created groups are read-only (managed by system)
+
+**Series Membership:**
+1. Query cartridges for series:
+   `SELECT cartridge_guid FROM Local_Library_Manifest WHERE series_name = ?`
+2. For each cartridge, ensure membership in series group:
+   * Query `Local_Cartridge_Group_Members` for existing membership
+   * If not exists, insert membership record
+   * Use `series_order` from metadata for `display_order` (if available)
+
+**Series Display:**
+1. Load series groups: `SELECT * FROM Local_Cartridge_Groups WHERE group_type = 'series' ORDER BY group_name`
+2. For selected series, load members:
+   ```
+   SELECT m.*, g.display_order 
+   FROM Local_Library_Manifest m
+   JOIN Local_Cartridge_Group_Members gm ON m.cartridge_guid = gm.cartridge_guid
+   JOIN Local_Cartridge_Groups g ON gm.group_id = g.group_id
+   WHERE g.group_name = ? AND g.group_type = 'series'
+   ORDER BY COALESCE(g.display_order, m.series_order, m.title)
+   ```
+
+=== Auto-Grouping by Edition
+
+**Edition Detection:**
+1. On library load or cartridge import, query `Local_Library_Manifest`:
+   `SELECT DISTINCT edition_name FROM Local_Library_Manifest WHERE edition_name IS NOT NULL`
+2. For each unique `edition_name`, create or update `Local_Cartridge_Groups` entry:
+   * `group_type` = "edition"
+   * `group_name` = edition_name
+   * Auto-created groups are read-only (managed by system)
+
+**Edition Membership:**
+1. Query cartridges for edition:
+   `SELECT cartridge_guid FROM Local_Library_Manifest WHERE edition_name = ?`
+2. For each cartridge, ensure membership in edition group:
+   * Query `Local_Cartridge_Group_Members` for existing membership
+   * If not exists, insert membership record
+   * `display_order` is NULL (alphabetical by title)
+
+**Edition Display:**
+1. Load edition groups: `SELECT * FROM Local_Cartridge_Groups WHERE group_type = 'edition' ORDER BY group_name`
+2. For selected edition, load members:
+   ```
+   SELECT m.*
+   FROM Local_Library_Manifest m
+   JOIN Local_Cartridge_Group_Members gm ON m.cartridge_guid = gm.cartridge_guid
+   JOIN Local_Cartridge_Groups g ON gm.group_id = g.group_id
+   WHERE g.group_name = ? AND g.group_type = 'edition'
+   ORDER BY m.title
+   ```
+
+=== Custom Collections
+
+**Create Custom Collection:**
+1. User provides collection name (and optional description)
+2. Insert into `Local_Cartridge_Groups`:
+   ```sql
+   INSERT INTO Local_Cartridge_Groups (group_name, group_type, created_timestamp, last_modified_timestamp, description)
+   VALUES (?, 'custom_collection', ?, ?, ?)
+   ```
+3. Return `group_id` for adding members
+
+**Add Cartridge to Collection:**
+1. User selects cartridge(s) and target collection
+2. For each cartridge, insert into `Local_Cartridge_Group_Members`:
+   ```sql
+   INSERT INTO Local_Cartridge_Group_Members (group_id, cartridge_guid, added_timestamp, display_order)
+   VALUES (?, ?, ?, ?)
+   ```
+3. Update collection's `last_modified_timestamp`
+
+**Remove Cartridge from Collection:**
+1. User selects cartridge and collection
+2. Delete membership:
+   ```sql
+   DELETE FROM Local_Cartridge_Group_Members 
+   WHERE group_id = ? AND cartridge_guid = ?
+   ```
+3. Update collection's `last_modified_timestamp`
+
+**Rename Custom Collection:**
+1. User provides new name
+2. Update `Local_Cartridge_Groups`:
+   ```sql
+   UPDATE Local_Cartridge_Groups 
+   SET group_name = ?, last_modified_timestamp = ?
+   WHERE group_id = ? AND group_type = 'custom_collection'
+   ```
+
+**Delete Custom Collection:**
+1. User confirms deletion
+2. Delete all memberships:
+   ```sql
+   DELETE FROM Local_Cartridge_Group_Members WHERE group_id = ?
+   ```
+3. Delete collection:
+   ```sql
+   DELETE FROM Local_Cartridge_Groups WHERE group_id = ? AND group_type = 'custom_collection'
+   ```
+
+**Display Custom Collection:**
+1. Load collection: `SELECT * FROM Local_Cartridge_Groups WHERE group_id = ?`
+2. Load members:
+   ```
+   SELECT m.*, gm.display_order
+   FROM Local_Library_Manifest m
+   JOIN Local_Cartridge_Group_Members gm ON m.cartridge_guid = gm.cartridge_guid
+   WHERE gm.group_id = ?
+   ORDER BY COALESCE(gm.display_order, m.title)
+   ```
+
+=== Grouping UI Implementation
+
+**Browse by Series View:**
+1. Display list of all series (from `Local_Cartridge_Groups` where `group_type = 'series'`)
+2. User selects series
+3. Display all cartridges in series (ordered by `series_order` or title)
+4. User can open cartridges from series view
+
+**Browse by Edition View:**
+1. Display list of all editions (from `Local_Cartridge_Groups` where `group_type = 'edition'`)
+2. User selects edition
+3. Display all cartridges in edition (ordered alphabetically by title)
+4. User can open cartridges from edition view
+
+**Custom Collections View:**
+1. Display list of all custom collections (from `Local_Cartridge_Groups` where `group_type = 'custom_collection'`)
+2. User can:
+   * Create new collection
+   * Select collection to view members
+   * Add/remove cartridges from collection
+   * Rename/delete collection
+
+**Grouping Filters:**
+1. Add filter dropdown or sidebar to Library Manager
+2. Filter options:
+   * "All Cartridges" (default)
+   * "By Series" (shows series list)
+   * "By Edition" (shows edition list)
+   * "Custom Collections" (shows user collections)
+3. When filter selected, update library view to show filtered content
+
+**Search by Series/Edition:**
+1. Add search field with autocomplete
+2. Search suggestions include:
+   * Series names
+   * Edition names
+   * Custom collection names
+3. On selection, filter library view to matching group
+
+=== Grouping Maintenance
+
+**On Cartridge Import:**
+1. After importing cartridge, check metadata for `series_name` and `edition_name`
+2. If `series_name` present:
+   * Ensure series group exists in `Local_Cartridge_Groups`
+   * Add cartridge to series group membership
+3. If `edition_name` present:
+   * Ensure edition group exists in `Local_Cartridge_Groups`
+   * Add cartridge to edition group membership
+
+**On Cartridge Deletion:**
+1. Before deleting cartridge, remove from all group memberships:
+   ```sql
+   DELETE FROM Local_Cartridge_Group_Members WHERE cartridge_guid = ?
+   ```
+2. Delete cartridge from library
+3. If series/edition group becomes empty, optionally remove group (or keep for future imports)
+
+**On Cartridge Metadata Update:**
+1. If `series_name` or `edition_name` changes:
+   * Remove from old group memberships
+   * Add to new group memberships (if applicable)
+2. If `series_order` changes:
+   * Update `display_order` in group membership (for series groups)
+
+=== Performance Considerations
+
+**Grouping Queries:**
+* All grouping queries use `Local_Library_Manifest` (fast, indexed)
+* Group memberships are cached or queried efficiently
+* Grouping operations complete within < 500ms (NFR-3.1)
+
+**Indexes:**
+* Index on `Local_Cartridge_Groups.group_type` for filtering
+* Index on `Local_Cartridge_Group_Members(group_id, cartridge_guid)` for membership queries
+* Index on `Local_Library_Manifest.series_name` and `edition_name` for auto-grouping
+
+== Help System and User Manual Implementation
+
+This section specifies the implementation of the help system and user manual for both Reader and Creator Tool applications.
+
+=== Help System Architecture
+
+**Help Content Structure:**
+* **Source Format:** AsciiDoc source documents (single source of truth)
+* **HTML Output:** Generated HTML for integrated help viewer
+* **PDF Output:** Generated PDF for distribution and offline reading
+* **Content Location:** `{install_dir}/help/` or `{install_dir}/Resources/help/` (macOS)
+
+**Help Content Organization:**
+```
+help/
+├── index.html (or index.adoc)
+├── getting-started/
+│   ├── installation.html
+│   ├── first-launch.html
+│   └── basic-operations.html
+├── reader/
+│   ├── library-management.html
+│   ├── reading.html
+│   ├── navigation.html
+│   ├── search.html
+│   ├── forms.html
+│   └── embedded-apps.html
+├── creator/
+│   ├── content-authoring.html
+│   ├── form-building.html
+│   ├── cartridge-creation.html
+│   ├── signing.html
+│   └── export.html
+├── security/
+│   ├── trust-levels.html
+│   ├── consent-dialogs.html
+│   └── certificates.html
+├── reference/
+│   ├── keyboard-shortcuts.html
+│   └── faq.html
+└── troubleshooting/
+    └── common-issues.html
+```
+
+=== Help System Access Implementation
+
+**Help Menu Integration:**
+
+[source,cpp]
+----
+void MainWindow::setupHelpMenu() {
+    QMenu* helpMenu = menuBar()->addMenu(tr("&Help"));
+    
+    // User Manual (HTML)
+    QAction* userManualAction = helpMenu->addAction(tr("&User Manual"));
+    userManualAction->setShortcut(QKeySequence::HelpContents); // F1
+    connect(userManualAction, &QAction::triggered, this, &MainWindow::showUserManual);
+    
+    // User Manual (PDF)
+    QAction* pdfManualAction = helpMenu->addAction(tr("User Manual (&PDF)"));
+    connect(pdfManualAction, &QAction::triggered, this, &MainWindow::openPDFManual);
+    
+    helpMenu->addSeparator();
+    
+    // About
+    QAction* aboutAction = helpMenu->addAction(tr("&About SmartBook"));
+    connect(aboutAction, &QAction::triggered, this, &MainWindow::showAboutDialog);
+}
+
+void MainWindow::showUserManual() {
+    QString helpPath = getHelpDirectory() + "/index.html";
+    QUrl helpUrl = QUrl::fromLocalFile(helpPath);
+    
+    // Open in integrated help viewer or external browser
+    if (useIntegratedHelpViewer()) {
+        showHelpViewer(helpUrl);
+    } else {
+        QDesktopServices::openUrl(helpUrl);
+    }
+}
+
+void MainWindow::openPDFManual() {
+    QString pdfPath = getPDFManualPath();
+    if (QFile::exists(pdfPath)) {
+        QDesktopServices::openUrl(QUrl::fromLocalFile(pdfPath));
+    } else {
+        QMessageBox::warning(this, tr("Manual Not Found"),
+            tr("User manual PDF not found at:\n%1").arg(pdfPath));
+    }
+}
+----
+
+**Platform-Specific Help Paths:**
+
+[source,cpp]
+----
+QString MainWindow::getHelpDirectory() {
+    QString basePath = QCoreApplication::applicationDirPath();
+    
+#ifdef Q_OS_MACOS
+    // macOS: Resources directory in app bundle
+    basePath += "/../Resources/help";
+#else
+    // Windows/Linux: help directory in install directory
+    basePath += "/help";
+#endif
+    
+    return QDir(basePath).canonicalPath();
+}
+
+QString MainWindow::getPDFManualPath() {
+    QString basePath = QCoreApplication::applicationDirPath();
+    
+#ifdef Q_OS_MACOS
+    // macOS: Resources directory
+    basePath += "/../Resources/SmartBook_User_Manual.pdf";
+#elif defined(Q_OS_WIN)
+    // Windows: docs directory
+    basePath += "/docs/SmartBook_User_Manual.pdf";
+#else
+    // Linux: share/doc directory or install directory
+    basePath = "/usr/share/doc/smartbook/SmartBook_User_Manual.pdf";
+    if (!QFile::exists(basePath)) {
+        basePath = QCoreApplication::applicationDirPath() + "/SmartBook_User_Manual.pdf";
+    }
+#endif
+    
+    return basePath;
+}
+----
+
+=== Integrated Help Viewer
+
+**Help Viewer Window:**
+
+[source,cpp]
+----
+class HelpViewer : public QMainWindow {
+    Q_OBJECT
+public:
+    explicit HelpViewer(QWidget* parent = nullptr);
+    void loadHelpContent(const QUrl& url);
+    
+private slots:
+    void onLinkClicked(const QUrl& url);
+    void goBack();
+    void goForward();
+    void goHome();
+    void searchHelp();
+    
+private:
+    QWebEngineView* m_webView;
+    QToolBar* m_toolbar;
+    QLineEdit* m_addressBar;
+    QAction* m_backAction;
+    QAction* m_forwardAction;
+    QAction* m_homeAction;
+    QAction* m_searchAction;
+    QUrl m_homeUrl;
+};
+
+HelpViewer::HelpViewer(QWidget* parent)
+    : QMainWindow(parent) {
+    setWindowTitle(tr("SmartBook Help"));
+    setMinimumSize(800, 600);
+    
+    // Create WebEngine view for HTML help content
+    m_webView = new QWebEngineView(this);
+    setCentralWidget(m_webView);
+    
+    // Setup toolbar
+    m_toolbar = addToolBar(tr("Navigation"));
+    m_backAction = m_toolbar->addAction(tr("Back"));
+    m_forwardAction = m_toolbar->addAction(tr("Forward"));
+    m_homeAction = m_toolbar->addAction(tr("Home"));
+    m_toolbar->addSeparator();
+    m_searchAction = m_toolbar->addAction(tr("Search"));
+    
+    // Address bar
+    m_addressBar = new QLineEdit(this);
+    m_toolbar->addWidget(m_addressBar);
+    
+    // Connect signals
+    connect(m_webView, &QWebEngineView::urlChanged, 
+            this, [this](const QUrl& url) {
+        m_addressBar->setText(url.toString());
+    });
+    
+    connect(m_webView, &QWebEngineView::linkClicked,
+            this, &HelpViewer::onLinkClicked);
+    
+    connect(m_backAction, &QAction::triggered, this, &HelpViewer::goBack);
+    connect(m_forwardAction, &QAction::triggered, this, &HelpViewer::goForward);
+    connect(m_homeAction, &QAction::triggered, this, &HelpViewer::goHome);
+    connect(m_searchAction, &QAction::triggered, this, &HelpViewer::searchHelp);
+    
+    // Load home page
+    m_homeUrl = QUrl::fromLocalFile(getHelpDirectory() + "/index.html");
+    loadHelpContent(m_homeUrl);
+}
+
+void HelpViewer::loadHelpContent(const QUrl& url) {
+    m_webView->setUrl(url);
+}
+
+void HelpViewer::onLinkClicked(const QUrl& url) {
+    // Only allow local file URLs (help content)
+    if (url.scheme() == "file" || url.scheme().isEmpty()) {
+        loadHelpContent(url);
+    } else {
+        // External links - open in system browser
+        QDesktopServices::openUrl(url);
+    }
+}
+----
+
+=== PDF Manual Generation
+
+**PDF Generation Process:**
+
+[source,bash]
+----
+# Generate PDF from AsciiDoc source
+asciidoctor-pdf -a pdf-style=theme.yml \
+                -a pdf-fontsdir=fonts \
+                -a imagesdir=images \
+                -o SmartBook_User_Manual.pdf \
+                user-manual.adoc
+----
+
+**PDF Generation Requirements:**
+* **Source:** Single AsciiDoc source document (`user-manual.adoc`)
+* **Tool:** Asciidoctor PDF or similar
+* **Output:** `SmartBook_User_Manual.pdf`
+* **Format:** PDF/A compliant for long-term archival
+* **Features:** Table of contents, bookmarks, cross-references, images, code syntax highlighting
+
+**PDF Distribution:**
+* **Windows:** Include in installer, install to `{install_dir}/docs/`
+* **macOS:** Include in app bundle at `SmartBook.app/Contents/Resources/` or DMG
+* **Linux:** Include in package, install to `/usr/share/doc/smartbook/` or user-accessible location
+
+=== Context-Sensitive Help
+
+**Dialog Help Integration:**
+
+[source,cpp]
+----
+void SettingsDialog::setupHelp() {
+    // Add help button to dialog
+    QPushButton* helpButton = new QPushButton(tr("&Help"), this);
+    connect(helpButton, &QPushButton::clicked, this, &SettingsDialog::showHelp);
+    
+    // Add to button box
+    QDialogButtonBox* buttonBox = findChild<QDialogButtonBox*>();
+    if (buttonBox) {
+        buttonBox->addButton(helpButton, QDialogButtonBox::HelpRole);
+    }
+}
+
+void SettingsDialog::showHelp() {
+    // Open help to relevant section
+    QUrl helpUrl = QUrl::fromLocalFile(getHelpDirectory() + "/reference/settings.html");
+    QDesktopServices::openUrl(helpUrl);
+}
+----
+
+**Tooltip Help:**
+
+[source,cpp]
+----
+void MainWindow::setupTooltips() {
+    // Add tooltips to UI elements
+    m_libraryView->setToolTip(tr("Double-click a cartridge to open it. Right-click for options."));
+    m_searchButton->setToolTip(tr("Search cartridges in your library (Ctrl+F)"));
+    m_importButton->setToolTip(tr("Import cartridge files into your library"));
+}
+----
+
+**"What's This?" Mode:**
+
+[source,cpp]
+----
+void MainWindow::enableWhatsThis() {
+    // Enable Qt's "What's This?" mode
+    QAction* whatsThisAction = QWhatsThis::createAction(this);
+    whatsThisAction->setShortcut(QKeySequence(Qt::SHIFT | Qt::Key_F1));
+    helpMenu()->addAction(whatsThisAction);
+    
+    // Add "What's This?" help text to widgets
+    m_libraryView->setWhatsThis(tr(
+        "The library view displays all cartridges in your library. "
+        "Double-click to open, right-click for options, or use the toolbar buttons."
+    ));
+}
+----
+
+=== Platform-Specific Help Integration
+
+**macOS Help Book:**
+
+[source,xml]
+----
+<!-- Info.plist entries for macOS Help Book -->
+<key>CFBundleHelpBookFolder</key>
+<string>SmartBook.help</string>
+<key>CFBundleHelpBookName</key>
+<string>com.smartbook.help</string>
+----
+
+**Help Book Structure (macOS):**
+```
+SmartBook.app/Contents/Resources/
+└── SmartBook.help/
+    ├── Contents/
+    │   ├── Info.plist
+    │   └── Resources/
+    │       ├── index.html
+    │       ├── getting-started/
+    │       ├── reader/
+    │       └── ...
+    └── SmartBook_User_Manual.pdf
+```
+
+**Windows Help Integration:**
+
+[source,cpp]
+----
+#ifdef Q_OS_WIN
+void MainWindow::setupWindowsHelp() {
+    // Register help file with Windows Help system
+    QString helpFile = getHelpDirectory() + "/index.html";
+    
+    // Windows Help integration (optional)
+    // Can use HTML Help Workshop (.chm) or simple HTML help
+}
+#endif
+----
+
+**Linux Desktop Integration:**
+
+[source,ini]
+----
+# .desktop file entry for help
+[Desktop Entry]
+...
+X-GNOME-Help=smartbook
+----
+
+=== User Manual Content Specification
+
+**Manual Structure:**
+
+1. **Introduction**
+   * What is SmartBook
+   * System requirements
+   * Installation instructions
+
+2. **Getting Started**
+   * First launch
+   * Library setup
+   * Importing cartridges
+   * Opening cartridges
+
+3. **Reader Application**
+   * Library management
+   * Reading cartridges
+   * Navigation (TOC, bookmarks, history)
+   * Search (document and in-page)
+   * Forms (filling, saving, loading)
+   * Embedded applications
+   * Theming
+   * Printing
+
+4. **Creator Tool**
+   * Content authoring
+   * Page and chapter management
+   * Form building
+   * Embedded app creation
+   * Cartridge creation and signing
+   * Export and publishing
+   * Templates and imports
+
+5. **Security and Trust**
+   * Trust levels explained
+   * Consent dialogs
+   * Certificate management
+   * Trust revocation
+
+6. **Reference**
+   * Keyboard shortcuts
+   * File formats
+   * Troubleshooting
+   * FAQ
+
+7. **Appendix**
+   * Glossary
+   * Technical specifications
+   * Support information
+
+=== Help Content Maintenance
+
+**Version Control:**
+* Help content version SHALL match application version
+* Help content SHALL be versioned independently for updates
+* Version information SHALL be displayed in help viewer or About dialog
+
+**Update Mechanism:**
+* Help content MAY be updated via application update
+* Help content MAY be updated independently (separate download)
+* Users SHALL be notified if help content is outdated
+
+**Build Integration:**
+* Help content generation SHALL be part of build process
+* PDF generation SHALL be automated
+* Help content SHALL be included in distribution packages
 
 == Error Handling and Logging Implementation
 

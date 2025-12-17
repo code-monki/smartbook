@@ -1,0 +1,660 @@
+= Phase 2: User Identity and Authentication Specification
+:author: AI Assistant
+:revdate: 2025-12-14
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+
+== Introduction
+
+This document specifies the user identity model and authentication system for Phase 2 of the Smartbook project, which introduces a shared remote library server. The system will use HTTP REST API over HTTPS for client-server communication.
+
+== User Identity Model
+
+=== Core User Attributes
+
+[cols="2, 3, 2", options="headers"]
+|===
+^.^| Field ^.^| Type ^.^| Description
+
+| `user_id` | UUID v4 | Primary key, globally unique identifier for the user account
+| `username` | String (unique) | Human-readable username for login (3-50 characters, alphanumeric + underscore/hyphen)
+| `email` | String (unique) | Email address for account recovery, notifications, and verification
+| `password_hash` | String | Bcrypt or Argon2 hash of user password (never store plaintext)
+| `account_created` | Timestamp | Account creation date/time
+| `last_login` | Timestamp | Most recent successful login timestamp
+| `account_status` | Enum | Account state: `active`, `suspended`, `deleted`, `pending_verification`
+| `email_verified` | Boolean | Whether email address has been verified
+| `failed_login_attempts` | Integer | Count of consecutive failed login attempts (reset on success)
+| `account_locked_until` | Timestamp | Account lockout expiry (null if not locked)
+|===
+
+=== User ID Generation
+
+* **Format:** UUID Version 4 (consistent with `cartridge_guid` in Phase 1)
+* **Rationale:** Ensures global uniqueness, avoids collisions, aligns with existing Phase 1 design patterns
+* **Immutable:** User ID never changes once created
+
+=== Username Requirements
+
+* **Length:** 3-50 characters
+* **Characters:** Alphanumeric (a-z, A-Z, 0-9), underscore (_), hyphen (-)
+* **Uniqueness:** Must be unique across all users
+* **Case Sensitivity:** Usernames are case-insensitive for login (stored in normalized lowercase)
+* **Reserved Names:** System may reserve certain usernames (e.g., `admin`, `system`, `root`)
+
+=== Email Requirements
+
+* **Validation:** Standard email format validation
+* **Uniqueness:** Must be unique across all users
+* **Verification:** Email verification required for account activation (optional for Phase 2, recommended)
+* **Case Sensitivity:** Email addresses are case-insensitive (stored in normalized lowercase)
+
+=== Password Requirements
+
+* **Minimum Length:** 8 characters (recommended: 12+)
+* **Complexity:** Recommend (but don't require) mix of uppercase, lowercase, numbers, special characters
+* **Storage:** Never store plaintext passwords. Use bcrypt (cost factor 12+) or Argon2id for hashing
+* **Password Reset:** Support password reset via email token (expires after 24 hours)
+
+== Authentication System
+
+=== Authentication Flow
+
+==== Login Process
+
+1. **Client Request:**
+   * POST `/api/v1/auth/login`
+   * Body: `{ "username": "user", "password": "plaintext" }`
+   * Headers: `Content-Type: application/json`
+
+2. **Server Validation:**
+   * Verify username exists and account is active
+   * Check account lockout status (if locked, reject immediately)
+   * Verify password hash matches stored hash
+   * Check rate limiting (prevent brute force)
+
+3. **On Success:**
+   * Generate session token (JWT or opaque token)
+   * Store session on server (user_id, token, expiry, IP address)
+   * Update `last_login` timestamp
+   * Reset `failed_login_attempts` to 0
+   * Log successful login
+   * Return token to client
+
+4. **On Failure:**
+   * Increment `failed_login_attempts`
+   * If attempts >= 5, lock account for 30 minutes (`account_locked_until`)
+   * Log failed login attempt
+   * Return generic error (don't reveal if username exists)
+
+==== Session Token Management
+
+**Token Type:** JWT (JSON Web Token) or Opaque Token
+
+**JWT Approach (Recommended):**
+* **Payload:** `{ "user_id": "uuid", "username": "user", "exp": timestamp, "iat": timestamp }`
+* **Signature:** HMAC-SHA256 or RS256
+* **Expiry:** Configurable (see Session Expiry below)
+* **Storage:** Client stores in secure credential store (OS keychain/credential manager)
+
+**Opaque Token Approach (Alternative):**
+* **Format:** Random 256-bit token (base64 encoded)
+* **Storage:** Server stores token in database with user_id, expiry, IP address
+* **Expiry:** Configurable (see Session Expiry below)
+* **Storage:** Client stores in secure credential store
+
+**Token Storage (Client):**
+* **Platform-Specific Secure Storage:**
+  * Windows: Windows Credential Manager
+  * macOS: Keychain
+  * Linux: libsecret or similar
+* **Fallback:** Encrypted local file if secure storage unavailable
+* **Never:** Store in plaintext or browser cookies (desktop app)
+
+=== Session Expiry
+
+**Two-Tier Expiry System:**
+
+1. **Regular Session Token:**
+   * **Expiry:** 24 hours from last activity
+   * **Refresh:** Token can be refreshed if used within expiry window
+   * **Use Case:** Normal daily usage
+
+2. **Persistent Session Token ("Remember Me"):**
+   * **Expiry:** 30 days from last activity
+   * **Refresh:** Token can be refreshed if used within expiry window
+   * **Use Case:** User selects "Remember Me" checkbox on login
+   * **Security:** Longer expiry requires re-authentication for sensitive operations
+
+**Token Refresh:**
+* Client can refresh token before expiry using refresh endpoint
+* Refresh extends expiry by same duration (24h or 30d)
+* Refresh requires valid, non-expired token
+* Server validates refresh request and issues new token
+
+**Expiry Rationale:**
+* 24 hours: Balances security with user convenience (daily re-auth reasonable)
+* 30 days: "Remember Me" provides convenience while maintaining reasonable security
+* Automatic expiry prevents abandoned sessions from remaining valid indefinitely
+* Follows security best practices (similar to OAuth2 refresh token patterns)
+
+=== Session Management Endpoints
+
+==== Login
+`POST /api/v1/auth/login`
+* **Request:** `{ "username": "user", "password": "pass", "remember_me": true/false }`
+* **Response (Success):** `{ "token": "jwt_token", "refresh_token": "refresh_token", "expires_in": 86400, "user_id": "uuid" }`
+* **Response (Failure):** `{ "error": "invalid_credentials", "message": "Invalid username or password" }`
+* **Rate Limiting:** Max 5 attempts per IP per 15 minutes
+
+==== Logout
+`POST /api/v1/auth/logout`
+* **Request:** Headers: `Authorization: Bearer {token}`
+* **Response:** `{ "success": true }`
+* **Action:** Invalidate token on server, remove from session store
+
+==== Token Refresh
+`POST /api/v1/auth/refresh`
+* **Request:** `{ "refresh_token": "refresh_token" }`
+* **Response (Success):** `{ "token": "new_jwt_token", "expires_in": 86400 }`
+* **Response (Failure):** `{ "error": "invalid_refresh_token" }`
+
+==== Validate Token
+`GET /api/v1/auth/validate`
+* **Request:** Headers: `Authorization: Bearer {token}`
+* **Response (Valid):** `{ "valid": true, "user_id": "uuid", "expires_at": timestamp }`
+* **Response (Invalid):** `{ "valid": false, "error": "expired" | "invalid" }`
+
+== Login Logging
+
+=== Login Log Schema
+
+[cols="2, 3, 2", options="headers"]
+|===
+^.^| Field ^.^| Type ^.^| Description
+
+| `log_id` | BigInt (PK) | Auto-incrementing log entry ID
+| `timestamp` | Timestamp | Login attempt timestamp (UTC)
+| `user_id` | UUID | User ID (null if username doesn't exist)
+| `username` | String | Username attempted (always logged, even if user doesn't exist)
+| `ip_address` | String | Client IP address (IPv4 or IPv6)
+| `user_agent` | String | Client user agent string (optional)
+| `success` | Boolean | Whether login succeeded
+| `failure_reason` | String | Reason for failure: `invalid_password`, `account_locked`, `account_suspended`, `user_not_found` (null if success)
+| `session_token` | String | Session token issued (null if failure, may be truncated for security)
+|===
+
+=== Logging Requirements
+
+**All Login Attempts Logged:**
+* Successful logins
+* Failed logins (invalid password)
+* Failed logins (account locked)
+* Failed logins (account suspended)
+* Failed logins (user not found - but don't reveal this to client)
+
+**Log Retention:**
+* **Active Logs:** Retain for 90 days
+* **Archived Logs:** Compress and archive after 90 days, retain for 1 year
+* **Compliance:** May need longer retention for security audits (configurable)
+
+**Log Rotation:**
+* **Daily Rotation:** Create new log file daily at midnight UTC
+* **File Naming:** `login_log_YYYY-MM-DD.sqlite` or similar
+* **Compression:** Compress logs older than 7 days
+* **Cleanup:** Automatically delete logs older than retention period
+
+**Log Access:**
+* **Admin Access:** Server administrators can query login logs via admin API
+* **User Access:** Users can view their own login history (last 30 days)
+* **Privacy:** IP addresses may be anonymized after 30 days (configurable)
+
+=== Log Rotation Implementation
+
+**Daily Rotation Algorithm:**
+1. At midnight UTC, close current log file
+2. Create new log file with date suffix
+3. Compress log files older than 7 days
+4. Delete compressed logs older than retention period (90 days active, 1 year archived)
+
+**Compression:**
+* Use gzip or similar compression
+* Compressed files: `login_log_YYYY-MM-DD.sqlite.gz`
+* Maintain index for efficient querying of compressed logs
+
+**Database Approach:**
+* Use separate SQLite database per day for login logs
+* Allows efficient querying and rotation
+* Alternative: Single database with partitioned tables by date
+
+== Security Considerations
+
+=== Account Lockout
+
+**Lockout Policy:**
+* **Threshold:** 5 consecutive failed login attempts
+* **Lockout Duration:** 30 minutes
+* **Reset:** Lockout resets on:
+  * Successful login (after lockout period expires)
+  * Lockout duration expires (automatic after 30 minutes)
+  * **Password reset completed** (immediate unlock)
+* **Notification:** User notified of lockout (email optional)
+
+**Implementation:**
+* Track `failed_login_attempts` in user record
+* Set `account_locked_until` timestamp on lockout
+* Reject login attempts if current time < `account_locked_until`
+* Admin can manually unlock accounts
+* **Password reset automatically unlocks:** When user successfully resets password, clear `account_locked_until` and reset `failed_login_attempts` to 0
+
+**User Recovery from Lockout:**
+* **Option 1:** Wait for lockout period to expire (30 minutes), then login
+* **Option 2:** Use password reset to immediately unlock account (if user remembers email/username)
+* **Option 3:** Contact administrator for manual unlock
+
+=== Rate Limiting
+
+**Login Endpoint Rate Limiting:**
+* **Per IP:** Max 10 login attempts per 15 minutes per IP address
+* **Per Username:** Max 5 login attempts per 15 minutes per username
+* **Response:** HTTP 429 Too Many Requests with `Retry-After` header
+
+**API Rate Limiting (General):**
+* **Authenticated Requests:** 1000 requests per hour per user
+* **Unauthenticated Requests:** 100 requests per hour per IP
+* **Response:** HTTP 429 with rate limit headers
+
+=== Password Security
+
+**Password Hashing:**
+* **Algorithm:** Bcrypt (cost factor 12+) or Argon2id (recommended)
+* **Salt:** Automatic salt generation (built into bcrypt/Argon2)
+* **Never:** Store plaintext passwords, reversible encryption, or MD5/SHA1
+
+**Password Reset:**
+
+Password reset allows users to regain access to their account when they have forgotten their password, even if the account is locked due to failed login attempts.
+
+**Password Reset Flow:**
+
+1. **User Requests Password Reset:**
+   * User provides username or email address
+   * Server validates that user exists (but don't reveal if user doesn't exist)
+   * Generate secure reset token (256-bit cryptographically secure random)
+   * Store hash of token in database (never store plaintext token)
+   * Set token expiry (24 hours from generation)
+   * Send password reset email with reset link/token
+   * Return generic success message (don't reveal if user exists)
+
+2. **User Clicks Reset Link:**
+   * User clicks link in email (contains reset token)
+   * Client application opens password reset dialog
+   * User enters new password
+   * Client sends reset token and new password to server
+
+3. **Server Validates and Resets:**
+   * Validate reset token (check hash, expiry, not already used)
+   * Validate new password meets requirements
+   * Update password hash in database
+   * **Unlock account:** Clear `account_locked_until` and reset `failed_login_attempts` to 0
+   * Invalidate reset token (mark as used, one-time use)
+   * Log password reset event
+   * Return success, user can now login with new password
+
+**Password Reset Token Schema:**
+
+[cols="2, 3, 2", options="headers"]
+|===
+^.^| Field ^.^| Type ^.^| Description
+
+| `reset_token_id` | UUID | Primary key
+| `user_id` | UUID | Foreign key to users table, NOT NULL, INDEX
+| `token_hash` | VARCHAR(255) | SHA-256 hash of reset token, NOT NULL, UNIQUE
+| `created_at` | TIMESTAMP | Token creation time, NOT NULL
+| `expires_at` | TIMESTAMP | Token expiry (24 hours), NOT NULL, INDEX
+| `used_at` | TIMESTAMP | When token was used (NULL if unused)
+| `ip_address` | VARCHAR(45) | IP address that requested reset (optional)
+|===
+
+**Password Reset Security:**
+* **Token Generation:** Cryptographically secure random token (256 bits, base64 encoded)
+* **Token Storage:** Store SHA-256 hash of token (never plaintext)
+* **Token Expiry:** 24 hours from generation
+* **One-Time Use:** Token invalidated immediately after use
+* **Rate Limiting:** Max 3 password reset requests per email per 24 hours
+* **Email Delivery:** Send reset link via email (HTTPS link)
+* **Account Unlock:** Password reset automatically unlocks account if locked
+* **No Login Required:** Password reset works without authentication (user can't login)
+
+**Password Reset Endpoints:**
+
+`POST /api/v1/auth/password-reset/request`
+* **Request:** `{ "username_or_email": "user@example.com" }`
+* **Response (Success):** `{ "success": true, "message": "If an account exists, a password reset email has been sent." }`
+* **Response (Rate Limited):** `{ "error": "rate_limit_exceeded", "message": "Too many reset requests. Please try again later." }`
+* **Security:** Always return same success message regardless of whether user exists (prevents user enumeration)
+* **Action:** Generate token, send email, log request
+
+`POST /api/v1/auth/password-reset/confirm`
+* **Request:** `{ "reset_token": "token_from_email", "new_password": "new_secure_password" }`
+* **Response (Success):** `{ "success": true, "message": "Password has been reset. You can now login with your new password." }`
+* **Response (Invalid Token):** `{ "error": "invalid_token", "message": "Invalid or expired reset token." }`
+* **Response (Expired Token):** `{ "error": "token_expired", "message": "Reset token has expired. Please request a new one." }`
+* **Response (Weak Password):** `{ "error": "weak_password", "message": "Password does not meet requirements." }`
+* **Action:** Validate token, update password, unlock account, invalidate token
+
+**Password Reset Email Template:**
+
+```
+Subject: Smartbook Password Reset Request
+
+Hello,
+
+You have requested to reset your password for your Smartbook account.
+
+To reset your password, click the following link (valid for 24 hours):
+https://app.smartbook.example.com/reset-password?token={reset_token}
+
+If you did not request this password reset, please ignore this email. Your account remains secure.
+
+This link will expire in 24 hours.
+
+Best regards,
+Smartbook Team
+```
+
+**Account Unlock via Password Reset:**
+* When password reset is successfully completed, automatically:
+  * Set `account_locked_until` to NULL
+  * Reset `failed_login_attempts` to 0
+  * This allows user to login immediately with new password
+  * User doesn't need to wait for lockout period to expire
+
+**Password Reset Logging:**
+* Log all password reset requests (successful and failed)
+* Log password reset confirmations (successful and failed)
+* Include: timestamp, user_id, username, IP address, success/failure, reason
+* Store in separate `password_reset_logs` table or include in login logs
+
+**Rate Limiting for Password Reset:**
+* **Per Email:** Max 3 reset requests per email address per 24 hours
+* **Per IP:** Max 5 reset requests per IP address per hour
+* **Response:** HTTP 429 Too Many Requests with `Retry-After` header
+* Prevents abuse and email spam
+
+=== HTTPS Requirement
+
+**All API Communication:**
+* **Protocol:** HTTPS only (TLS 1.2+)
+* **Certificate:** Valid SSL/TLS certificate (Let's Encrypt or commercial CA)
+* **HSTS:** HTTP Strict Transport Security header
+* **No HTTP:** Redirect all HTTP to HTTPS or reject HTTP requests
+
+=== Token Security
+
+**Token Transmission:**
+* **Header:** `Authorization: Bearer {token}` (never in URL parameters)
+* **HTTPS Only:** Tokens only transmitted over HTTPS
+* **Storage:** Secure credential store on client (never plaintext)
+
+**Token Validation:**
+* **Server-Side:** Always validate token on server for every request
+* **Expiry Check:** Verify token hasn't expired
+* **Revocation:** Support token revocation (for logout, security incidents)
+
+== API Design Recommendations
+
+=== REST API Structure
+
+**Base URL:** `https://api.smartbook.example.com/api/v1`
+
+**Authentication Endpoints:**
+* `POST /auth/login` - User login
+* `POST /auth/logout` - User logout
+* `POST /auth/refresh` - Refresh session token
+* `GET /auth/validate` - Validate current token
+* `POST /auth/password-reset/request` - Request password reset (sends email)
+* `POST /auth/password-reset/confirm` - Confirm password reset with token and new password
+
+**User Endpoints:**
+* `GET /users/me` - Get current user profile
+* `PUT /users/me` - Update current user profile
+* `GET /users/me/login-history` - Get user's login history
+
+**Library Endpoints (Phase 2):**
+* `GET /library/cartridges` - List available cartridges
+* `GET /library/cartridges/{id}` - Get cartridge metadata
+* `POST /library/cartridges/{id}/download` - Download cartridge file
+* `GET /library/sync` - Sync local library with remote
+
+=== HTTP Status Codes
+
+* `200 OK` - Success
+* `201 Created` - Resource created
+* `400 Bad Request` - Invalid request format
+* `401 Unauthorized` - Invalid or missing token
+* `403 Forbidden` - Valid token but insufficient permissions
+* `404 Not Found` - Resource doesn't exist
+* `429 Too Many Requests` - Rate limit exceeded
+* `500 Internal Server Error` - Server error
+
+=== Error Response Format
+
+```json
+{
+  "error": "error_code",
+  "message": "Human-readable error message",
+  "details": {
+    "field": "additional error details"
+  }
+}
+```
+
+== Database Schema
+
+=== Users Table
+
+[cols="2, 3, 2", options="headers"]
+|===
+^.^| Column ^.^| Type ^.^| Constraints
+
+| `user_id` | UUID | PRIMARY KEY, NOT NULL
+| `username` | VARCHAR(50) | UNIQUE, NOT NULL, INDEX
+| `email` | VARCHAR(255) | UNIQUE, NOT NULL, INDEX
+| `password_hash` | VARCHAR(255) | NOT NULL
+| `account_created` | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP
+| `last_login` | TIMESTAMP | NULL
+| `account_status` | VARCHAR(20) | NOT NULL, DEFAULT 'pending_verification', CHECK IN ('active', 'suspended', 'deleted', 'pending_verification')
+| `email_verified` | BOOLEAN | NOT NULL, DEFAULT FALSE
+| `failed_login_attempts` | INTEGER | NOT NULL, DEFAULT 0
+| `account_locked_until` | TIMESTAMP | NULL
+|===
+
+=== Sessions Table
+
+[cols="2, 3, 2", options="headers"]
+|===
+^.^| Column ^.^| Type ^.^| Constraints
+
+| `session_id` | UUID | PRIMARY KEY
+| `user_id` | UUID | NOT NULL, FOREIGN KEY REFERENCES users(user_id), INDEX
+| `token` | VARCHAR(512) | NOT NULL, UNIQUE, INDEX
+| `refresh_token` | VARCHAR(512) | NULL, UNIQUE, INDEX
+| `created_at` | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP
+| `expires_at` | TIMESTAMP | NOT NULL, INDEX
+| `last_activity` | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP
+| `ip_address` | VARCHAR(45) | NULL (IPv4 or IPv6)
+| `user_agent` | VARCHAR(512) | NULL
+| `is_persistent` | BOOLEAN | NOT NULL, DEFAULT FALSE
+|===
+
+=== Password Reset Tokens Table
+
+[cols="2, 3, 2", options="headers"]
+|===
+^.^| Column ^.^| Type ^.^| Constraints
+
+| `reset_token_id` | UUID | PRIMARY KEY
+| `user_id` | UUID | NOT NULL, FOREIGN KEY REFERENCES users(user_id), INDEX
+| `token_hash` | VARCHAR(255) | NOT NULL, UNIQUE, INDEX
+| `created_at` | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP
+| `expires_at` | TIMESTAMP | NOT NULL, INDEX
+| `used_at` | TIMESTAMP | NULL
+| `ip_address` | VARCHAR(45) | NULL
+|===
+
+**Token Cleanup:**
+* Delete expired tokens older than 7 days (daily cleanup job)
+* Delete used tokens older than 1 day (daily cleanup job)
+
+=== Login Logs Table (Per Day)
+
+[cols="2, 3, 2", options="headers"]
+|===
+^.^| Column ^.^| Type ^.^| Constraints
+
+| `log_id` | BIGINT | PRIMARY KEY, AUTO_INCREMENT
+| `timestamp` | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP, INDEX
+| `user_id` | UUID | NULL, INDEX
+| `username` | VARCHAR(50) | NOT NULL, INDEX
+| `ip_address` | VARCHAR(45) | NULL
+| `user_agent` | VARCHAR(512) | NULL
+| `success` | BOOLEAN | NOT NULL
+| `failure_reason` | VARCHAR(50) | NULL
+| `session_token` | VARCHAR(512) | NULL (truncated for security)
+|===
+
+== Additional Recommendations
+
+=== Email Verification (Optional for Phase 2)
+
+**Benefits:**
+* Prevents fake accounts
+* Enables password reset
+* Allows account recovery
+* Required for notifications
+
+**Implementation:**
+* Send verification email on account creation
+* Include verification token (expires in 7 days)
+* Account status: `pending_verification` until verified
+* Resend verification email option
+
+=== Multi-Factor Authentication (Future Enhancement)
+
+**Not Required for Phase 2, but consider:**
+* TOTP (Time-based One-Time Password) via authenticator apps
+* SMS-based 2FA (less secure, but easier)
+* Hardware security keys (FIDO2/WebAuthn)
+
+=== Account Recovery
+
+**Password Reset Flow (Detailed):**
+1. User requests password reset via username/email (works even if account is locked)
+2. Server validates user exists (but returns generic message)
+3. Server generates secure 256-bit token, stores SHA-256 hash in database
+4. Email sent with reset link containing token (expires 24 hours)
+5. User clicks link, client opens password reset dialog
+6. User enters new password
+7. Server validates token (hash match, not expired, not used)
+8. Server validates new password meets requirements
+9. Server updates password hash, unlocks account (clears lockout), invalidates token
+10. User can now login with new password
+
+**Account Recovery Questions (Alternative):**
+* Optional security questions for account recovery
+* Less secure than email-based recovery
+
+=== Privacy Considerations
+
+**GDPR/Privacy Compliance:**
+* User data retention policies
+* Right to deletion (account deletion)
+* Data export (user can export their data)
+* Login log anonymization after retention period
+* Privacy policy required
+
+**Data Minimization:**
+* Only collect necessary user data
+* Don't store unnecessary login log details
+* Anonymize IP addresses after retention period
+
+== Implementation Notes
+
+=== Client-Side Token Storage
+
+**Qt/C++ Implementation:**
+* **Windows:** Use `CredWrite`/`CredRead` Windows API
+* **macOS:** Use Keychain Services API
+* **Linux:** Use libsecret or similar
+
+**Token Refresh Strategy:**
+* Client should refresh token before expiry (e.g., when 80% of lifetime elapsed)
+* Automatic refresh on API calls if token expired
+* Prompt user to re-login if refresh fails
+
+=== Server-Side Session Management
+
+**Token Storage Options:**
+1. **Database (Recommended for Phase 2):**
+   * Store sessions in `sessions` table
+   * Simple to implement, easy to query/revoke
+   * Scales well for initial deployment
+
+2. **Redis (Future Scaling):**
+   * In-memory session store
+   * Better performance for high traffic
+   * Automatic expiry support
+   * Consider for Phase 2 if expecting high load
+
+**Session Cleanup:**
+* Periodic job to delete expired sessions
+* Run daily to clean up old sessions
+* Prevents database bloat
+
+== Testing Considerations
+
+=== Security Testing
+
+* **Brute Force Protection:** Verify account lockout after 5 failed attempts
+* **Rate Limiting:** Verify rate limits enforced
+* **Token Security:** Verify tokens can't be forged or reused after expiry
+* **Password Security:** Verify passwords are hashed, never plaintext
+* **HTTPS:** Verify all communication over HTTPS
+
+=== Functional Testing
+
+* **Login Flow:** Successful login, failed login, account lockout
+* **Token Refresh:** Token refresh before and after expiry
+* **Session Expiry:** Verify sessions expire correctly
+* **Logout:** Verify token invalidated on logout
+* **Password Reset:** Complete password reset flow including:
+  * Request password reset (with valid and invalid username/email)
+  * Password reset with valid token
+  * Password reset with expired token
+  * Password reset with already-used token
+  * Password reset unlocks locked account
+  * Password reset rate limiting
+  * Password reset email delivery
+
+=== Performance Testing
+
+* **Login Performance:** Login should complete in < 500ms
+* **Token Validation:** Token validation should be < 50ms
+* **Concurrent Logins:** Support 100+ concurrent login attempts
+* **Session Lookup:** Session lookup should be < 10ms (with proper indexing)
+
+== Summary
+
+This specification provides a comprehensive user identity and authentication system for Phase 2:
+
+* **User Identity:** UUID-based user IDs, username/email, password hashing
+* **Authentication:** JWT or opaque tokens with configurable expiry (24h regular, 30d persistent)
+* **Session Management:** Secure token storage, refresh mechanism, logout
+* **Login Logging:** Comprehensive logging with automatic rotation and retention
+* **Security:** Account lockout, rate limiting, HTTPS, password security best practices
+* **API Design:** RESTful HTTP API with standard status codes and error formats
+
+The system balances security with user convenience, following industry best practices while remaining practical for Phase 2 implementation.

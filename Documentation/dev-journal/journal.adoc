@@ -16,5 +16,7 @@ This journal serves as the official record for design decisions, technical imple
 
 include::daily_entries/2025-12-13_security_model.adoc[]
 include::daily_entries/2025-12-14_creator_tool_requirements.adoc[]
+include::daily_entries/2025-12-14_consent_dialog_and_test_cases.adoc[]
+include::daily_entries/2025-12-14_phase2_specifications.adoc[]
 // Add subsequent include lines here as new files are created.
 // include::daily_entries/YYYY-MM-DD_topic.adoc[]

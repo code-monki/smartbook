@@ -1,0 +1,949 @@
+= Platform-Specific Considerations Specification
+:author: AI Assistant
+:revdate: 2025-12-14
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+
+== Introduction
+
+This document specifies platform-specific considerations for the Smartbook Reader and Creator Tool applications, including supported operating systems, architecture support, UI framework choices, security practices, and distribution requirements. The client and server may run on different platforms, requiring careful consideration of cross-platform compatibility.
+
+== Requirements (SRS)
+
+=== Supported Operating Systems
+
+* **FR-PLAT-7.1 (Linux Distribution Support):** The Reader and Creator Tool SHALL support the following Linux distributions:
+  a. Arch Linux 2025.09.01 or later
+  b. Debian 13 or later
+  c. Fedora Linux 43 or later
+  d. Ubuntu Linux 24.04 LTS or later
+
+* **FR-PLAT-7.2 (macOS Support):** The Reader and Creator Tool SHALL support macOS 26.1 or later.
+
+* **FR-PLAT-7.3 (Windows Support):** The Reader and Creator Tool SHALL support Windows 11 or later.
+
+* **FR-PLAT-7.4 (Architecture Support):** The Reader and Creator Tool SHALL support the following architectures where feasible:
+  a. ARM64 (Apple Silicon, ARM-based Linux)
+  b. X86_64 (Intel/AMD 64-bit)
+
+* **FR-PLAT-7.5 (Cross-Platform Compatibility):** The client and server applications SHALL be capable of running on different platforms. Client-server communication SHALL use platform-agnostic protocols (HTTP REST API, JSON).
+
+* **FR-PLAT-7.6 (Universal Binary Support):** For platforms that support universal binaries (macOS), the application SHALL be distributed as a universal binary when feasible. Universal binaries SHALL support both ARM64 and X86_64 architectures.
+
+=== UI Framework and Appearance
+
+* **FR-PLAT-7.7 (Qt Fusion Widget Set):** The Reader and Creator Tool SHALL use the Qt Fusion widget set to provide a uniform appearance across all supported operating systems. The Fusion style SHALL be applied to all UI components.
+
+* **FR-PLAT-7.8 (UI Consistency):** The application UI SHALL maintain consistent appearance and behavior across all platforms, with platform-specific adaptations only where necessary for platform integration (e.g., menu bar on macOS, system tray icons).
+
+=== Security Best Practices
+
+* **FR-PLAT-7.9 (Platform Security Standards):** The Reader and Creator Tool SHALL utilize standard security best practices for each operating system:
+  a. Windows: Windows Credential Manager for secure credential storage, Windows Certificate Store for certificate validation
+  b. macOS: Keychain Services for secure credential storage, Keychain for certificate validation
+  c. Linux: libsecret or similar for secure credential storage, system CA bundle for certificate validation
+
+* **FR-PLAT-7.10 (Secure Storage):** Application credentials, tokens, and sensitive data SHALL be stored using platform-specific secure storage mechanisms:
+  a. Windows: Windows Credential Manager API
+  b. macOS: Keychain Services API
+  c. Linux: libsecret API or equivalent
+
+* **FR-PLAT-7.11 (Certificate Validation):** Certificate validation SHALL use platform-specific certificate stores:
+  a. Windows: Windows Certificate Store
+  b. macOS: Keychain (System Roots)
+  c. Linux: System CA bundle (typically `/etc/ssl/certs/ca-certificates.crt` or distribution-specific location)
+
+* **FR-PLAT-7.12 (File System Permissions):** The application SHALL respect and utilize platform-specific file system permissions:
+  a. Windows: NTFS permissions, user profile isolation
+  b. macOS: File system permissions, sandboxing (if applicable)
+  c. Linux: POSIX permissions, user home directory isolation
+
+=== Distribution and Packaging
+
+* **FR-PLAT-7.13 (Distribution Format):** The Reader and Creator Tool SHALL be distributed in platform-appropriate formats:
+  a. Windows: Installer (MSI or EXE installer)
+  b. macOS: Application bundle (.app) or DMG
+  c. Linux: Distribution-specific packages (DEB for Debian/Ubuntu, RPM for Fedora, PKG for Arch)
+
+* **FR-PLAT-7.14 (Universal Binary - macOS):** For macOS, the application SHALL be distributed as a universal binary (fat binary) supporting both ARM64 and X86_64 architectures when feasible. The universal binary SHALL be the preferred distribution format for macOS.
+
+* **FR-PLAT-7.15 (Code Signing):** The application SHALL be code-signed on platforms that support it:
+  a. Windows: Code signing certificate (optional but recommended)
+  b. macOS: Code signing and notarization (required for distribution outside App Store)
+  c. Linux: GPG signing for packages (optional but recommended)
+
+* **FR-PLAT-7.16 (Installation Locations):** The application SHALL install to platform-appropriate locations:
+  a. Windows: `%ProgramFiles%\SmartBook\` or `%LocalAppData%\Programs\SmartBook\`
+  b. macOS: `/Applications/SmartBook.app`
+  c. Linux: `/usr/bin/` (executables), `/usr/share/smartbook/` (data files)
+
+=== Data Storage Locations
+
+* **FR-PLAT-7.17 (Application Data Directory):** The application SHALL store user data in platform-appropriate directories:
+  a. Windows: `%APPDATA%\SmartBook\`
+  b. macOS: `~/Library/Application Support/SmartBook/`
+  c. Linux: `~/.local/share/SmartBook/`
+
+* **FR-PLAT-7.18 (Cache Directory):** The application SHALL store cache data in platform-appropriate directories:
+  a. Windows: `%LOCALAPPDATA%\SmartBook\cache\`
+  b. macOS: `~/Library/Caches/SmartBook/`
+  c. Linux: `~/.cache/SmartBook/`
+
+* **FR-PLAT-7.19 (Log Directory):** The application SHALL store log files in platform-appropriate directories:
+  a. Windows: `%APPDATA%\SmartBook\logs\`
+  b. macOS: `~/Library/Application Support/SmartBook/logs/`
+  c. Linux: `~/.local/share/SmartBook/logs/`
+
+* **FR-PLAT-7.20 (Backup Directory):** The application SHALL store backup files in platform-appropriate directories:
+  a. Windows: `%APPDATA%\SmartBook\backups\`
+  b. macOS: `~/Library/Application Support/SmartBook/backups/`
+  c. Linux: `~/.local/share/SmartBook/backups/`
+
+=== Platform-Specific Features
+
+* **FR-PLAT-7.21 (Menu Bar Integration):** On macOS, the application SHALL integrate with the macOS menu bar. Menu items SHALL follow macOS Human Interface Guidelines.
+
+* **FR-PLAT-7.22 (System Tray Integration):** On Windows and Linux, the application MAY provide system tray integration for background operations. System tray icons SHALL follow platform-specific design guidelines.
+
+* **FR-PLAT-7.23 (File Associations):** The application SHALL register file associations for `.sqlite` cartridge files on all platforms:
+  a. Windows: Registry entries for file association
+  b. macOS: Launch Services registration
+  c. Linux: Desktop entry file associations
+
+* **FR-PLAT-7.24 (URL Scheme Handling):** The application SHALL support URL scheme handling (e.g., `smartbook://`) on platforms that support it:
+  a. Windows: Protocol handler registration
+  b. macOS: URL scheme registration in Info.plist
+  c. Linux: Desktop entry MIME type and protocol handling
+
+== Design Specification (DDD)
+
+=== Platform Detection and Configuration
+
+**Platform Detection:**
+
+[source,cpp]
+----
+#include <QtGlobal>
+
+enum class Platform {
+    Windows,
+    macOS,
+    Linux
+};
+
+Platform getPlatform() {
+#ifdef Q_OS_WIN
+    return Platform::Windows;
+#elif defined(Q_OS_MACOS)
+    return Platform::macOS;
+#elif defined(Q_OS_LINUX)
+    return Platform::Linux;
+#else
+    #error "Unsupported platform"
+#endif
+}
+
+QString getPlatformString() {
+    switch (getPlatform()) {
+        case Platform::Windows:
+            return "Windows";
+        case Platform::macOS:
+            return "macOS";
+        case Platform::Linux:
+            return "Linux";
+    }
+}
+----
+
+**Architecture Detection:**
+
+[source,cpp]
+----
+#include <QtGlobal>
+
+enum class Architecture {
+    X86_64,
+    ARM64,
+    Unknown
+};
+
+Architecture getArchitecture() {
+#if defined(Q_PROCESSOR_X86_64)
+    return Architecture::X86_64;
+#elif defined(Q_PROCESSOR_ARM_64) || defined(Q_PROCESSOR_ARM_V8)
+    return Architecture::ARM64;
+#else
+    return Architecture::Unknown;
+#endif
+}
+
+QString getArchitectureString() {
+    switch (getArchitecture()) {
+        case Architecture::X86_64:
+            return "x86_64";
+        case Architecture::ARM64:
+            return "arm64";
+        case Architecture::Unknown:
+            return "unknown";
+    }
+}
+----
+
+=== Qt Fusion Widget Set Configuration
+
+**Apply Fusion Style:**
+
+[source,cpp]
+----
+#include <QApplication>
+#include <QStyleFactory>
+
+void applyFusionStyle(QApplication* app) {
+    // Set Fusion style for uniform appearance
+    app->setStyle(QStyleFactory::create("Fusion"));
+    
+    // Optional: Apply custom palette for theming
+    QPalette palette;
+    palette.setColor(QPalette::Window, QColor(240, 240, 240));
+    palette.setColor(QPalette::WindowText, QColor(0, 0, 0));
+    palette.setColor(QPalette::Base, QColor(255, 255, 255));
+    palette.setColor(QPalette::AlternateBase, QColor(245, 245, 245));
+    palette.setColor(QPalette::ToolTipBase, QColor(255, 255, 220));
+    palette.setColor(QPalette::ToolTipText, QColor(0, 0, 0));
+    palette.setColor(QPalette::Text, QColor(0, 0, 0));
+    palette.setColor(QPalette::Button, QColor(240, 240, 240));
+    palette.setColor(QPalette::ButtonText, QColor(0, 0, 0));
+    palette.setColor(QPalette::BrightText, QColor(255, 0, 0));
+    palette.setColor(QPalette::Link, QColor(0, 0, 255));
+    palette.setColor(QPalette::Highlight, QColor(0, 120, 215));
+    palette.setColor(QPalette::HighlightedText, QColor(255, 255, 255));
+    
+    app->setPalette(palette);
+}
+----
+
+**Application Initialization:**
+
+[source,cpp]
+----
+int main(int argc, char *argv[]) {
+    QApplication app(argc, argv);
+    
+    // Apply Fusion style for uniform appearance
+    applyFusionStyle(&app);
+    
+    // Platform-specific initialization
+    Platform platform = getPlatform();
+    switch (platform) {
+        case Platform::macOS:
+            // macOS-specific initialization
+            // Set up menu bar integration
+            break;
+        case Platform::Windows:
+            // Windows-specific initialization
+            // Set up system tray (if needed)
+            break;
+        case Platform::Linux:
+            // Linux-specific initialization
+            // Set up system tray (if needed)
+            break;
+    }
+    
+    // Continue application startup...
+}
+----
+
+=== Platform-Specific Data Directories
+
+**Directory Path Resolution:**
+
+[source,cpp]
+----
+#include <QStandardPaths>
+#include <QDir>
+
+QString getApplicationDataDirectory() {
+    Platform platform = getPlatform();
+    
+    QString basePath;
+    switch (platform) {
+        case Platform::Windows:
+            basePath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+            break;
+        case Platform::macOS:
+            basePath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+            break;
+        case Platform::Linux:
+            basePath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+            break;
+    }
+    
+    // Ensure directory exists
+    QDir dir(basePath);
+    if (!dir.exists()) {
+        dir.mkpath(".");
+    }
+    
+    return basePath;
+}
+
+QString getCacheDirectory() {
+    QString cachePath = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
+    QDir dir(cachePath);
+    if (!dir.exists()) {
+        dir.mkpath(".");
+    }
+    return cachePath;
+}
+
+QString getLogDirectory() {
+    QString logPath = getApplicationDataDirectory() + "/logs";
+    QDir dir(logPath);
+    if (!dir.exists()) {
+        dir.mkpath(".");
+    }
+    return logPath;
+}
+
+QString getBackupDirectory() {
+    QString backupPath = getApplicationDataDirectory() + "/backups";
+    QDir dir(backupPath);
+    if (!dir.exists()) {
+        dir.mkpath(".");
+    }
+    return backupPath;
+}
+----
+
+=== Platform-Specific Secure Storage
+
+**Secure Storage Interface:**
+
+[source,cpp]
+----
+class SecureStorage {
+public:
+    static bool storeCredential(const QString& key, const QString& value);
+    static QString retrieveCredential(const QString& key);
+    static bool deleteCredential(const QString& key);
+    
+private:
+    static QString getServiceName();
+};
+----
+
+**Windows Implementation:**
+
+[source,cpp]
+----
+#ifdef Q_OS_WIN
+#include <windows.h>
+#include <wincred.h>
+
+bool SecureStorage::storeCredential(const QString& key, const QString& value) {
+    QString targetName = getServiceName() + "/" + key;
+    QByteArray targetNameUtf8 = targetName.toUtf8();
+    QByteArray valueUtf8 = value.toUtf8();
+    
+    CREDENTIAL cred = {0};
+    cred.Type = CRED_TYPE_GENERIC;
+    cred.TargetName = const_cast<LPSTR>(targetNameUtf8.data());
+    cred.CredentialBlobSize = valueUtf8.size();
+    cred.CredentialBlob = reinterpret_cast<LPBYTE>(const_cast<char*>(valueUtf8.data()));
+    cred.Persist = CRED_PERSIST_LOCAL_MACHINE;
+    cred.UserName = const_cast<LPSTR>("SmartBook");
+    
+    return CredWrite(&cred, 0) == TRUE;
+}
+
+QString SecureStorage::retrieveCredential(const QString& key) {
+    QString targetName = getServiceName() + "/" + key;
+    QByteArray targetNameUtf8 = targetName.toUtf8();
+    
+    PCREDENTIAL cred = nullptr;
+    if (CredRead(targetNameUtf8.data(), CRED_TYPE_GENERIC, 0, &cred)) {
+        QByteArray blob(reinterpret_cast<const char*>(cred->CredentialBlob), 
+                       cred->CredentialBlobSize);
+        CredFree(cred);
+        return QString::fromUtf8(blob);
+    }
+    return QString();
+}
+#endif
+----
+
+**macOS Implementation:**
+
+[source,cpp]
+----
+#ifdef Q_OS_MACOS
+#include <Security/Security.h>
+
+bool SecureStorage::storeCredential(const QString& key, const QString& value) {
+    QString service = getServiceName();
+    QByteArray serviceUtf8 = service.toUtf8();
+    QByteArray keyUtf8 = key.toUtf8();
+    QByteArray valueUtf8 = value.toUtf8();
+    
+    OSStatus status = SecKeychainAddGenericPassword(
+        nullptr,
+        serviceUtf8.length(),
+        serviceUtf8.data(),
+        keyUtf8.length(),
+        keyUtf8.data(),
+        valueUtf8.length(),
+        valueUtf8.data(),
+        nullptr
+    );
+    
+    // If item exists, update it
+    if (status == errSecDuplicateItem) {
+        SecKeychainItemRef itemRef = nullptr;
+        status = SecKeychainFindGenericPassword(
+            nullptr,
+            serviceUtf8.length(),
+            serviceUtf8.data(),
+            keyUtf8.length(),
+            keyUtf8.data(),
+            nullptr,
+            nullptr,
+            &itemRef
+        );
+        
+        if (status == errSecSuccess) {
+            status = SecKeychainItemModifyContent(
+                itemRef,
+                nullptr,
+                valueUtf8.length(),
+                valueUtf8.data()
+            );
+            CFRelease(itemRef);
+        }
+    }
+    
+    return status == errSecSuccess;
+}
+
+QString SecureStorage::retrieveCredential(const QString& key) {
+    QString service = getServiceName();
+    QByteArray serviceUtf8 = service.toUtf8();
+    QByteArray keyUtf8 = key.toUtf8();
+    
+    void* passwordData = nullptr;
+    UInt32 passwordLength = 0;
+    
+    OSStatus status = SecKeychainFindGenericPassword(
+        nullptr,
+        serviceUtf8.length(),
+        serviceUtf8.data(),
+        keyUtf8.length(),
+        keyUtf8.data(),
+        &passwordLength,
+        &passwordData,
+        nullptr
+    );
+    
+    if (status == errSecSuccess) {
+        QByteArray password(reinterpret_cast<const char*>(passwordData), passwordLength);
+        SecKeychainItemFreeContent(nullptr, passwordData);
+        return QString::fromUtf8(password);
+    }
+    
+    return QString();
+}
+#endif
+----
+
+**Linux Implementation:**
+
+[source,cpp]
+----
+#ifdef Q_OS_LINUX
+#include <libsecret/secret.h>
+
+bool SecureStorage::storeCredential(const QString& key, const QString& value) {
+    const SecretSchema* schema = secret_schema_new(
+        "com.smartbook.credential",
+        SECRET_SCHEMA_DONT_MATCH_NAME,
+        "key", SECRET_SCHEMA_ATTRIBUTE_STRING,
+        nullptr
+    );
+    
+    GError* error = nullptr;
+    secret_password_store_sync(
+        schema,
+        SECRET_COLLECTION_DEFAULT,
+        getServiceName().toUtf8().constData(),
+        value.toUtf8().constData(),
+        nullptr,
+        &error,
+        "key", key.toUtf8().constData(),
+        nullptr
+    );
+    
+    secret_schema_unref(schema);
+    
+    if (error) {
+        g_error_free(error);
+        return false;
+    }
+    
+    return true;
+}
+
+QString SecureStorage::retrieveCredential(const QString& key) {
+    const SecretSchema* schema = secret_schema_new(
+        "com.smartbook.credential",
+        SECRET_SCHEMA_DONT_MATCH_NAME,
+        "key", SECRET_SCHEMA_ATTRIBUTE_STRING,
+        nullptr
+    );
+    
+    GError* error = nullptr;
+    gchar* password = secret_password_lookup_sync(
+        schema,
+        nullptr,
+        &error,
+        "key", key.toUtf8().constData(),
+        nullptr
+    );
+    
+    secret_schema_unref(schema);
+    
+    if (error) {
+        g_error_free(error);
+        return QString();
+    }
+    
+    if (password) {
+        QString result = QString::fromUtf8(password);
+        secret_password_free(password);
+        return result;
+    }
+    
+    return QString();
+}
+#endif
+----
+
+=== Certificate Validation
+
+**Platform-Specific Certificate Store:**
+
+[source,cpp]
+----
+#include <QSslSocket>
+#include <QSslCertificate>
+
+void configureCertificateValidation() {
+    Platform platform = getPlatform();
+    
+    switch (platform) {
+        case Platform::Windows:
+            // Windows uses Windows Certificate Store automatically via Qt
+            // QSslSocket::defaultCaCertificates() uses system store
+            break;
+        case Platform::macOS:
+            // macOS uses Keychain automatically via Qt
+            // QSslSocket::defaultCaCertificates() uses system store
+            break;
+        case Platform::Linux:
+            // Linux: Use system CA bundle
+            QString caBundlePath;
+            // Try common locations
+            QStringList possiblePaths = {
+                "/etc/ssl/certs/ca-certificates.crt",
+                "/etc/pki/tls/certs/ca-bundle.crt",
+                "/usr/share/ca-certificates/ca-certificates.crt"
+            };
+            
+            for (const QString& path : possiblePaths) {
+                if (QFile::exists(path)) {
+                    caBundlePath = path;
+                    break;
+                }
+            }
+            
+            if (!caBundlePath.isEmpty()) {
+                QList<QSslCertificate> certs = QSslCertificate::fromPath(caBundlePath);
+                QSslSocket::setDefaultCaCertificates(certs);
+            }
+            break;
+    }
+}
+----
+
+=== Universal Binary Support (macOS)
+
+**CMake Configuration for Universal Binary:**
+
+[source,cmake]
+----
+if(APPLE)
+    # Check if building for universal binary
+    if(CMAKE_OSX_ARCHITECTURES)
+        # Already specified
+    else
+        # Set to build universal binary (ARM64 + X86_64)
+        set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
+    endif()
+    
+    # Set minimum macOS version
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "26.1")
+    
+    # Code signing (if certificate available)
+    set(CMAKE_OSX_CODE_SIGN_IDENTITY "Developer ID Application")
+endif()
+----
+
+**Build Universal Binary:**
+
+[source,bash]
+----
+# Build universal binary on macOS
+cmake -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
+      -DCMAKE_OSX_DEPLOYMENT_TARGET=26.1 \
+      -B build
+cmake --build build
+----
+
+**Verify Universal Binary:**
+
+[source,bash]
+----
+# Verify architectures in binary
+lipo -info build/SmartBook.app/Contents/MacOS/SmartBook
+
+# Expected output:
+# Architectures in the fat file: build/SmartBook.app/Contents/MacOS/SmartBook are: arm64 x86_64
+----
+
+=== File Associations
+
+**Windows File Association:**
+
+[source,reg]
+----
+Windows Registry Editor Version 5.00
+
+[HKEY_CURRENT_USER\Software\Classes\.sqlite]
+@="SmartBook.Cartridge"
+
+[HKEY_CURRENT_USER\Software\Classes\SmartBook.Cartridge]
+@="SmartBook Cartridge"
+
+[HKEY_CURRENT_USER\Software\Classes\SmartBook.Cartridge\DefaultIcon]
+@="C:\\Program Files\\SmartBook\\SmartBook.exe,0"
+
+[HKEY_CURRENT_USER\Software\Classes\SmartBook.Cartridge\shell\open\command]
+@="\"C:\\Program Files\\SmartBook\\SmartBook.exe\" \"%1\""
+----
+
+**macOS File Association (Info.plist):**
+
+[source,xml]
+----
+<key>CFBundleDocumentTypes</key>
+<array>
+    <dict>
+        <key>CFBundleTypeExtensions</key>
+        <array>
+            <string>sqlite</string>
+        </array>
+        <key>CFBundleTypeIconFile</key>
+        <string>CartridgeIcon</string>
+        <key>CFBundleTypeName</key>
+        <string>SmartBook Cartridge</string>
+        <key>CFBundleTypeRole</key>
+        <string>Viewer</string>
+        <key>LSItemContentTypes</key>
+        <array>
+            <string>com.smartbook.cartridge</string>
+        </array>
+    </dict>
+</array>
+----
+
+**Linux File Association (.desktop file):**
+
+[source,ini]
+----
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=SmartBook
+Comment=SmartBook Cartridge Reader
+Exec=/usr/bin/smartbook %f
+Icon=smartbook
+MimeType=application/x-sqlite3;application/vnd.sqlite3;
+Terminal=false
+Categories=Office;Viewer;
+----
+
+=== URL Scheme Handling
+
+**macOS URL Scheme (Info.plist):**
+
+[source,xml]
+----
+<key>CFBundleURLTypes</key>
+<array>
+    <dict>
+        <key>CFBundleURLName</key>
+        <string>com.smartbook.cartridge</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
+            <string>smartbook</string>
+        </array>
+    </dict>
+</array>
+----
+
+**Windows URL Scheme (Registry):**
+
+[source,reg]
+----
+Windows Registry Editor Version 5.00
+
+[HKEY_CURRENT_USER\Software\Classes\smartbook]
+@="URL:SmartBook Protocol"
+"URL Protocol"=""
+
+[HKEY_CURRENT_USER\Software\Classes\smartbook\shell\open\command]
+@="\"C:\\Program Files\\SmartBook\\SmartBook.exe\" \"%1\""
+----
+
+**Linux URL Scheme (.desktop file):**
+
+[source,ini]
+----
+[Desktop Entry]
+...
+MimeType=application/x-sqlite3;application/vnd.sqlite3;x-scheme-handler/smartbook;
+----
+
+== Testing Specification
+
+=== Platform Support Testing
+
+[cols="1, 2, 4, 3", options="headers"]
+|===
+^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
+
+| **T-PLAT-01** | FR-PLAT-7.1 (Linux Distribution Support) | a|
+. Install application on Arch Linux 2025.09.01.
+. Verify application launches and functions correctly.
+. Repeat for Debian 13, Fedora 43, Ubuntu 24.04 LTS.
+| **AC:** Application installs and runs correctly on all specified Linux distributions. All core functionality works. No distribution-specific errors.
+
+| **T-PLAT-02** | FR-PLAT-7.2 (macOS Support) | a|
+. Install application on macOS 26.1.
+. Verify application launches and functions correctly.
+. Test on both ARM64 and X86_64 architectures.
+| **AC:** Application installs and runs correctly on macOS 26.1. Works on both ARM64 and X86_64. All core functionality works.
+
+| **T-PLAT-03** | FR-PLAT-7.3 (Windows Support) | a|
+. Install application on Windows 11.
+. Verify application launches and functions correctly.
+. Test on X86_64 architecture.
+| **AC:** Application installs and runs correctly on Windows 11. All core functionality works. No Windows-specific errors.
+
+| **T-PLAT-04** | FR-PLAT-7.4 (Architecture Support) | a|
+. Build application for ARM64 architecture.
+. Build application for X86_64 architecture.
+. Verify both builds function correctly.
+| **AC:** Application builds successfully for both ARM64 and X86_64. Both builds function correctly. Architecture-specific optimizations work.
+
+| **T-PLAT-05** | FR-PLAT-7.6 (Universal Binary - macOS) | a|
+. Build universal binary for macOS.
+. Verify binary contains both ARM64 and X86_64 architectures.
+. Test on both ARM64 and X86_64 Macs.
+| **AC:** Universal binary is created successfully. Binary contains both architectures (verified with `lipo -info`). Application runs correctly on both ARM64 and X86_64 Macs.
+
+|===
+
+=== UI Framework Testing
+
+[cols="1, 2, 4, 3", options="headers"]
+|===
+^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
+
+| **T-PLAT-06** | FR-PLAT-7.7 (Qt Fusion Widget Set) | a|
+. Launch application on Windows.
+. Verify Fusion style is applied to all UI components.
+. Launch on macOS and Linux.
+. Compare UI appearance across platforms.
+| **AC:** Fusion style is applied to all UI components. UI appearance is consistent across all platforms. No platform-specific style differences (except where necessary for platform integration).
+
+| **T-PLAT-07** | FR-PLAT-7.8 (UI Consistency) | a|
+. Test all UI components on Windows, macOS, and Linux.
+. Verify consistent behavior across platforms.
+. Check for platform-specific adaptations (menu bar, system tray).
+| **AC:** UI components behave consistently across platforms. Platform-specific adaptations are minimal and appropriate. Menu bar integration works on macOS. System tray works on Windows/Linux.
+
+|===
+
+=== Security Testing
+
+[cols="1, 2, 4, 3", options="headers"]
+|===
+^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
+
+| **T-PLAT-08** | FR-PLAT-7.9 (Platform Security Standards) | a|
+. Test secure credential storage on Windows (Credential Manager).
+. Test secure credential storage on macOS (Keychain).
+. Test secure credential storage on Linux (libsecret).
+| **AC:** Credentials are stored using platform-specific secure storage. Credentials are encrypted and protected. Credentials can be retrieved correctly.
+
+| **T-PLAT-09** | FR-PLAT-7.10 (Secure Storage) | a|
+. Store application credentials using SecureStorage API.
+. Verify credentials are stored in platform-specific secure storage.
+. Retrieve credentials and verify correctness.
+| **AC:** Credentials are stored in Windows Credential Manager (Windows), Keychain (macOS), or libsecret (Linux). Credentials are encrypted. Credentials can be retrieved correctly.
+
+| **T-PLAT-10** | FR-PLAT-7.11 (Certificate Validation) | a|
+. Test HTTPS connection with valid certificate.
+. Test HTTPS connection with invalid certificate.
+. Verify certificate validation uses platform-specific stores.
+| **AC:** Valid certificates are accepted. Invalid certificates are rejected. Certificate validation uses Windows Certificate Store (Windows), Keychain (macOS), or system CA bundle (Linux).
+
+|===
+
+=== Distribution and Packaging Testing
+
+[cols="1, 2, 4, 3", options="headers"]
+|===
+^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
+
+| **T-PLAT-11** | FR-PLAT-7.13 (Distribution Format) | a|
+. Create Windows installer (MSI or EXE).
+. Create macOS application bundle (.app) or DMG.
+. Create Linux packages (DEB, RPM, PKG).
+. Verify installation works correctly.
+| **AC:** Installers/packages are created successfully. Installation works correctly on each platform. Application is installed to correct locations.
+
+| **T-PLAT-12** | FR-PLAT-7.14 (Universal Binary - macOS) | a|
+. Build universal binary for macOS.
+. Create DMG or application bundle.
+. Verify universal binary is included.
+| **AC:** Universal binary is created and included in distribution. Binary contains both ARM64 and X86_64 architectures. Distribution is preferred format for macOS.
+
+| **T-PLAT-13** | FR-PLAT-7.15 (Code Signing) | a|
+. Code sign application on Windows (if certificate available).
+. Code sign and notarize application on macOS.
+. GPG sign Linux packages (if key available).
+. Verify signatures are valid.
+| **AC:** Application is code-signed on Windows (if certificate available). Application is code-signed and notarized on macOS. Linux packages are GPG signed (if key available). Signatures are valid.
+
+|===
+
+=== File Association and URL Scheme Testing
+
+[cols="1, 2, 4, 3", options="headers"]
+|===
+^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
+
+| **T-PLAT-14** | FR-PLAT-7.23 (File Associations) | a|
+. Install application.
+. Double-click .sqlite cartridge file.
+. Verify application opens with cartridge loaded.
+| **AC:** File association is registered correctly. Double-clicking .sqlite file opens application with cartridge loaded. File association works on all platforms.
+
+| **T-PLAT-15** | FR-PLAT-7.24 (URL Scheme Handling) | a|
+. Register URL scheme handler.
+. Open `smartbook://` URL from browser or command line.
+. Verify application handles URL correctly.
+| **AC:** URL scheme handler is registered correctly. Application handles `smartbook://` URLs correctly. URL scheme works on all platforms that support it.
+
+|===
+
+== Implementation Checklist
+
+=== Platform Support
+
+- [ ] Implement platform detection (Windows, macOS, Linux)
+- [ ] Implement architecture detection (ARM64, X86_64)
+- [ ] Test on all supported Linux distributions
+- [ ] Test on macOS 26.1 (ARM64 and X86_64)
+- [ ] Test on Windows 11 (X86_64)
+- [ ] Build universal binary for macOS
+- [ ] Verify universal binary contains both architectures
+
+=== UI Framework
+
+- [ ] Apply Qt Fusion style to all UI components
+- [ ] Test UI appearance across all platforms
+- [ ] Implement platform-specific menu bar (macOS)
+- [ ] Implement system tray (Windows/Linux, if needed)
+- [ ] Verify UI consistency across platforms
+
+=== Security
+
+- [ ] Implement Windows Credential Manager integration
+- [ ] Implement macOS Keychain integration
+- [ ] Implement Linux libsecret integration
+- [ ] Configure certificate validation for each platform
+- [ ] Test secure credential storage on all platforms
+- [ ] Test certificate validation on all platforms
+
+=== Distribution
+
+- [ ] Create Windows installer (MSI or EXE)
+- [ ] Create macOS application bundle (.app) or DMG
+- [ ] Create Linux packages (DEB, RPM, PKG)
+- [ ] Code sign application (where applicable)
+- [ ] Notarize macOS application (if distributing outside App Store)
+- [ ] GPG sign Linux packages (optional)
+
+=== File Associations and URL Schemes
+
+- [ ] Register file associations on Windows
+- [ ] Register file associations on macOS (Info.plist)
+- [ ] Register file associations on Linux (.desktop file)
+- [ ] Register URL scheme handler on Windows
+- [ ] Register URL scheme handler on macOS (Info.plist)
+- [ ] Register URL scheme handler on Linux (.desktop file)
+
+== Best Practices Summary
+
+=== Platform Support Best Practices
+
+1. **Cross-Platform Compatibility:** Use Qt's cross-platform APIs whenever possible
+2. **Platform Detection:** Use Qt's platform macros (`Q_OS_WIN`, `Q_OS_MACOS`, `Q_OS_LINUX`)
+3. **Architecture Support:** Build and test on both ARM64 and X86_64 where feasible
+4. **Universal Binaries:** Use universal binaries for macOS when possible
+5. **Version Requirements:** Clearly document minimum OS versions
+
+=== UI Best Practices
+
+1. **Consistent Appearance:** Use Qt Fusion style for uniform appearance
+2. **Platform Integration:** Follow platform-specific UI guidelines where necessary
+3. **Accessibility:** Ensure UI is accessible on all platforms
+4. **Theming:** Support theming while maintaining platform integration
+
+=== Security Best Practices
+
+1. **Secure Storage:** Always use platform-specific secure storage for credentials
+2. **Certificate Validation:** Use platform-specific certificate stores
+3. **File Permissions:** Respect platform-specific file system permissions
+4. **Code Signing:** Code sign applications on all platforms that support it
+
+=== Distribution Best Practices
+
+1. **Platform-Appropriate Formats:** Use platform-standard distribution formats
+2. **Installation Locations:** Follow platform conventions for installation locations
+3. **Data Directories:** Use platform-standard directories for user data
+4. **Code Signing:** Sign and notarize applications for security and trust
+
+== Summary
+
+This specification provides comprehensive platform-specific considerations:
+
+* **Requirements:** 24 functional requirements (FR-PLAT-7.1 through FR-PLAT-7.24) covering supported operating systems, architecture support, UI framework, security, distribution, and platform-specific features
+* **Design:** Complete implementation specifications with code examples for platform detection, secure storage, certificate validation, universal binary support, file associations, and URL scheme handling
+* **Testing:** 15 test cases covering platform support, UI framework, security, distribution, and file associations
+* **Best Practices:** Summary of platform support, UI, security, and distribution best practices
+
+The specification ensures the Smartbook Reader and Creator Tool applications work correctly across all supported platforms while maintaining security and following platform-specific best practices.

@@ -1,0 +1,292 @@
+= Consent Dialog Specifications and Creator Tool Test Cases
+:author: AI Assistant
+:revdate: 2025-12-14
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+
+== Summary
+
+Today's work focused on completing two critical documentation gaps:
+1. Detailed specifications for the Cartridge Loading Consent Dialog
+2. Comprehensive test cases and acceptance criteria for Creator Tool functionality
+
+== Cartridge Loading Consent Dialog Specifications
+
+=== Issue Identified
+
+The documentation review identified that while consent dialogs were mentioned, detailed specifications were missing:
+* Exact dialog text/templates not provided
+* Dialog size/positioning details
+* Dismissal behavior based on user consent choices
+* Accessibility requirements
+
+=== Resolution
+
+Added comprehensive Cartridge Loading Consent Dialog specifications to DDD Section 11.2.1, including:
+
+==== Dialog Appearance and Positioning
+* Native OS modal dialog (Qt QMessageBox or custom modal)
+* Centered horizontally and vertically on primary screen
+* Minimum 400px width, auto-height (max 600px)
+* Blocks all interaction until dismissed
+* Full keyboard navigation and screen reader support
+
+==== Dialog Content and Verbiage
+
+**Level 2 (Self-Signed Certificate) Cartridges:**
+* Title: "Security Warning: Self-Signed Cartridge"
+* Warning message explaining certificate cannot be verified by trusted authority
+* Cartridge information (Title, Author, Security Level)
+* Three options: "Load and Always Trust", "Load for This Session Only", "Cancel"
+
+**Level 3 (No Signature) Cartridges:**
+* Title: "Security Warning: Unsigned Cartridge"
+* Warning message explaining no digital signature
+* Cartridge information (Title, Author, Security Level)
+* Three options: "Load and Always Trust", "Load for This Session Only", "Cancel"
+
+==== Dismissal Behavior
+
+**When "Load and Always Trust" is selected:**
+* Cartridge added to `Local_Trust_Registry` with `trust_type = 'PERSISTENT'`
+* Cartridge loaded and displayed in Reader View Window
+* Future loads bypass consent dialog
+* Integrity warning bar still displayed (per FR-2.3.2/2.3.3)
+
+**When "Load for This Session Only" is selected:**
+* Cartridge loaded and displayed
+* No entry added to `Local_Trust_Registry`
+* Consent dialog appears again on next load
+* Integrity warning bar displayed
+
+**When "Cancel" is selected:**
+* Cartridge **not loaded**
+* Reader View Window **not opened**
+* User returned to Library Manager
+* No entry added to `Local_Trust_Registry`
+* No error message displayed (user choice)
+
+==== Implementation Details
+* Dialog triggered before cartridge content loaded into memory
+* Skipped if cartridge already in `Local_Trust_Registry` with valid trust
+* Dismissal methods: action buttons, Escape key, window close (all treated as Cancel)
+* Error handling: UI errors logged and treated as Cancel
+
+=== Files Modified
+* `Documentation/ddd.adoc` - Added Section 11.2.1 "Cartridge Loading Consent Dialog Requirements"
+
+== Creator Tool Test Cases
+
+=== Issue Identified
+
+The documentation review identified that the Test Plan focused on Reader functionality but lacked:
+* Test cases for Creator Tool
+* Test cases for cartridge creation/export
+* Test cases for form definition creation
+* Test cases for signing process
+* Acceptance criteria for Creator Tool requirements
+
+=== Resolution
+
+Added comprehensive Creator Tool test cases to Test Plan, covering all major functional areas:
+
+==== Test Cases Added (90 total)
+
+. **Content Authoring and Editing** (5 test cases: T-CT-01 to T-CT-05)
+   * HTML content authoring, rich text editing, direct HTML editing, standard edit operations, preview functionality
+
+. **Page Management** (4 test cases: T-CT-06 to T-CT-09)
+   * Page selection, CRUD operations, page ordering, chapter organization
+
+. **Cartridge Creation and Export** (12 test cases: T-CT-10 to T-CT-21)
+   * New cartridge creation, GUID generation, cartridge opening/saving, content validation, hash calculation, signing at all three trust levels, certificate management, export process, export validation
+
+. **Metadata and Resource Management** (5 test cases: T-CT-22 to T-CT-26)
+   * Document metadata, cover image management, schema version management, asset management, resource storage
+
+. **Form Definition Management** (4 test cases: T-CT-27 to T-CT-30)
+   * Form creation, form builder interface, form schema validation, form integration
+
+. **Auto-Save and Recovery** (4 test cases: T-CT-31 to T-CT-34)
+   * Auto-save functionality, auto-save configuration, auto-save indication, recovery on startup
+
+. **Error Handling** (6 test cases: T-CT-35 to T-CT-40)
+   * Content validation errors, cartridge creation errors, signing errors, export errors, import errors, corruption detection
+
+. **Stylesheet and Settings Management** (6 test cases: T-CT-41 to T-CT-46)
+   * CSS stylesheet attachment/editing, settings definition/editor/validation/preview
+
+. **JavaScript and Embedded Applications** (3 test cases: T-CT-47 to T-CT-49)
+   * Custom JavaScript storage, embedded application definition, JavaScript management
+
+. **Search and Import Capabilities** (6 test cases: T-CT-50 to T-CT-55)
+   * Content search, search results, Markdown/DOCX/HTML import, import validation
+
+. **Draft and Publishing States** (4 test cases: T-CT-56 to T-CT-59)
+   * Draft mode, publishing state, state management, publish workflow
+
+. **Content Templates** (4 test cases: T-CT-60 to T-CT-63)
+   * Template creation, template library, template application, template management
+
+. **Version History** (5 test cases: T-CT-64 to T-CT-68)
+   * Version tracking, version snapshots, version comparison, version restoration, version metadata
+
+. **Accessibility** (6 test cases: T-CT-69 to T-CT-74)
+   * Keyboard navigation, screen reader support, high contrast mode, font scaling, accessibility standards compliance, keyboard shortcuts documentation
+
+. **UI Theming Support** (7 test cases: T-CT-75 to T-CT-81)
+   * Built-in UI themes, theme selection, custom theme creation/management, theme application, theme preview, theme export/import
+
+. **Content Theme Management** (9 test cases: T-CT-82 to T-CT-90)
+   * Content Theme Manager dialog, theme list, theme actions, persist on add, theme configuration, live preview, theme actions (Apply/Save/Cancel/Revert), theme storage, theme application
+
+==== Test Case Structure
+
+Each test case includes:
+* **Test Case ID** - Unique identifier (T-CT-XX)
+* **Requirement Covered** - Links to specific FR-CT requirements from SRS
+* **Test Steps** - Detailed step-by-step instructions
+* **Expected Result (Acceptance Criteria)** - Clear acceptance criteria for validation
+
+All test cases provide explicit acceptance criteria, making requirements testable and validation straightforward.
+
+=== Files Modified
+* `Documentation/test-plan.adoc` - Added Section "Test Cases: Creator Tool Functional Validation" with 90 comprehensive test cases
+
+== Documentation Review Update
+
+Updated `documentation-review.adoc` to mark the Creator Tool Testing gap as resolved.
+
+=== Status Change
+* **Before:** "No test cases for Creator Tool" - Gap identified
+* **After:** [OK] **RESOLVED** - 90 comprehensive test cases added covering all Creator Tool functional areas
+
+=== Resolution Details
+* 90 test cases added (T-CT-01 through T-CT-90)
+* All major functional areas covered
+* Acceptance criteria specified for each test case
+* Test cases linked to specific FR-CT requirements
+* Test plan now comprehensive for both Reader and Creator Tool
+
+=== Files Modified
+* `Documentation/documentation-review.adoc` - Updated "Creator Tool Testing" section to mark as resolved
+
+== Impact and Next Steps
+
+=== Impact
+* **Consent Dialog:** Complete specifications enable implementation of security dialog with clear user experience
+* **Test Cases:** Comprehensive test coverage enables systematic validation of all Creator Tool functionality
+* **Documentation:** All identified gaps in test plan are now addressed
+
+=== Next Steps
+* Implementation teams can proceed with consent dialog development using DDD specifications
+* QA teams can begin test case development and execution planning
+* Test cases may be refined during implementation based on actual behavior
+* Additional test cases may be added for edge cases discovered during development
+
+== Error Scenario Test Cases
+
+=== Issue Identified
+
+The documentation review identified that the Test Plan had limited error scenario coverage:
+* No tests for corrupted cartridge files
+* No tests for invalid signatures
+* No tests for database failures
+* No tests for file system errors
+
+=== Resolution
+
+Added comprehensive error scenario test cases to Test Plan, covering all error handling requirements:
+
+==== Test Cases Added (49 total)
+
+. **Reader Application Error Scenarios** (24 test cases: T-ERR-01 to T-ERR-24)
+   * Cartridge File Errors (4 test cases) - File not found, invalid SQLite format, file corruption, permission errors
+   * Database Connection Errors (4 test cases) - Database locked, disk full, SQLite corruption, connection timeout
+   * Signature Verification Errors (5 test cases) - Invalid signature, expired certificate, untrusted CA, corrupted security data, hash mismatch (tampering)
+   * File System Errors (4 test cases) - Disk full, permission denied, path too long, invalid characters
+   * Manifest Update Errors (1 test case) - Manifest update failure with error dialog
+   * Sandbox Operation Errors (4 test cases) - Path traversal, invalid filename, file size limit, disk space exhaustion
+   * WebEngine Errors (2 test cases) - WebEngine crash, JavaScript errors
+
+. **Creator Tool Error Scenarios** (25 test cases: T-ERR-25 to T-ERR-49)
+   * Content Validation Errors (5 test cases) - Invalid HTML, malformed JSON schema, missing required metadata, invalid form definition, resource reference errors
+   * Cartridge Creation Errors (3 test cases) - Database initialization failure, GUID generation failure, schema creation error
+   * Signing Errors (5 test cases) - Invalid certificate format, expired certificate, missing private key, signing failure, certificate import error
+   * Export Errors (4 test cases) - File write error, disk full, permission error, hash calculation failure
+   * Import Errors (4 test cases) - Unsupported file format, corrupted source file, missing resources, import validation errors
+   * Resource Management Errors (4 test cases) - Resource file not found, invalid image format, file size limit exceeded, resource path error
+
+==== Test Coverage Details
+
+* All FR-ERR-4.1 through FR-ERR-4.13 requirements covered
+* Specific error messages validated per DDD error handling specifications
+* Error logging and recovery behavior verified
+* User-friendly error messages and actionable guidance tested
+* Graceful degradation and data preservation verified
+* All test cases include explicit acceptance criteria
+
+=== Files Modified
+* `Documentation/test-plan.adoc` - Added Section "Test Cases: Error Scenario Validation" with 49 comprehensive error scenario test cases
+* `Documentation/documentation-review.adoc` - Updated "Error Scenario Testing" section to mark as resolved
+
+== Related Requirements
+
+=== Consent Dialog
+* FR-2.3.2 (Level 2: Self-Signed Trust)
+* FR-2.3.3 (Level 3: No Signature)
+* FR-2.4.1 (Persistent Trust Management)
+* FR-2.4.2 (Trust Options)
+* DDD Section 11.2.1 (Cartridge Loading Consent Dialog Requirements)
+
+=== Creator Tool Test Cases
+* All FR-CT-3.1 through FR-CT-3.90 requirements
+* All FR-ERR-4.8 through FR-ERR-4.13 error handling requirements
+* Test Plan Section "Test Cases: Creator Tool Functional Validation"
+
+=== Error Scenario Test Cases
+* All FR-ERR-4.1 through FR-ERR-4.13 error handling requirements
+* DDD Error Handling and Logging Implementation sections
+* Test Plan Section "Test Cases: Error Scenario Validation"
+
+== Performance Testing Strategy
+
+=== Issue Identified
+
+The documentation review identified a gap in performance testing requirements. However, as a native desktop application using SQLite, most operations will be near-instantaneous, making it challenging to define meaningful performance thresholds for all operations.
+
+=== Resolution
+
+Defined a pragmatic performance testing strategy that:
+
+==== Philosophy
+* Acknowledge that most operations will be near-instantaneous (< 100ms) due to native desktop app and SQLite
+* Focus on scenarios where performance degradation is possible or measurable
+* Use user-perceived performance thresholds (what feels slow) rather than arbitrary technical metrics
+* Emphasize regression testing over absolute thresholds for most operations
+
+==== Specific Performance Requirements
+* **Library Load (NFR-3.1):** 500ms for 100+ cartridges - Already specified and testable
+* **Search Performance (FR-2.9.8):** < 2 seconds for 100+ pages - Already specified
+
+==== Performance Test Cases Added (8 test cases: T-PERF-01 to T-PERF-08)
+* T-PERF-01: Library Load Performance (NFR-3.1) - 500ms threshold
+* T-PERF-02: Search Performance (FR-2.9.8) - < 2 seconds for 100+ pages
+* T-PERF-03: Large Cartridge Opening - Verify reasonable performance with 1000+ pages
+* T-PERF-04: Concurrent Window Operations - Multiple windows simultaneously
+* T-PERF-05: Large Library Performance - 500+ cartridges
+* T-PERF-06: Form Data Save/Load Performance - Verify near-instantaneous operations
+* T-PERF-07: Content Rendering Performance - Verify smooth rendering
+* T-PERF-08: Performance Regression Baseline - Establish baselines for regression testing
+
+==== Approach
+* **Near-Instantaneous Operations:** No specific thresholds, verify < 200ms user-perceived "instant", focus on regression testing
+* **Measurable Operations:** Set thresholds only where meaningful (library load, search)
+* **Stress Testing:** Identify breaking points rather than set strict thresholds
+* **Regression Testing:** Establish baselines and verify performance doesn't degrade
+
+=== Files Modified
+* `Documentation/test-plan.adoc` - Added Section "Test Cases: Performance Validation" with 8 performance test cases
+* `Documentation/documentation-review.adoc` - Updated "Performance Testing" section with pragmatic strategy

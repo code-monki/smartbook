@@ -1,0 +1,598 @@
+= Phase 2: Remote Library Integration Specification
+:author: AI Assistant
+:revdate: 2025-12-14
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+
+== Introduction
+
+This document specifies the remote library integration system for Phase 2 of the Smartbook project. Phase 2 introduces support for multiple remote library servers, allowing users to browse, search, and download cartridges from remote sources while maintaining local copies. The system supports multiple concurrent remote libraries, each with its own authentication and configuration.
+
+== Architecture Overview
+
+=== Multiple Remote Library Support
+
+Phase 2 supports **multiple remote libraries** simultaneously. Each remote library is:
+* **Independent:** Has its own server URL, authentication, and configuration
+* **Configurable:** User can add, remove, enable/disable remote libraries
+* **Identifiable:** Each library has a unique identifier and display name
+* **Isolated:** Cartridges from different libraries are tracked separately
+
+=== Library Types
+
+[cols="2, 4", options="headers"]
+|===
+^.^| Library Type ^.^| Description
+
+| **Local Library** | Cartridges stored locally on user's device. Phase 1 functionality.
+| **Remote Library** | Cartridges available on remote server, can be downloaded locally.
+| **Hybrid Cartridge** | Cartridge exists both locally and remotely (synced).
+|===
+
+== Remote Library Configuration
+
+=== Library Configuration Schema
+
+Each remote library configuration includes:
+
+[cols="2, 3, 2", options="headers"]
+|===
+^.^| Field ^.^| Type ^.^| Description
+
+| `library_id` | UUID | Unique identifier for this remote library configuration
+| `library_name` | String | User-friendly display name (e.g., "Company Library", "Public Repository")
+| `server_url` | String | Base URL of remote library server (e.g., "https://library.example.com")
+| `api_version` | String | API version to use (e.g., "v1")
+| `authentication_type` | Enum | Authentication method: `token`, `oauth2`, `basic`
+| `auth_token` | String (encrypted) | Authentication token (encrypted storage)
+| `username` | String | Username for authentication (if applicable)
+| `enabled` | Boolean | Whether this library is currently enabled
+| `sync_enabled` | Boolean | Whether automatic sync is enabled
+| `sync_interval` | Integer | Sync interval in minutes (0 = manual only)
+| `last_sync` | Timestamp | Last successful sync timestamp
+| `created_at` | Timestamp | When library was added
+| `updated_at` | Timestamp | Last configuration update
+|===
+
+=== Library Configuration Storage
+
+**Local Storage:**
+* Store remote library configurations in local database table: `Remote_Library_Config`
+* Encrypt sensitive data (auth tokens, passwords) using OS credential store
+* Configuration persists across application sessions
+
+**Configuration Management:**
+* Users can add new remote libraries via UI
+* Users can edit library configuration (name, URL, credentials)
+* Users can enable/disable libraries without removing configuration
+* Users can remove libraries (with confirmation)
+
+== Cartridge Location Status
+
+=== Location Status Values
+
+The `location_status` field in `Local_Library_Manifest` tracks where cartridges are available:
+
+[cols="2, 4", options="headers"]
+|===
+^.^| Status ^.^| Description
+
+| `local_only` | Cartridge exists only locally (Phase 1 default, manually imported)
+| `remote_only` | Cartridge exists only on remote library (not downloaded locally)
+| `both` | Cartridge exists both locally and on remote library (synced)
+| `local_modified` | Local copy has been modified (out of sync with remote)
+| `remote_updated` | Remote version is newer than local copy
+|===
+
+=== Location Status Logic
+
+**Status Determination:**
+
+1. **On Import (Local):**
+   * Set `location_status = 'local_only'`
+   * No remote library association
+
+2. **On Remote Discovery:**
+   * If cartridge exists locally: Set `location_status = 'both'`
+   * If cartridge doesn't exist locally: Set `location_status = 'remote_only'`
+
+3. **On Download:**
+   * If cartridge already exists locally: Set `location_status = 'both'`
+   * If cartridge doesn't exist locally: Download and set `location_status = 'both'`
+
+4. **On Local Modification:**
+   * If local copy modified: Set `location_status = 'local_modified'`
+   * Track modification timestamp
+
+5. **On Remote Update Detection:**
+   * If remote version newer: Set `location_status = 'remote_updated'`
+   * Track remote update timestamp
+
+6. **On Local Deletion:**
+   * If local copy deleted but remote exists: Set `location_status = 'remote_only'`
+   * Keep manifest entry for remote access
+
+=== Remote Library Association
+
+**Tracking Remote Sources:**
+
+Add `remote_library_id` field to `Local_Library_Manifest`:
+* **Type:** UUID (nullable)
+* **Purpose:** Links cartridge to specific remote library
+* **Multiple Sources:** A cartridge could theoretically exist on multiple remote libraries (future enhancement)
+
+**Remote Metadata:**
+
+Store additional remote-specific metadata:
+* `remote_cartridge_id` - ID used by remote library (may differ from cartridge_guid)
+* `remote_version` - Version number on remote server
+* `remote_updated_at` - Last update timestamp on remote server
+* `remote_download_url` - URL for downloading cartridge file
+
+== UI Indicators
+
+=== Library Manager Display
+
+**Location Status Icons:**
+
+[cols="2, 4", options="headers"]
+|===
+^.^| Status ^.^| Visual Indicator
+
+| `local_only` | No icon (default, local file)
+| `remote_only` | Cloud icon (☁️) - indicates remote only
+| `both` | Checkmark + Cloud icon (✓☁️) - indicates synced
+| `local_modified` | Warning icon (⚠️) - local copy modified
+| `remote_updated` | Update icon (🔄) - remote has newer version
+|===
+
+**Library Source Badge:**
+
+* Display library name badge on cartridge tiles/cards
+* Color-code by library (user-configurable)
+* Show library name in tooltip/hover
+* Filter by library source in List View
+
+**Bookshelf View:**
+* Location status icon in corner of cartridge tile
+* Library badge below or on cartridge tile
+* Visual distinction for remote-only cartridges (e.g., grayed out or different border)
+
+**List View:**
+* Location status column (icon + text)
+* Library source column (library name)
+* Sortable by location status and library source
+* Filterable by location status and library source
+
+=== Context Menu Options
+
+**Context Menu Based on Location Status:**
+
+* **Local Only:**
+  * Open
+  * Delete
+  * Properties
+
+* **Remote Only:**
+  * Download (downloads to local library)
+  * View Remote Details
+  * Add to Favorites (bookmark for later)
+
+* **Both (Synced):**
+  * Open
+  * Sync Now (check for updates)
+  * Delete Local Copy (keeps remote, changes to remote_only)
+  * Delete (removes both local and remote association)
+  * Properties
+
+* **Local Modified:**
+  * Open
+  * Sync (upload local changes or download remote)
+  * Resolve Conflict (if remote also updated)
+  * Revert to Remote Version
+  * Keep Local Version
+
+* **Remote Updated:**
+  * Download Update
+  * Open (uses local version)
+  * View Changes (compare versions)
+
+== Remote Library API
+
+=== Base API Structure
+
+**Base URL Pattern:**
+* Each remote library has its own base URL: `{server_url}/api/{api_version}`
+* Example: `https://library.example.com/api/v1`
+
+**Authentication:**
+* All API requests require authentication token
+* Token obtained via login endpoint (see User Identity and Authentication spec)
+* Token sent in `Authorization: Bearer {token}` header
+
+=== Library Discovery Endpoints
+
+**List Available Libraries:**
+`GET /api/v1/libraries`
+* **Response:** List of available remote libraries (if server supports multiple libraries)
+* **Use Case:** Discover available libraries on a server
+
+**Get Library Information:**
+`GET /api/v1/library/info`
+* **Response:** Library metadata (name, description, cartridge count, etc.)
+* **Use Case:** Display library information in UI
+
+=== Cartridge Catalog Endpoints
+
+**List Cartridges:**
+`GET /api/v1/cartridges`
+* **Query Parameters:**
+  * `page` - Page number (pagination)
+  * `limit` - Items per page (default: 50, max: 100)
+  * `search` - Search query (title, author, tags)
+  * `sort` - Sort field (title, author, date, popularity)
+  * `order` - Sort order (asc, desc)
+* **Response:** Paginated list of cartridge metadata
+* **Use Case:** Browse remote library catalog
+
+**Get Cartridge Metadata:**
+`GET /api/v1/cartridges/{cartridge_id}`
+* **Response:** Detailed cartridge metadata (title, author, description, version, etc.)
+* **Use Case:** Display cartridge details before download
+
+**Search Cartridges:**
+`GET /api/v1/cartridges/search?q={query}`
+* **Query Parameters:**
+  * `q` - Search query
+  * `fields` - Fields to search (title, author, tags, description)
+* **Response:** Search results matching query
+* **Use Case:** Search remote library
+
+=== Download Endpoints
+
+**Download Cartridge:**
+`GET /api/v1/cartridges/{cartridge_id}/download`
+* **Response:** Cartridge file (binary SQLite file)
+* **Headers:**
+  * `Content-Type: application/x-sqlite3`
+  * `Content-Disposition: attachment; filename="{title}.sqlite"`
+* **Use Case:** Download cartridge to local library
+
+**Get Download URL:**
+`GET /api/v1/cartridges/{cartridge_id}/download-url`
+* **Response:** Temporary download URL (expires in 1 hour)
+* **Use Case:** Get direct download link for large files
+
+=== Sync Endpoints
+
+**Check for Updates:**
+`GET /api/v1/cartridges/{cartridge_id}/version`
+* **Response:** Version information (version number, updated_at, hash)
+* **Use Case:** Check if remote version is newer than local
+
+**Sync Status:**
+`GET /api/v1/sync/status`
+* **Response:** Sync status for all cartridges user has access to
+* **Use Case:** Bulk check for updates across library
+
+**Upload Cartridge (Future):**
+`POST /api/v1/cartridges/upload`
+* **Request:** Cartridge file (multipart/form-data)
+* **Response:** Uploaded cartridge metadata
+* **Use Case:** Upload local cartridge to remote library (requires permissions)
+
+=== Library Management Endpoints
+
+**Get User's Libraries:**
+`GET /api/v1/user/libraries`
+* **Response:** List of remote libraries user has access to
+* **Use Case:** Discover available libraries for user
+
+**Subscribe to Library:**
+`POST /api/v1/user/libraries/{library_id}/subscribe`
+* **Response:** Subscription confirmation
+* **Use Case:** Add library to user's accessible libraries
+
+**Unsubscribe from Library:**
+`DELETE /api/v1/user/libraries/{library_id}/subscribe`
+* **Response:** Unsubscription confirmation
+* **Use Case:** Remove library from user's accessible libraries
+
+== Sync Mechanisms
+
+=== Sync Strategies
+
+**Manual Sync:**
+* User triggers sync via UI (button, menu item)
+* Syncs selected cartridges or entire library
+* Shows progress dialog
+
+**Automatic Sync:**
+* Background sync at configured intervals
+* Only syncs enabled libraries
+* Respects user's sync preferences
+* Runs when application is idle (optional)
+
+**On-Demand Sync:**
+* Sync when user opens remote-only cartridge
+* Sync when user requests download
+* Sync when checking for updates
+
+=== Sync Process
+
+**Sync Algorithm:**
+
+1. **Connect to Remote Library:**
+   * Authenticate using stored credentials
+   * Verify library is accessible
+
+2. **Fetch Remote Catalog:**
+   * Request list of available cartridges
+   * Compare with local manifest
+
+3. **Identify Changes:**
+   * New cartridges (exist only on remote)
+   * Updated cartridges (remote version newer)
+   * Deleted cartridges (exist locally but not on remote)
+
+4. **Update Local Manifest:**
+   * Add entries for new remote cartridges (`location_status = 'remote_only'`)
+   * Update entries for existing cartridges
+   * Mark deleted cartridges (optional: remove or mark as unavailable)
+
+5. **Download Updates (if configured):**
+   * Automatically download updated cartridges
+   * Or prompt user to download updates
+
+6. **Update Sync Timestamp:**
+   * Record `last_sync` timestamp
+   * Store sync status (success/failure)
+
+=== Conflict Resolution
+
+**Conflict Scenarios:**
+
+1. **Local Modified, Remote Updated:**
+   * Both local and remote versions have changes
+   * User must choose: Keep local, Use remote, or Merge (future)
+
+2. **Local Deleted, Remote Updated:**
+   * User deleted local copy, but remote has updates
+   * Option to restore from remote
+
+3. **Remote Deleted:**
+   * Cartridge removed from remote library
+   * Update `location_status` to `local_only` if local copy exists
+   * Or remove from manifest if no local copy
+
+**Conflict Resolution UI:**
+* Display conflict dialog when conflicts detected
+* Show comparison of versions
+* User chooses resolution strategy
+* Apply resolution and update status
+
+== Database Schema Updates
+
+=== Remote Library Configuration Table
+
+[cols="2, 3, 2", options="headers"]
+|===
+^.^| Column ^.^| Type ^.^| Constraints
+
+| `library_id` | UUID | PRIMARY KEY
+| `library_name` | VARCHAR(255) | NOT NULL
+| `server_url` | VARCHAR(512) | NOT NULL
+| `api_version` | VARCHAR(10) | NOT NULL, DEFAULT 'v1'
+| `authentication_type` | VARCHAR(20) | NOT NULL, CHECK IN ('token', 'oauth2', 'basic')
+| `auth_token_encrypted` | BLOB | NULL (encrypted token)
+| `username` | VARCHAR(255) | NULL
+| `enabled` | BOOLEAN | NOT NULL, DEFAULT TRUE
+| `sync_enabled` | BOOLEAN | NOT NULL, DEFAULT FALSE
+| `sync_interval` | INTEGER | NOT NULL, DEFAULT 0 (0 = manual only)
+| `last_sync` | TIMESTAMP | NULL
+| `last_sync_status` | VARCHAR(20) | NULL (success, failed, partial)
+| `created_at` | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP
+| `updated_at` | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP
+|===
+
+=== Local Library Manifest Updates
+
+**Additional Columns for Remote Support:**
+
+[cols="2, 3, 2", options="headers"]
+|===
+^.^| Column ^.^| Type ^.^| Constraints
+
+| `location_status` | VARCHAR(20) | NOT NULL, DEFAULT 'local_only', CHECK IN ('local_only', 'remote_only', 'both', 'local_modified', 'remote_updated')
+| `remote_library_id` | UUID | NULL, FOREIGN KEY REFERENCES Remote_Library_Config(library_id)
+| `remote_cartridge_id` | VARCHAR(255) | NULL (remote library's ID for this cartridge)
+| `remote_version` | VARCHAR(50) | NULL
+| `remote_updated_at` | TIMESTAMP | NULL
+| `local_modified_at` | TIMESTAMP | NULL
+| `sync_status` | VARCHAR(20) | NULL (synced, pending, conflict, error)
+|===
+
+=== Sync Log Table
+
+[cols="2, 3, 2", options="headers"]
+|===
+^.^| Column ^.^| Type ^.^| Constraints
+
+| `sync_log_id` | BIGINT | PRIMARY KEY, AUTO_INCREMENT
+| `library_id` | UUID | NOT NULL, FOREIGN KEY, INDEX
+| `sync_started_at` | TIMESTAMP | NOT NULL
+| `sync_completed_at` | TIMESTAMP | NULL
+| `sync_status` | VARCHAR(20) | NOT NULL (success, failed, partial)
+| `cartridges_added` | INTEGER | NOT NULL, DEFAULT 0
+| `cartridges_updated` | INTEGER | NOT NULL, DEFAULT 0
+| `cartridges_deleted` | INTEGER | NOT NULL, DEFAULT 0
+| `errors` | TEXT | NULL (JSON array of error messages)
+|===
+
+== User Interface
+
+=== Library Configuration Dialog
+
+**Add Remote Library:**
+* Dialog with fields:
+  * Library Name (user-friendly name)
+  * Server URL (base URL of remote library)
+  * Authentication (username/password or token)
+  * Test Connection button
+* On success: Save configuration, enable library
+
+**Edit Remote Library:**
+* Same dialog as Add, pre-filled with existing values
+* Allow updating name, URL, credentials
+* Test connection before saving
+
+**Remove Remote Library:**
+* Confirmation dialog
+* Option to keep downloaded cartridges or remove them
+* Remove library configuration
+
+**Library List:**
+* Display all configured remote libraries
+* Show status (enabled/disabled, last sync, sync status)
+* Enable/disable toggle
+* Edit/Remove buttons
+
+=== Library Manager Enhancements
+
+**Library Filter:**
+* Dropdown or tabs to filter by library source
+* Options: "All Libraries", "Local Only", "Remote Only", or specific library name
+* Update view based on selection
+
+**Sync Controls:**
+* Sync button in toolbar (syncs all enabled libraries)
+* Sync button per library (syncs specific library)
+* Sync status indicator (spinning icon during sync)
+* Last sync timestamp display
+
+**Download Progress:**
+* Progress dialog for cartridge downloads
+* Shows download speed, ETA, cancel option
+* Background download support (continue in background)
+
+== Implementation Notes
+
+=== Authentication per Library
+
+**Multiple Library Authentication:**
+* Each remote library may have different authentication
+* Store credentials per library (encrypted)
+* Handle authentication failures gracefully
+* Support token refresh per library
+
+**Credential Management:**
+* Use OS credential store for each library
+* Key format: `smartbook_library_{library_id}_token`
+* Encrypt sensitive data before storage
+
+=== Network Handling
+
+**Offline Support:**
+* Gracefully handle network failures
+* Cache remote catalog data locally
+* Show offline indicator for remote libraries
+* Queue sync operations when offline
+
+**Connection Timeout:**
+* Set reasonable timeouts (30 seconds for API calls)
+* Retry failed requests (exponential backoff)
+* Show user-friendly error messages
+
+**Bandwidth Considerations:**
+* Support resumable downloads for large cartridges
+* Option to limit download bandwidth
+* Background download with pause/resume
+
+=== Error Handling
+
+**Library Connection Errors:**
+* Invalid URL
+* Authentication failure
+* Server unavailable
+* Network timeout
+
+**Sync Errors:**
+* Partial sync failures
+* Cartridge download failures
+* Version conflict errors
+
+**User Notification:**
+* Display error messages in UI
+* Log errors for debugging
+* Provide retry options
+* Allow disabling problematic libraries
+
+== Security Considerations
+
+=== Credential Storage
+
+**Encryption:**
+* Encrypt authentication tokens before storage
+* Use OS-provided encryption (Keychain, Credential Manager)
+* Never store credentials in plaintext
+
+**Token Refresh:**
+* Support token refresh per library
+* Handle token expiry gracefully
+* Prompt user to re-authenticate if refresh fails
+
+=== Data Privacy
+
+**Remote Library Access:**
+* User controls which libraries to connect to
+* User can disable libraries without removing configuration
+* Clear indication of data sharing with remote servers
+
+**Download Privacy:**
+* Downloads are user-initiated
+* No automatic background downloads without user consent
+* User can cancel downloads at any time
+
+== Testing Considerations
+
+=== Functional Testing
+
+* Add/remove remote libraries
+* Browse remote library catalog
+* Download cartridges from remote
+* Sync operations (manual and automatic)
+* Conflict resolution
+* Offline behavior
+* Multiple library management
+
+=== Performance Testing
+
+* Large catalog browsing (1000+ cartridges)
+* Concurrent downloads
+* Sync performance with many cartridges
+* Network timeout handling
+* Bandwidth-limited scenarios
+
+=== Security Testing
+
+* Credential storage encryption
+* Token refresh mechanisms
+* Authentication failure handling
+* Network security (HTTPS enforcement)
+
+== Summary
+
+This specification provides comprehensive support for multiple remote libraries in Phase 2:
+
+* **Multiple Library Support:** Users can configure and use multiple remote libraries simultaneously
+* **Location Status Tracking:** Clear tracking of where cartridges exist (local, remote, both)
+* **UI Indicators:** Visual indicators for cartridge location and sync status
+* **Sync Mechanisms:** Manual, automatic, and on-demand sync options
+* **Conflict Resolution:** Handling of local/remote version conflicts
+* **API Design:** RESTful API endpoints for library and cartridge operations
+* **Database Schema:** Complete schema for remote library configuration and tracking
+* **Security:** Encrypted credential storage and secure authentication
+
+The system maintains backward compatibility with Phase 1 (local-only cartridges) while adding powerful remote library capabilities.

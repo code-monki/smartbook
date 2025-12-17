@@ -1,0 +1,765 @@
+= Phase 2 Specifications: User Identity, Authentication, and Remote Library Integration
+:author: AI Assistant
+:revdate: 2025-12-14
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+
+== Summary
+
+Today's work focused on creating comprehensive specifications for Phase 2 of the Smartbook project, which introduces remote library functionality and multi-user support. Two major specification documents were created covering user identity/authentication and remote library integration with support for multiple remote libraries.
+
+== Phase 2 User Identity and Authentication Specification
+
+=== Issue Identified
+
+Phase 2 requires user identity and authentication for remote library access, but no specifications existed for:
+* User identity model
+* Authentication system
+* Session management
+* Login logging
+* Password reset mechanisms
+
+=== Resolution
+
+Created comprehensive User Identity and Authentication specification (`phase2-user-identity-and-authentication.adoc`) covering:
+
+==== User Identity Model
+* **User ID:** UUID v4 (consistent with Phase 1 cartridge_guid pattern)
+* **Core Attributes:** Username, email, password hash, account status, login tracking
+* **Account States:** active, suspended, deleted, pending_verification
+* **Security Fields:** failed_login_attempts, account_locked_until
+
+==== Authentication System
+* **Protocol:** HTTP REST API over HTTPS
+* **Token Type:** JWT (JSON Web Token) recommended, opaque tokens as alternative
+* **Session Expiry:**
+  * Regular session: 24 hours
+  * Persistent session ("Remember Me"): 30 days
+* **Token Refresh:** Automatic refresh mechanism before expiry
+* **Storage:** OS secure credential store (Keychain/Credential Manager)
+
+==== Login Logging
+* **Comprehensive Logging:** All login attempts (success and failure)
+* **Log Fields:** timestamp, user_id, username, IP address, success/failure, reason
+* **Log Rotation:** Daily rotation, compress after 7 days
+* **Retention:** 90 days active, 1 year archived
+* **Access:** Admin API access, user can view own history
+
+==== Password Reset
+* **Forgotten Password Recovery:** Complete password reset flow
+* **Locked Account Recovery:** Password reset automatically unlocks locked accounts
+* **Security:** 256-bit secure tokens, 24-hour expiry, one-time use
+* **Rate Limiting:** 3 requests per email per 24 hours
+* **Account Unlock:** Clears lockout and resets failed attempts on successful reset
+
+==== Security Features
+* **Account Lockout:** 5 failed attempts → 30-minute lockout
+* **Rate Limiting:** 10 attempts per IP per 15 minutes
+* **Password Hashing:** Bcrypt (cost 12+) or Argon2id
+* **HTTPS Only:** All API communication over TLS 1.2+
+* **Token Security:** Secure storage, HTTPS transmission only
+
+==== Additional Features
+* **Email Verification:** Optional for Phase 2, prevents fake accounts
+* **Token Refresh Strategy:** Auto-refresh at 80% of token lifetime
+* **Privacy Compliance:** GDPR considerations, data retention, IP anonymization
+* **Database Schema:** Complete schemas for users, sessions, password reset tokens, login logs
+
+=== Files Created
+* `Documentation/phase2-user-identity-and-authentication.adoc` - Complete specification document
+
+== Phase 2 Remote Library Integration Specification
+
+=== Issue Identified
+
+Phase 2 requires remote library functionality, but specifications were missing for:
+* Multiple remote library support (not just single library)
+* Remote library configuration and management
+* Cartridge location status tracking
+* Sync mechanisms
+* UI indicators for local vs remote cartridges
+* API design for remote library operations
+
+=== Resolution
+
+Created comprehensive Remote Library Integration specification (`phase2-remote-library-integration.adoc`) covering:
+
+==== Multiple Remote Library Support
+* **Architecture:** Support for multiple concurrent remote libraries
+* **Independence:** Each library has own configuration, authentication, sync settings
+* **Configuration:** Unique identifier, display name, server URL, API version per library
+* **Management:** Add, edit, enable/disable, remove libraries
+
+==== Location Status Tracking
+* **Status Values:**
+  * `local_only` - Phase 1 default, manually imported
+  * `remote_only` - Available on remote, not downloaded
+  * `both` - Exists locally and remotely (synced)
+  * `local_modified` - Local copy has changes
+  * `remote_updated` - Remote version is newer
+* **Remote Association:** Track which remote library each cartridge belongs to
+* **Metadata:** Remote version, update timestamps, download URLs
+
+==== UI Indicators
+* **Visual Icons:** Cloud, checkmark, warning, update icons for location status
+* **Library Badges:** Display library name on cartridge tiles
+* **Filtering:** Filter by library source in List View
+* **Context Menus:** Different options based on location status
+* **Bookshelf View:** Location status icons and library badges on tiles
+
+==== Sync Mechanisms
+* **Manual Sync:** User-triggered sync operations
+* **Automatic Sync:** Configurable interval-based background sync
+* **On-Demand Sync:** Sync when opening/downloading cartridges
+* **Conflict Resolution:** Handle local/remote version conflicts
+* **Sync Process:** Connect, fetch catalog, identify changes, update manifest, download updates
+
+==== Remote Library API
+* **Library Discovery:** List available libraries, get library information
+* **Cartridge Catalog:** List, search, get metadata for cartridges
+* **Download:** Download cartridge files, get download URLs
+* **Sync:** Check for updates, get sync status
+* **Library Management:** Subscribe/unsubscribe to libraries
+
+==== Database Schema
+* **Remote_Library_Config:** Store library configurations with encrypted credentials
+* **Local_Library_Manifest Updates:** Add remote tracking fields (location_status, remote_library_id, remote metadata)
+* **Sync_Log:** Track sync operations and results
+
+==== Security and Error Handling
+* **Credential Storage:** Encrypted storage per library using OS credential store
+* **Authentication:** Token refresh per library, handle failures gracefully
+* **Network Handling:** Offline support, connection timeouts, bandwidth considerations
+* **Error Handling:** Connection errors, sync errors, user notifications
+
+=== Files Created
+* `Documentation/phase2-remote-library-integration.adoc` - Complete specification document
+
+== Key Design Decisions
+
+=== Multiple Remote Libraries
+
+**Decision:** Support multiple concurrent remote libraries, not just a single library.
+
+**Rationale:**
+* Users may want to access cartridges from different sources (company library, public repository, personal server)
+* Each library may have different authentication and configuration
+* Provides flexibility and scalability
+
+**Consequences:**
+* More complex configuration management
+* Need to track which library each cartridge belongs to
+* UI must support filtering and display by library source
+* Each library requires separate authentication
+
+=== Location Status Tracking
+
+**Decision:** Use `location_status` field to track where cartridges exist (local, remote, both).
+
+**Rationale:**
+* Clear indication of cartridge availability
+* Enables appropriate UI actions based on status
+* Supports sync operations and conflict resolution
+* Backward compatible with Phase 1 (defaults to `local_only`)
+
+**Consequences:**
+* Need to maintain status accuracy during operations
+* Status changes trigger UI updates
+* Conflict resolution required for version mismatches
+
+=== Password Reset Unlocks Account
+
+**Decision:** Password reset automatically unlocks locked accounts.
+
+**Rationale:**
+* User who forgot password and locked themselves out needs recovery mechanism
+* Password reset proves user identity (via email verification)
+* Provides user-friendly recovery path
+
+**Consequences:**
+* Security consideration: Email access required for account recovery
+* Reduces support burden for locked accounts
+* Must ensure email security
+
+== Impact and Next Steps
+
+=== Impact
+* **Phase 2 Planning:** Complete specifications enable Phase 2 implementation planning
+* **Architecture:** Clear architecture for multi-library, multi-user system
+* **Backward Compatibility:** Phase 1 functionality preserved, Phase 2 adds capabilities
+* **Security:** Comprehensive security model for authentication and remote access
+
+=== Next Steps
+* Review specifications with team
+* Begin Phase 2 implementation planning
+* Design server-side API implementation
+* Plan database migration for Phase 2 schema additions
+* Design UI components for library management and indicators
+
+== Related Requirements
+
+=== User Identity and Authentication
+* Phase 2 User Identity and Authentication Specification
+* HTTP REST API design
+* JWT token-based authentication
+* Session management with expiry
+* Password reset and account recovery
+
+=== Remote Library Integration
+* Phase 2 Remote Library Integration Specification
+* Multiple remote library support
+* Location status tracking
+* Sync mechanisms
+* Remote library API endpoints
+* UI indicators and management
+
+== Qt WebEngine Configuration Specification
+
+=== Issue Identified
+
+The documentation review identified that Qt WebEngine configuration was not comprehensively specified:
+* No specification for WebEngine settings/configuration
+* No specification for JavaScript engine version
+* No specification for HTML/CSS standards compliance level
+
+=== Resolution
+
+Created comprehensive Qt WebEngine Configuration specification covering:
+
+==== Requirements (SRS)
+* **10 Functional Requirements Added (FR-WE-5.1 through FR-WE-5.10):**
+  * Profile configuration
+  * JavaScript engine version documentation
+  * HTML/CSS standards compliance
+  * Security settings
+  * Performance settings
+  * Profile isolation
+  * Network interceptor configuration
+  * CSP header configuration
+  * WebChannel configuration
+  * Error handling configuration
+
+==== Design Specification (DDD)
+* **Complete Implementation Specification Added:**
+  * Qt WebEngine version requirements (Qt 6.2+, Chromium, V8 versions)
+  * Three profile configurations (Reader content, embedded apps, Creator Tool editor)
+  * Network request interceptor implementation with code examples
+  * Content Security Policy (CSP) header configuration
+  * WebChannel setup and bridge registration
+  * JavaScript console error handling
+  * WebEngine process crash handling with recovery dialog
+  * Performance configuration (memory, cache)
+  * HTML5/CSS3 standards support documentation
+  * V8 JavaScript engine features and ECMAScript support
+
+==== Test Cases (Test Plan)
+* **26 Test Cases Added (T-WE-01 through T-WE-26):**
+  * WebEngine configuration and standards (10 test cases)
+  * Network blocking security tests (6 test cases)
+  * Performance and standards tests (10 test cases)
+
+==== Specification Document
+* Created standalone specification document: `qt-webengine-configuration.adoc`
+* Includes requirements, design, and testing specifications
+* Provides code examples and implementation details
+
+=== Files Modified
+* `Documentation/qt-webengine-configuration.adoc` - Created (standalone specification)
+* `Documentation/srs.adoc` - Added FR-WE-5.1 through FR-WE-5.10 requirements
+* `Documentation/ddd.adoc` - Added "Qt WebEngine Configuration Implementation" section
+* `Documentation/test-plan.adoc` - Added "Test Cases: Qt WebEngine Configuration Validation" section with 26 test cases
+* `Documentation/documentation-review.adoc` - Updated to mark Qt WebEngine Configuration as resolved
+
+== SQLite Configuration Specification
+
+=== Issue Identified
+
+The documentation review identified that SQLite configuration was not comprehensively specified:
+* No specification for SQLite version requirements
+* No specification for SQLite configuration (WAL mode, etc.)
+* No specification for database optimization
+
+=== Resolution
+
+Created comprehensive SQLite Configuration specification covering:
+
+==== Requirements (SRS)
+* **23 Functional Requirements Added (FR-SQL-6.1 through FR-SQL-6.23):**
+  * SQLite version requirements (minimum 3.51) and version detection
+  * WAL mode configuration (local database, cartridge files, checkpoint, detection)
+  * Database optimization (page size 4KB, cache size, synchronous mode, foreign keys)
+  * Query optimizer and index optimization
+  * Vacuum and optimization operations
+  * Connection management (pooling, timeout, busy handler)
+  * Transaction management (usage, isolation, savepoints)
+  * Error handling and recovery (integrity checks, corruption recovery, backup/restore)
+
+==== Design Specification (DDD)
+* **Complete Implementation Specification Added:**
+  * SQLite version requirements and detection with code examples
+  * WAL mode implementation for all database types
+  * WAL checkpoint configuration and file size monitoring
+  * Page size configuration (4096 bytes)
+  * Cache size configuration (2000 pages local, 1000 pages cartridges)
+  * Synchronous mode configuration (NORMAL with WAL)
+  * Foreign key constraints enablement
+  * Query optimizer statistics (ANALYZE)
+  * Connection setup with timeout and busy handler
+  * Transaction usage examples (form data, cartridge deletion)
+  * Savepoint usage for complex operations
+  * Vacuum operation
+  * Integrity checks (quick and full)
+  * Backup and restore implementation
+
+==== Test Cases (Test Plan)
+* **34 Test Cases Added (T-SQL-01 through T-SQL-34):**
+  * SQLite configuration and optimization (15 test cases)
+  * Connection and transaction testing (6 test cases)
+  * Error handling and recovery testing (4 test cases)
+  * Performance and stress testing (9 test cases)
+
+==== Specification Document
+* Created standalone specification document: `sqlite-configuration.adoc`
+* Includes requirements, design, testing, and best practices
+* Provides code examples and implementation details
+
+=== Files Modified
+* `Documentation/sqlite-configuration.adoc` - Created (standalone specification)
+* `Documentation/srs.adoc` - Added FR-SQL-6.1 through FR-SQL-6.23 requirements
+* `Documentation/ddd.adoc` - Added "SQLite Configuration Implementation" section
+* `Documentation/test-plan.adoc` - Added "Test Cases: SQLite Configuration Validation" section with 34 test cases
+* `Documentation/documentation-review.adoc` - Updated to mark SQLite Configuration as resolved
+
+== Platform-Specific Considerations Specification
+
+=== Issue Identified
+
+The documentation review identified that platform-specific considerations were not comprehensively specified:
+* No specification for supported operating systems and versions
+* No specification for architecture support (ARM64, X86_64)
+* No specification for UI framework choices (Qt Fusion)
+* No specification for platform-specific security practices
+* No specification for universal binary support (macOS)
+
+=== Resolution
+
+Created comprehensive Platform-Specific Considerations specification covering:
+
+==== Requirements (SRS)
+* **24 Functional Requirements Added (FR-PLAT-7.1 through FR-PLAT-7.24):**
+  * Supported operating systems (Arch Linux 2025.09.01+, Debian 13+, Fedora 43+, Ubuntu 24.04 LTS+, macOS 26.1+, Windows 11+)
+  * Architecture support (ARM64, X86_64)
+  * Cross-platform compatibility (client-server on different platforms)
+  * Universal binary support (macOS)
+  * UI framework (Qt Fusion widget set for uniform appearance)
+  * UI consistency across platforms
+  * Platform security standards (Credential Manager, Keychain, libsecret)
+  * Secure storage implementation
+  * Certificate validation (platform-specific stores)
+  * File system permissions
+  * Distribution formats (MSI/EXE, .app/DMG, DEB/RPM/PKG)
+  * Code signing requirements
+  * Installation locations
+  * Data storage locations (application data, cache, logs, backups)
+  * Platform-specific features (menu bar, system tray, file associations, URL schemes)
+
+==== Design Specification (DDD)
+* **Complete Implementation Specification Added:**
+  * Platform detection (Windows, macOS, Linux) with code examples
+  * Architecture detection (ARM64, X86_64) with code examples
+  * Qt Fusion style configuration with code examples
+  * Platform-specific data directory resolution using QStandardPaths
+  * Secure storage implementation:
+    * Windows: Credential Manager API (code example)
+    * macOS: Keychain Services API (code example)
+    * Linux: libsecret API (code example)
+  * Certificate validation configuration
+  * Universal binary support (CMake configuration, build instructions, verification)
+  * File associations (Windows Registry, macOS Info.plist, Linux .desktop)
+  * URL scheme handling (Windows Registry, macOS Info.plist, Linux .desktop)
+
+==== Test Cases (Test Plan)
+* **15 Test Cases Added (T-PLAT-01 through T-PLAT-15):**
+  * Platform support testing (5 test cases)
+  * UI framework testing (2 test cases)
+  * Security testing (3 test cases)
+  * Distribution and packaging testing (3 test cases)
+  * File association and URL scheme testing (2 test cases)
+
+==== Specification Document
+* Created standalone specification document: `platform-specific-considerations.adoc`
+* Includes requirements, design, testing, and best practices
+* Provides code examples for all platform-specific implementations
+
+=== Files Modified
+* `Documentation/platform-specific-considerations.adoc` - Created (standalone specification)
+* `Documentation/srs.adoc` - Added FR-PLAT-7.1 through FR-PLAT-7.24 requirements
+* `Documentation/ddd.adoc` - Added "Platform-Specific Considerations Implementation" section
+* `Documentation/test-plan.adoc` - Added "Test Cases: Platform-Specific Considerations Validation" section with 15 test cases
+* `Documentation/documentation-review.adoc` - Updated to mark Platform-Specific Considerations as resolved
+
+== Glossary Creation
+
+=== Issue Identified
+
+The documentation review identified that technical terms were used throughout the documentation but:
+* No centralized glossary existed
+* Terms like "cartridge", "H1", "H2", "L1/L2/L3" were not defined in one place
+* New readers would have difficulty understanding project-specific terminology
+
+=== Resolution
+
+Created comprehensive glossary document covering all key technical terms:
+
+==== Glossary Content
+* **100+ Technical Terms Defined:**
+  * Core concepts (Cartridge, Cartridge GUID, Embedded Application, Form Definition, User Data)
+  * Security terms (Level 1/2/3, H1/H2, Tampering Detection, Trust Registry, Signature Verifier, 4-Phase Verification Algorithm)
+  * Architecture terms (Library Manager, Reader View Instance, Multi-Window Architecture, DML, LocalDBManager, CartridgeDBConnector)
+  * Technical terms (SQLite, WAL, Qt, Qt WebEngine, WebChannel Bridge, SmartbookBridge, Sandbox)
+  * Platform terms (ARM64, X86_64, Universal Binary, Application Data Directory, Cache Directory, Log Directory, Backup Directory)
+  * Phase 2 terms (JWT, Authentication, Remote Library)
+  * UI terms (Bookshelf View, List View, Fusion Style)
+  * And many more...
+
+==== Organization
+* **Alphabetical Organization:** Terms organized alphabetically for easy lookup
+* **Cross-References:** Terms link to related concepts using AsciiDoc xref syntax
+* **Index:** Quick reference index by letter for navigation
+* **Related Documentation:** Links to detailed documentation (SRS, DDD, HLD, etc.)
+
+==== Coverage
+The glossary covers:
+* Project-specific terminology (cartridge, H1/H2, L1/L2/L3)
+* Technical acronyms (FTS, WAL, IPC, CSP, JWT, UUID, GUID)
+* Architecture patterns (Multi-Window Architecture, Singleton, Per-Instance)
+* Security concepts (Digital Signature, Tampering Detection, Trust Registry)
+* Platform-specific terms (Universal Binary, Code Signing, URL Scheme)
+* Application components (Library Manager, Reader View Instance, Creator Tool)
+
+=== Files Modified
+* `Documentation/glossary.adoc` - Created (comprehensive glossary with 100+ terms)
+* `Documentation/documentation-review.adoc` - Updated to mark Missing Glossary as resolved
+
+== Architecture Diagrams Creation
+
+=== Issue Identified
+
+The documentation review identified that architecture was described textually but:
+* No visual architecture diagrams existed
+* No data flow diagrams existed
+* No sequence diagrams for key processes existed
+* Visual communication would improve understanding
+
+=== Resolution
+
+Created comprehensive diagrams document covering all key system aspects:
+
+==== Diagrams Created
+* **15+ Visual Diagrams:**
+  * **Architecture Diagrams (3):**
+    * System Architecture Overview - Shows Multi-Window Architecture with Library Manager, Reader View Instances, Data Management Layer, and Security Layer
+    * Component Interaction Diagram - Illustrates component interactions during cartridge loading and embedded application execution
+    * Data Management Layer Architecture - Shows singleton (LocalDBManager) and per-instance (CartridgeDBConnector) components with database relationships
+  
+  * **Sequence Diagrams (6):**
+    * 4-Phase Verification Algorithm - Complete security verification process with all phases
+    * Cartridge Loading Process - End-to-end flow from user action to content display
+    * Embedded Application Execution Flow - App execution, consent requests, and trust updates
+    * Form Data Save Flow - Form data persistence from JavaScript to database
+    * Cartridge Import Process - Import workflow from file selection to manifest update
+    * Trust Revocation Process - User trust revocation workflow
+  
+  * **Data Flow Diagrams (2):**
+    * Cartridge Data Flow - Data flow when loading and displaying cartridges
+    * Form Data Persistence Flow - Form data from user input to persistent storage
+  
+  * **State Diagrams (1):**
+    * Cartridge Trust State Machine - All trust states (Untrusted, ConsentRequired, Whitelisted, SessionTrust, Revoked) and transitions
+  
+  * **Deployment Diagrams (2):**
+    * Phase 1 Deployment (Single User) - Local deployment architecture
+    * Phase 2 Deployment (Multi-User) - Server-client architecture with multiple clients
+
+==== Diagram Format
+* **Mermaid Syntax:** All diagrams use Mermaid for compatibility with AsciiDoc, Markdown processors, and documentation systems
+* **Rendering Options:** Can be rendered via Asciidoctor with asciidoctor-diagram (Mermaid support), Mermaid CLI, online Mermaid Live Editor, or natively in Markdown (GitHub, GitLab, etc.)
+* **Documentation Integration:** Diagrams referenced in HLD and DDD documents
+
+==== Coverage
+The diagrams cover:
+* System architecture and component relationships
+* Security verification processes (4-Phase Algorithm)
+* Data flows (cartridge loading, form persistence)
+* User workflows (import, trust revocation)
+* State transitions (trust state machine)
+* Deployment architectures (Phase 1 and Phase 2)
+
+=== Files Modified
+* `Documentation/diagrams.adoc` - Created (comprehensive diagrams document with 15+ diagrams)
+* `Documentation/hld.adoc` - Added references to architecture diagrams
+* `Documentation/ddd.adoc` - Added references to sequence and data flow diagrams
+* `Documentation/documentation-review.adoc` - Updated to mark Missing Architecture Diagrams as resolved
+
+== WebChannel API Examples
+
+=== Issue Identified
+
+The documentation review identified that WebChannel API was specified but:
+* No complete JavaScript usage examples existed
+* No error handling examples existed
+* No integration examples existed
+* Developers would lack guidance on proper API usage
+
+=== Resolution
+
+Added comprehensive JavaScript usage examples to WebChannel API specification:
+
+==== Examples Added
+* **WebChannel Initialization:** Basic and simplified initialization examples showing how to set up and access SmartbookBridge
+* **Form Data Examples (3):**
+  * Basic form save with comprehensive error handling
+  * Form load on page load with error handling
+  * Auto-save form with debouncing and dirty state tracking
+* **Embedded Application Consent Examples (2):**
+  * Basic consent request with error handling
+  * Consent with retry logic and user-friendly messaging
+* **Sandbox File System Examples (5):**
+  * Saving configuration file
+  * Loading configuration file
+  * Listing sandbox files
+  * File picker usage (open/save modes)
+  * Complete file management class with CRUD operations using Promises
+* **Logging Examples (2):**
+  * Basic logging functions (debug, info, warn, error)
+  * Comprehensive Logger class with context and formatting
+* **Integration Examples (2):**
+  * Complete FormApplication class with save/load/auto-save and dirty state tracking
+  * Complete EmbeddedApp class with consent, configuration, and file management
+* **Best Practices (3):**
+  * Error handling best practices with validation
+  * Async/await wrapper pattern for Promise-based API usage
+  * Validation before API calls
+* **Common Patterns and Gotchas (3):**
+  * Check bridge availability before use
+  * Retry logic for transient errors with exponential backoff
+  * Callback execution context (`this` binding) with arrow functions
+* **Testing Examples (1):**
+  * Mock SmartbookBridge class for unit testing
+
+==== Coverage
+The examples provide:
+* Complete working code for all API methods
+* Comprehensive error handling for all error codes
+* Real-world usage scenarios and integration patterns
+* Best practices and common pitfalls
+* Testing strategies with mock implementations
+
+=== Files Modified
+* `Documentation/web-channel-api-specification.adoc` - Added comprehensive "JavaScript Usage Examples" section with 20+ code examples
+* `Documentation/documentation-review.adoc` - Updated to mark Missing API Examples as resolved
+
+== Help System and User Manual Specification
+
+=== Issue Identified
+
+The user identified that the help system should include a user manual, and a PDF version of the user manual should be included with distributions for each operating system. This was not previously specified in the documentation.
+
+=== Resolution
+
+Created comprehensive Help System and User Manual specifications:
+
+==== Requirements (SRS)
+* **16 Functional Requirements Added (FR-HELP-8.1 through FR-HELP-8.16):**
+  * Help system access (menu, keyboard shortcut F1, About dialog)
+  * Help system format (HTML, platform-native, PDF)
+  * Help content location (installation directory, offline access)
+  * User manual content scope (getting started, Reader features, Creator Tool features, security, shortcuts, troubleshooting, FAQ)
+  * User manual structure (TOC, chapters, index, cross-references, search)
+  * User manual format (HTML and PDF, identical content)
+  * PDF manual distribution (included with all platform distributions)
+  * PDF manual access (Help menu, installation directory)
+  * PDF manual naming (consistent: `SmartBook_User_Manual.pdf`)
+  * PDF manual generation (from single AsciiDoc source, automated)
+  * Help system integration (context-sensitive help, tooltips, "What's This?" mode)
+  * Help viewer (integrated viewer with navigation, search, printing)
+  * Help content updates (versioning, independent updates)
+  * Platform-specific help integration (macOS Help Book, Windows Help, Linux desktop integration)
+
+==== Design Specification (DDD)
+* **Complete Implementation Specification Added:**
+  * Help system architecture (content structure, organization, location)
+  * Help menu integration with code examples
+  * Platform-specific help paths (Windows, macOS, Linux)
+  * Integrated help viewer implementation (QWebEngineView-based)
+  * PDF manual generation process (AsciiDoc to PDF)
+  * PDF distribution locations for each platform
+  * Context-sensitive help implementation (dialog help, tooltips, "What's This?" mode)
+  * Platform-specific help integration (macOS Help Book, Windows Help, Linux desktop)
+  * User manual content specification (7-section structure)
+  * Help content maintenance (version control, updates, build integration)
+
+==== Test Cases (Test Plan)
+* **15 Test Cases Added (T-HELP-01 through T-HELP-15):**
+  * Help system access and content (5 test cases)
+  * PDF user manual distribution (4 test cases)
+  * Help system integration (3 test cases)
+  * Platform-specific help integration (3 test cases)
+
+=== Files Modified
+* `Documentation/srs.adoc` - Added FR-HELP-8.1 through FR-HELP-8.16 requirements
+* `Documentation/ddd.adoc` - Added "Help System and User Manual Implementation" section
+* `Documentation/test-plan.adoc` - Added "Test Cases: Help System and User Manual Validation" section with 15 test cases
+* `Documentation/documentation-review.adoc` - Updated to include help system in Nice to Have section
+
+== Custom Navigation Bar for Magazine Collections
+
+=== Issue Identified
+
+The user identified that magazine collections or collections of magazines may have articles organized into departmental groupings. They described a navigation bar (separate from the application menu) with dropdown menus for:
+* Browse (By Creator, By Issue, By Title)
+* Departments (Department 1, Department 2, etc.)
+* Bibliographies (APA Format, CMS Format)
+
+This feature is common for magazine collections and needed to be captured in requirements, design, and test plans.
+
+=== Resolution
+
+Created comprehensive Custom Navigation Bar specifications:
+
+==== Requirements (SRS)
+* **10 Functional Requirements Added (FR-NAV-9.1 through FR-NAV-9.10):**
+  * Custom navigation bar support (separate from application menu)
+  * Navigation bar definition (groups, items, targets)
+  * Browse navigation (By Creator, By Issue, By Title)
+  * Department navigation (departmental groupings, hierarchical support)
+  * Bibliography navigation (citation formats)
+  * Navigation bar rendering (HTML/CSS, responsive, keyboard accessible)
+  * Navigation bar visibility (show/hide based on cartridge definition)
+  * Navigation target resolution (page_id, anchor, page_and_anchor, custom_handler)
+  * Navigation structure storage (cartridge database, immutable)
+  * Creator Tool navigation support (define, create, link, preview, export)
+
+==== Design Specification (DDD)
+* **Navigation Structure Table Added:**
+  * `Navigation_Structure` table schema with columns: nav_id, group_name, group_order, item_label, item_order, target_type, target_value, parent_item_id, metadata_json
+  * Support for multiple navigation groups (Browse, Departments, Bibliographies)
+  * Support for hierarchical navigation (sub-menus)
+  * Metadata JSON for icons, tooltips, filter criteria
+
+* **Complete Implementation Specification Added:**
+  * Navigation structure loading algorithm
+  * Navigation bar HTML structure and rendering
+  * Navigation target resolution (page_id, anchor, page_and_anchor, custom_handler)
+  * Browse navigation implementation (By Creator/Issue/Title with custom handlers)
+  * Department navigation implementation
+  * Bibliography navigation implementation
+  * Navigation bar CSS styling (default and custom)
+  * Keyboard navigation support
+
+==== High-Level Design (HLD)
+* **Custom Navigation Bar Architecture Section Added:**
+  * Navigation bar components (structure, rendering, targets)
+  * Navigation flow (load, render, interact, resolve, navigate)
+  * Browse navigation (custom handlers, metadata filtering)
+  * Department navigation (direct navigation, hierarchical support)
+  * Bibliography navigation (citation format references)
+
+==== Test Cases (Test Plan)
+* **19 Test Cases Added (T-NAV-01 through T-NAV-19):**
+  * Navigation structure and display (3 test cases)
+  * Browse navigation (4 test cases)
+  * Department navigation (2 test cases)
+  * Bibliography navigation (2 test cases)
+  * Navigation target resolution (4 test cases)
+  * Navigation bar styling and accessibility (2 test cases)
+  * Creator Tool navigation support (2 test cases)
+
+=== Files Modified
+* `Documentation/srs.adoc` - Added FR-NAV-9.1 through FR-NAV-9.10 requirements
+* `Documentation/ddd.adoc` - Added `Navigation_Structure` table schema and "Custom Navigation Bar Implementation Specification" section
+* `Documentation/hld.adoc` - Added "Custom Navigation Bar Architecture" section
+* `Documentation/test-plan.adoc` - Added "Test Cases: Custom Navigation Bar Validation" section with 19 test cases
+* `Documentation/documentation-review.adoc` - Updated to include custom navigation bar in Nice to Have section
+
+== Series and Edition Grouping Specification
+
+=== Issue Identified
+
+The user identified the need to handle book series (e.g., "Lensman Series") and edition groupings (e.g., "Classic Traveller" vs "Mongoose Traveller"). Users need to be able to browse and filter cartridges by series or edition, and also create custom collections for personal organization.
+
+=== Resolution
+
+Created comprehensive Series and Edition Grouping specifications using a hybrid approach:
+
+==== Requirements (SRS)
+* **12 Functional Requirements Added (FR-SERIES-10.1 through FR-SERIES-10.12):**
+  * Series and edition metadata (series_name, edition_name, series_order in Metadata table)
+  * Creator Tool series support (set series/edition metadata)
+  * Auto-grouping by series (automatic grouping based on series_name)
+  * Auto-grouping by edition (automatic grouping based on edition_name)
+  * Series display ordering (using series_order for proper sequence)
+  * Custom collections (user-defined groups independent of metadata)
+  * Collection management (create, add/remove members, rename, delete)
+  * Grouping display (Browse by Series, Browse by Edition, Custom Collections views)
+  * Grouping persistence (local database storage, automatic maintenance)
+  * Grouping performance (meets NFR-3.1: < 500ms)
+
+==== Design Specification (DDD)
+* **Metadata Table Updates:**
+  * Added `series_name` (TEXT, nullable) to Metadata table
+  * Added `edition_name` (TEXT, nullable) to Metadata table
+  * Added `series_order` (INTEGER, nullable) to Metadata table
+
+* **Local Database Tables Added:**
+  * `Local_Cartridge_Groups` table (group_id, group_name, group_type, timestamps, description)
+  * `Local_Cartridge_Group_Members` junction table (membership_id, group_id, cartridge_guid, timestamps, display_order)
+  * Group types: "custom_collection", "series", "edition"
+
+* **Complete Implementation Specification Added:**
+  * Series and edition metadata handling
+  * Auto-grouping by series (detection, membership, display)
+  * Auto-grouping by edition (detection, membership, display)
+  * Custom collections (create, add/remove members, rename, delete, display)
+  * Grouping UI implementation (Browse by Series/Edition, Custom Collections views, filters, search)
+  * Grouping maintenance (on import, deletion, metadata update)
+  * Performance considerations (indexes, query optimization)
+
+==== High-Level Design (HLD)
+* **Series and Edition Grouping Architecture Section Added:**
+  * Grouping components (metadata-based, local grouping system)
+  * Grouping flow (auto-grouping, custom collections, grouping display)
+  * Grouping performance (query optimization, indexes)
+
+==== Test Cases (Test Plan)
+* **15 Test Cases Added (T-SERIES-01 through T-SERIES-15):**
+  * Series and edition metadata (4 test cases)
+  * Auto-grouping by series and edition (3 test cases)
+  * Custom collections (3 test cases)
+  * Grouping display and navigation (3 test cases)
+  * Performance and edge cases (2 test cases)
+
+=== Files Modified
+* `Documentation/srs.adoc` - Added FR-SERIES-10.1 through FR-SERIES-10.12 requirements
+* `Documentation/ddd.adoc` - Added series/edition fields to Metadata table, added Local_Cartridge_Groups and Local_Cartridge_Group_Members tables, added "Series and Edition Grouping Implementation" section
+* `Documentation/hld.adoc` - Added "Series and Edition Grouping Architecture" section
+* `Documentation/test-plan.adoc` - Added "Test Cases: Series and Edition Grouping Validation" section with 15 test cases
+* `Documentation/documentation-review.adoc` - Updated to include series and edition grouping
+
+== Files Modified
+
+* `Documentation/phase2-user-identity-and-authentication.adoc` - Created
+* `Documentation/phase2-remote-library-integration.adoc` - Created
+* `Documentation/qt-webengine-configuration.adoc` - Created
+* `Documentation/sqlite-configuration.adoc` - Created
+* `Documentation/platform-specific-considerations.adoc` - Created
+* `Documentation/glossary.adoc` - Created
+* `Documentation/diagrams.adoc` - Created
+* `Documentation/web-channel-api-specification.adoc` - Added comprehensive JavaScript usage examples
+* `Documentation/srs.adoc` - Added Qt WebEngine, SQLite, Platform-Specific, and Help System requirements
+* `Documentation/ddd.adoc` - Added Qt WebEngine, SQLite, Platform-Specific, and Help System configuration implementation, added diagram references
+* `Documentation/hld.adoc` - Added diagram references
+* `Documentation/test-plan.adoc` - Added Qt WebEngine, SQLite, Platform-Specific, and Help System test cases
+* `Documentation/documentation-review.adoc` - Updated to mark gaps as resolved

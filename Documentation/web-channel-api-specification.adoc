@@ -361,3 +361,1443 @@ All errors SHALL be logged to the application log file with:
 
 Security-related errors (path traversal, tampering) SHALL be logged with `WARN` or `ERROR` level. Other errors SHALL be logged with appropriate severity levels.
 
+== JavaScript Usage Examples
+
+This section provides complete, working JavaScript examples for using the SmartbookBridge API. These examples demonstrate proper usage patterns, error handling, and integration techniques.
+
+=== WebChannel Initialization
+
+Before using the SmartbookBridge API, you must ensure that Qt WebChannel is properly initialized. The WebChannel script is automatically injected by the Reader application.
+
+**Basic Initialization Check:**
+
+[source,javascript]
+----
+// Wait for WebChannel to be available
+if (typeof QWebChannel !== 'undefined') {
+    // WebChannel is available
+    initializeBridge();
+} else {
+    // Wait for WebChannel script to load
+    window.addEventListener('load', function() {
+        if (typeof QWebChannel !== 'undefined') {
+            initializeBridge();
+        } else {
+            console.error('QWebChannel not available');
+        }
+    });
+}
+
+function initializeBridge() {
+    new QWebChannel(qt.webChannelTransport, function(channel) {
+        // Access the SmartbookBridge object
+        window.SmartbookBridge = channel.objects.SmartbookBridge;
+        
+        if (window.SmartbookBridge) {
+            console.log('SmartbookBridge initialized successfully');
+            // Your code can now use SmartbookBridge
+        } else {
+            console.error('SmartbookBridge not available');
+        }
+    });
+}
+----
+
+**Simplified Initialization (Recommended):**
+
+[source,javascript]
+----
+// Simplified initialization - assumes WebChannel is already loaded
+// This is the typical case when content is loaded by the Reader
+let bridge = null;
+
+if (window.SmartbookBridge) {
+    // Bridge is already available (injected by Reader)
+    bridge = window.SmartbookBridge;
+} else if (typeof QWebChannel !== 'undefined') {
+    // Initialize via WebChannel
+    new QWebChannel(qt.webChannelTransport, function(channel) {
+        bridge = channel.objects.SmartbookBridge;
+        if (bridge) {
+            console.log('SmartbookBridge initialized');
+            onBridgeReady();
+        }
+    });
+} else {
+    console.error('WebChannel not available');
+}
+
+function onBridgeReady() {
+    // Bridge is ready to use
+    // Your application code here
+}
+----
+
+=== Form Data Examples
+
+==== Basic Form Save Example
+
+**Simple form save with success/error handling:**
+
+[source,javascript]
+----
+function saveCharacterSheet() {
+    const formData = {
+        characterName: document.getElementById('name').value,
+        characterClass: document.getElementById('class').value,
+        level: parseInt(document.getElementById('level').value),
+        hitPoints: parseInt(document.getElementById('hp').value),
+        stats: {
+            strength: parseInt(document.getElementById('str').value),
+            dexterity: parseInt(document.getElementById('dex').value),
+            constitution: parseInt(document.getElementById('con').value),
+            intelligence: parseInt(document.getElementById('int').value),
+            wisdom: parseInt(document.getElementById('wis').value),
+            charisma: parseInt(document.getElementById('cha').value)
+        }
+    };
+    
+    // Convert to JSON string
+    const dataJson = JSON.stringify(formData);
+    
+    // Save using SmartbookBridge
+    window.SmartbookBridge.saveFormData('character_sheet_v3', dataJson, function(success, errorCode, errorMessage) {
+        if (success) {
+            console.log('Form data saved successfully');
+            showMessage('Character sheet saved!', 'success');
+        } else {
+            console.error('Save failed:', errorCode, errorMessage);
+            handleSaveError(errorCode, errorMessage);
+        }
+    });
+}
+
+function handleSaveError(errorCode, errorMessage) {
+    switch (errorCode) {
+        case 'INVALID_FORM_ID':
+            showMessage('Error: Invalid form ID. Please contact support.', 'error');
+            break;
+        case 'INVALID_JSON':
+            showMessage('Error: Invalid data format. Please try again.', 'error');
+            break;
+        case 'VALIDATION_ERROR':
+            showMessage('Validation error: ' + (errorMessage || 'Data validation failed'), 'error');
+            break;
+        case 'DATABASE_ERROR':
+            showMessage('Error: Could not save to database. Please try again.', 'error');
+            break;
+        default:
+            showMessage('Error: Failed to save data. Error code: ' + errorCode, 'error');
+    }
+}
+
+function showMessage(message, type) {
+    const messageDiv = document.getElementById('message');
+    messageDiv.textContent = message;
+    messageDiv.className = 'message ' + type;
+    messageDiv.style.display = 'block';
+    
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+        messageDiv.style.display = 'none';
+    }, 3000);
+}
+----
+
+==== Form Load Example
+
+**Loading form data on page load:**
+
+[source,javascript]
+----
+// Load form data when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadCharacterSheet();
+});
+
+function loadCharacterSheet() {
+    window.SmartbookBridge.loadFormData('character_sheet_v3', function(data, success, errorCode) {
+        if (success && data) {
+            try {
+                const formData = JSON.parse(data);
+                populateForm(formData);
+                console.log('Form data loaded successfully');
+            } catch (e) {
+                console.error('Failed to parse loaded data:', e);
+                showMessage('Error: Could not load saved data.', 'error');
+            }
+        } else if (success && !data) {
+            // No data exists yet - this is normal for new forms
+            console.log('No saved data found - starting with empty form');
+        } else {
+            // Error loading data
+            handleLoadError(errorCode);
+        }
+    });
+}
+
+function populateForm(data) {
+    // Populate form fields with loaded data
+    if (data.characterName) {
+        document.getElementById('name').value = data.characterName;
+    }
+    if (data.characterClass) {
+        document.getElementById('class').value = data.characterClass;
+    }
+    if (data.level) {
+        document.getElementById('level').value = data.level;
+    }
+    if (data.hitPoints) {
+        document.getElementById('hp').value = data.hitPoints;
+    }
+    
+    // Populate stats
+    if (data.stats) {
+        document.getElementById('str').value = data.stats.strength || '';
+        document.getElementById('dex').value = data.stats.dexterity || '';
+        document.getElementById('con').value = data.stats.constitution || '';
+        document.getElementById('int').value = data.stats.intelligence || '';
+        document.getElementById('wis').value = data.stats.wisdom || '';
+        document.getElementById('cha').value = data.stats.charisma || '';
+    }
+}
+
+function handleLoadError(errorCode) {
+    switch (errorCode) {
+        case 'INVALID_FORM_ID':
+            console.error('Invalid form ID');
+            break;
+        case 'DATABASE_ERROR':
+            showMessage('Error: Could not load data from database.', 'error');
+            break;
+        case 'CORRUPTED_DATA':
+            showMessage('Error: Saved data is corrupted. Starting with empty form.', 'warning');
+            break;
+        default:
+            console.error('Load error:', errorCode);
+    }
+}
+----
+
+==== Auto-Save Form Example
+
+**Automatic form saving with debouncing:**
+
+[source,javascript]
+----
+let saveTimeout = null;
+const SAVE_DELAY = 2000; // Save 2 seconds after last change
+
+function setupAutoSave() {
+    const form = document.getElementById('character-form');
+    const inputs = form.querySelectorAll('input, select, textarea');
+    
+    inputs.forEach(input => {
+        input.addEventListener('input', function() {
+            // Clear existing timeout
+            if (saveTimeout) {
+                clearTimeout(saveTimeout);
+            }
+            
+            // Set new timeout
+            saveTimeout = setTimeout(() => {
+                saveCharacterSheet(true); // true = auto-save (no user notification)
+            }, SAVE_DELAY);
+        });
+    });
+}
+
+function saveCharacterSheet(isAutoSave = false) {
+    const formData = collectFormData();
+    const dataJson = JSON.stringify(formData);
+    
+    window.SmartbookBridge.saveFormData('character_sheet_v3', dataJson, function(success, errorCode) {
+        if (success) {
+            if (!isAutoSave) {
+                showMessage('Character sheet saved!', 'success');
+            }
+            // Update last saved indicator
+            updateLastSavedTime();
+        } else {
+            if (!isAutoSave) {
+                handleSaveError(errorCode);
+            } else {
+                console.warn('Auto-save failed:', errorCode);
+            }
+        }
+    });
+}
+
+function updateLastSavedTime() {
+    const indicator = document.getElementById('last-saved');
+    if (indicator) {
+        const now = new Date();
+        indicator.textContent = 'Last saved: ' + now.toLocaleTimeString();
+    }
+}
+----
+
+=== Embedded Application Consent Examples
+
+==== Basic Consent Request
+
+**Requesting consent before executing embedded app:**
+
+[source,javascript]
+----
+function startEmbeddedApp() {
+    const appId = 'dice_roller_app';
+    
+    // Request consent before executing app
+    window.SmartbookBridge.requestAppConsent(appId, function(consentGranted, errorCode) {
+        if (consentGranted) {
+            // User granted consent - proceed with app execution
+            initializeDiceRoller();
+        } else {
+            // User denied consent or error occurred
+            handleConsentDenied(errorCode);
+        }
+    });
+}
+
+function handleConsentDenied(errorCode) {
+    switch (errorCode) {
+        case 'INVALID_APP_ID':
+            showError('Error: Invalid application ID.');
+            break;
+        case 'TAMPERING_DETECTED':
+            showError('Security Error: Cartridge integrity check failed. Application cannot run.');
+            break;
+        case 'USER_CANCELLED':
+            showInfo('Application execution cancelled by user.');
+            break;
+        case 'DIALOG_ERROR':
+            showError('Error: Could not display consent dialog.');
+            break;
+        default:
+            showError('Error: Could not request consent. Error code: ' + errorCode);
+    }
+}
+
+function initializeDiceRoller() {
+    // App initialization code here
+    console.log('Dice roller app initialized');
+    // Show app UI, etc.
+}
+----
+
+==== Consent with Retry Logic
+
+**Requesting consent with user-friendly retry option:**
+
+[source,javascript]
+----
+function requestAppConsentWithRetry(appId, maxRetries = 1) {
+    let retryCount = 0;
+    
+    function requestConsent() {
+        window.SmartbookBridge.requestAppConsent(appId, function(consentGranted, errorCode) {
+            if (consentGranted) {
+                onConsentGranted();
+            } else {
+                if (errorCode === 'USER_CANCELLED' && retryCount < maxRetries) {
+                    // User cancelled - offer retry option
+                    if (confirm('Application requires your consent to run. Would you like to try again?')) {
+                        retryCount++;
+                        requestConsent();
+                    } else {
+                        onConsentDenied('User declined to grant consent');
+                    }
+                } else {
+                    onConsentDenied(errorCode);
+                }
+            }
+        });
+    }
+    
+    requestConsent();
+}
+
+function onConsentGranted() {
+    console.log('Consent granted - starting application');
+    startApplication();
+}
+
+function onConsentDenied(reason) {
+    console.log('Consent denied:', reason);
+    showMessage('Application cannot run without consent.', 'warning');
+}
+----
+
+=== Sandbox File System Examples
+
+==== Saving Configuration File
+
+**Saving app configuration to sandbox:**
+
+[source,javascript]
+----
+function saveAppConfig(config) {
+    const configJson = JSON.stringify(config, null, 2);
+    
+    window.SmartbookBridge.saveSandboxFile('config.json', configJson, function(success, errorCode, errorMessage) {
+        if (success) {
+            console.log('Configuration saved successfully');
+            showMessage('Settings saved!', 'success');
+        } else {
+            handleSandboxError('save', errorCode, errorMessage);
+        }
+    });
+}
+
+function handleSandboxError(operation, errorCode, errorMessage) {
+    switch (errorCode) {
+        case 'INVALID_FILENAME':
+            showError('Error: Invalid filename.');
+            break;
+        case 'PATH_TRAVERSAL':
+            showError('Security Error: Invalid file path.');
+            break;
+        case 'FILE_TOO_LARGE':
+            showError('Error: File is too large. Maximum size: 10MB');
+            break;
+        case 'DISK_FULL':
+            showError('Error: Insufficient disk space.');
+            break;
+        case 'PERMISSION_DENIED':
+            showError('Error: Permission denied.');
+            break;
+        case 'WRITE_ERROR':
+            showError('Error: Failed to write file.');
+            break;
+        default:
+            showError('Error: ' + (errorMessage || errorCode));
+    }
+}
+----
+
+==== Loading Configuration File
+
+**Loading app configuration from sandbox:**
+
+[source,javascript]
+----
+function loadAppConfig() {
+    window.SmartbookBridge.loadSandboxFile('config.json', function(data, success, errorCode) {
+        if (success && data) {
+            try {
+                const config = JSON.parse(data);
+                applyConfig(config);
+                console.log('Configuration loaded successfully');
+            } catch (e) {
+                console.error('Failed to parse config file:', e);
+                showError('Error: Configuration file is corrupted.');
+                // Use default configuration
+                applyDefaultConfig();
+            }
+        } else if (success && !data) {
+            // File doesn't exist - use defaults
+            console.log('No config file found - using defaults');
+            applyDefaultConfig();
+        } else {
+            handleLoadError(errorCode);
+        }
+    });
+}
+
+function applyConfig(config) {
+    // Apply loaded configuration
+    if (config.theme) {
+        setTheme(config.theme);
+    }
+    if (config.settings) {
+        applySettings(config.settings);
+    }
+}
+
+function applyDefaultConfig() {
+    // Apply default configuration
+    setTheme('light');
+    applySettings({});
+}
+
+function handleLoadError(errorCode) {
+    switch (errorCode) {
+        case 'FILE_NOT_FOUND':
+            // This is normal for first run
+            applyDefaultConfig();
+            break;
+        case 'READ_ERROR':
+            showError('Error: Could not read configuration file.');
+            applyDefaultConfig();
+            break;
+        default:
+            showError('Error loading configuration: ' + errorCode);
+            applyDefaultConfig();
+    }
+}
+----
+
+==== Listing Sandbox Files
+
+**Listing all files in sandbox directory:**
+
+[source,javascript]
+----
+function listSandboxFiles() {
+    window.SmartbookBridge.listSandboxFiles(function(files, success, errorCode) {
+        if (success) {
+            if (files.length === 0) {
+                console.log('Sandbox directory is empty');
+                showMessage('No files in sandbox.', 'info');
+            } else {
+                console.log('Files in sandbox:', files);
+                displayFileList(files);
+            }
+        } else {
+            handleListError(errorCode);
+        }
+    });
+}
+
+function displayFileList(files) {
+    const fileListDiv = document.getElementById('file-list');
+    fileListDiv.innerHTML = '<h3>Files in Sandbox:</h3><ul>';
+    
+    files.forEach(filename => {
+        const listItem = document.createElement('li');
+        listItem.textContent = filename;
+        listItem.addEventListener('click', () => loadFile(filename));
+        fileListDiv.appendChild(listItem);
+    });
+    
+    fileListDiv.innerHTML += '</ul>';
+}
+
+function handleListError(errorCode) {
+    switch (errorCode) {
+        case 'PERMISSION_DENIED':
+            showError('Error: Permission denied to list files.');
+            break;
+        case 'SCAN_ERROR':
+            showError('Error: Could not scan sandbox directory.');
+            break;
+        default:
+            showError('Error listing files: ' + errorCode);
+    }
+}
+----
+
+==== File Picker Example
+
+**Using file picker to select files:**
+
+[source,javascript]
+----
+function openFileForEditing() {
+    window.SmartbookBridge.openSandboxFilePicker('open', 'JSON Files (*.json);;All Files (*.*)', function(filename, success, errorCode) {
+        if (success && filename) {
+            // File selected
+            loadAndEditFile(filename);
+        } else if (success && !filename) {
+            // User cancelled
+            console.log('File selection cancelled');
+        } else {
+            handleFilePickerError(errorCode);
+        }
+    });
+}
+
+function saveFileAs() {
+    window.SmartbookBridge.openSandboxFilePicker('save', 'JSON Files (*.json)', function(filename, success, errorCode) {
+        if (success && filename) {
+            // Filename selected/entered
+            const data = collectDataToSave();
+            saveSandboxFile(filename, data);
+        } else if (success && !filename) {
+            // User cancelled
+            console.log('Save cancelled');
+        } else {
+            handleFilePickerError(errorCode);
+        }
+    });
+}
+
+function handleFilePickerError(errorCode) {
+    switch (errorCode) {
+        case 'INVALID_MODE':
+            showError('Error: Invalid file picker mode.');
+            break;
+        case 'DIALOG_ERROR':
+            showError('Error: Could not open file dialog.');
+            break;
+        case 'SECURITY_VIOLATION':
+            showError('Security Error: Invalid file path.');
+            break;
+        default:
+            showError('Error: ' + errorCode);
+    }
+}
+----
+
+==== Complete File Management Example
+
+**Complete file management with CRUD operations:**
+
+[source,javascript]
+----
+class SandboxFileManager {
+    constructor() {
+        this.bridge = window.SmartbookBridge;
+    }
+    
+    // Create or update file
+    async saveFile(filename, data) {
+        return new Promise((resolve, reject) => {
+            const dataStr = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+            
+            this.bridge.saveSandboxFile(filename, dataStr, (success, errorCode, errorMessage) => {
+                if (success) {
+                    resolve({ success: true, filename });
+                } else {
+                    reject({ success: false, errorCode, errorMessage });
+                }
+            });
+        });
+    }
+    
+    // Read file
+    async loadFile(filename) {
+        return new Promise((resolve, reject) => {
+            this.bridge.loadSandboxFile(filename, (data, success, errorCode) => {
+                if (success) {
+                    if (data) {
+                        try {
+                            const parsed = JSON.parse(data);
+                            resolve({ success: true, data: parsed });
+                        } catch (e) {
+                            resolve({ success: true, data: data }); // Return as string if not JSON
+                        }
+                    } else {
+                        reject({ success: false, errorCode: 'FILE_NOT_FOUND' });
+                    }
+                } else {
+                    reject({ success: false, errorCode });
+                }
+            });
+        });
+    }
+    
+    // Delete file
+    async deleteFile(filename) {
+        return new Promise((resolve, reject) => {
+            this.bridge.deleteSandboxFile(filename, (success, errorCode, errorMessage) => {
+                if (success) {
+                    resolve({ success: true });
+                } else {
+                    reject({ success: false, errorCode, errorMessage });
+                }
+            });
+        });
+    }
+    
+    // List all files
+    async listFiles() {
+        return new Promise((resolve, reject) => {
+            this.bridge.listSandboxFiles((files, success, errorCode) => {
+                if (success) {
+                    resolve({ success: true, files });
+                } else {
+                    reject({ success: false, errorCode });
+                }
+            });
+        });
+    }
+    
+    // Pick file using native dialog
+    async pickFile(mode = 'open', filter = '') {
+        return new Promise((resolve, reject) => {
+            this.bridge.openSandboxFilePicker(mode, filter, (filename, success, errorCode) => {
+                if (success) {
+                    resolve({ success: true, filename });
+                } else {
+                    reject({ success: false, errorCode });
+                }
+            });
+        });
+    }
+}
+
+// Usage example
+const fileManager = new SandboxFileManager();
+
+// Save file
+async function saveData() {
+    try {
+        const result = await fileManager.saveFile('data.json', { key: 'value' });
+        console.log('File saved:', result.filename);
+    } catch (error) {
+        console.error('Save failed:', error);
+    }
+}
+
+// Load file
+async function loadData() {
+    try {
+        const result = await fileManager.loadFile('data.json');
+        console.log('File loaded:', result.data);
+    } catch (error) {
+        if (error.errorCode === 'FILE_NOT_FOUND') {
+            console.log('File does not exist');
+        } else {
+            console.error('Load failed:', error);
+        }
+    }
+}
+----
+
+=== Logging Examples
+
+==== Basic Logging
+
+**Using logMessage for debugging:**
+
+[source,javascript]
+----
+function logDebug(message) {
+    window.SmartbookBridge.logMessage('DEBUG', message);
+}
+
+function logInfo(message) {
+    window.SmartbookBridge.logMessage('INFO', message);
+}
+
+function logWarning(message) {
+    window.SmartbookBridge.logMessage('WARN', message);
+}
+
+function logError(message) {
+    window.SmartbookBridge.logMessage('ERROR', message);
+}
+
+// Usage
+logDebug('Application initialized');
+logInfo('User action: Save button clicked');
+logWarning('Low memory condition detected');
+logError('Failed to process data');
+----
+
+==== Error Logging Helper
+
+**Comprehensive error logging helper:**
+
+[source,javascript]
+----
+class Logger {
+    constructor(context = 'App') {
+        this.context = context;
+        this.bridge = window.SmartbookBridge;
+    }
+    
+    debug(message, ...args) {
+        const fullMessage = this.formatMessage(message, args);
+        this.bridge.logMessage('DEBUG', `[${this.context}] ${fullMessage}`);
+        console.debug(`[${this.context}]`, message, ...args);
+    }
+    
+    info(message, ...args) {
+        const fullMessage = this.formatMessage(message, args);
+        this.bridge.logMessage('INFO', `[${this.context}] ${fullMessage}`);
+        console.info(`[${this.context}]`, message, ...args);
+    }
+    
+    warn(message, ...args) {
+        const fullMessage = this.formatMessage(message, args);
+        this.bridge.logMessage('WARN', `[${this.context}] ${fullMessage}`);
+        console.warn(`[${this.context}]`, message, ...args);
+    }
+    
+    error(message, error, ...args) {
+        const fullMessage = this.formatMessage(message, args);
+        let errorDetails = fullMessage;
+        
+        if (error) {
+            errorDetails += ` | Error: ${error.message || error}`;
+            if (error.stack) {
+                errorDetails += ` | Stack: ${error.stack}`;
+            }
+        }
+        
+        this.bridge.logMessage('ERROR', `[${this.context}] ${errorDetails}`);
+        console.error(`[${this.context}]`, message, error, ...args);
+    }
+    
+    formatMessage(message, args) {
+        if (args.length === 0) {
+            return message;
+        }
+        return message + ' | ' + args.map(arg => 
+            typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+        ).join(' | ');
+    }
+}
+
+// Usage
+const logger = new Logger('DiceRoller');
+
+logger.debug('Initializing dice roller');
+logger.info('Rolled dice', { dice: 'd20', result: 15 });
+logger.warn('Low on dice rolls remaining', { remaining: 5 });
+logger.error('Failed to roll dice', new Error('Invalid dice type'));
+----
+
+=== Integration Examples
+
+==== Complete Form Application
+
+**Complete form application with save/load/auto-save:**
+
+[source,javascript]
+----
+class FormApplication {
+    constructor(formId) {
+        this.formId = formId;
+        this.bridge = window.SmartbookBridge;
+        this.autoSaveDelay = 2000;
+        this.saveTimeout = null;
+        this.isDirty = false;
+        
+        this.initialize();
+    }
+    
+    initialize() {
+        // Load existing data
+        this.loadData();
+        
+        // Setup auto-save
+        this.setupAutoSave();
+        
+        // Setup manual save button
+        const saveButton = document.getElementById('save-button');
+        if (saveButton) {
+            saveButton.addEventListener('click', () => this.saveData(false));
+        }
+        
+        // Warn before leaving if unsaved changes
+        window.addEventListener('beforeunload', (e) => {
+            if (this.isDirty) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+    }
+    
+    setupAutoSave() {
+        const form = document.getElementById('main-form');
+        if (!form) return;
+        
+        const inputs = form.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('input', () => {
+                this.markDirty();
+                this.scheduleAutoSave();
+            });
+        });
+    }
+    
+    markDirty() {
+        this.isDirty = true;
+        this.updateDirtyIndicator();
+    }
+    
+    markClean() {
+        this.isDirty = false;
+        this.updateDirtyIndicator();
+    }
+    
+    updateDirtyIndicator() {
+        const indicator = document.getElementById('dirty-indicator');
+        if (indicator) {
+            indicator.style.display = this.isDirty ? 'inline' : 'none';
+        }
+    }
+    
+    scheduleAutoSave() {
+        if (this.saveTimeout) {
+            clearTimeout(this.saveTimeout);
+        }
+        
+        this.saveTimeout = setTimeout(() => {
+            this.saveData(true);
+        }, this.autoSaveDelay);
+    }
+    
+    collectFormData() {
+        const form = document.getElementById('main-form');
+        const formData = new FormData(form);
+        const data = {};
+        
+        for (const [key, value] of formData.entries()) {
+            data[key] = value;
+        }
+        
+        return data;
+    }
+    
+    populateForm(data) {
+        const form = document.getElementById('main-form');
+        if (!form || !data) return;
+        
+        Object.keys(data).forEach(key => {
+            const input = form.querySelector(`[name="${key}"]`);
+            if (input) {
+                input.value = data[key];
+            }
+        });
+        
+        this.markClean();
+    }
+    
+    loadData() {
+        this.bridge.loadFormData(this.formId, (data, success, errorCode) => {
+            if (success && data) {
+                try {
+                    const formData = JSON.parse(data);
+                    this.populateForm(formData);
+                    console.log('Form data loaded');
+                } catch (e) {
+                    console.error('Failed to parse loaded data:', e);
+                }
+            } else if (!success && errorCode !== 'FILE_NOT_FOUND') {
+                console.error('Load error:', errorCode);
+            }
+        });
+    }
+    
+    saveData(isAutoSave = false) {
+        const formData = this.collectFormData();
+        const dataJson = JSON.stringify(formData);
+        
+        this.bridge.saveFormData(this.formId, dataJson, (success, errorCode, errorMessage) => {
+            if (success) {
+                this.markClean();
+                if (!isAutoSave) {
+                    this.showMessage('Data saved successfully!', 'success');
+                }
+                this.updateLastSavedTime();
+            } else {
+                if (!isAutoSave) {
+                    this.showMessage('Save failed: ' + (errorMessage || errorCode), 'error');
+                } else {
+                    console.warn('Auto-save failed:', errorCode);
+                }
+            }
+        });
+    }
+    
+    updateLastSavedTime() {
+        const indicator = document.getElementById('last-saved');
+        if (indicator) {
+            const now = new Date();
+            indicator.textContent = 'Last saved: ' + now.toLocaleTimeString();
+        }
+    }
+    
+    showMessage(message, type) {
+        // Implementation depends on your UI framework
+        console.log(`[${type.toUpperCase()}]`, message);
+    }
+}
+
+// Initialize form application
+document.addEventListener('DOMContentLoaded', () => {
+    const app = new FormApplication('character_sheet_v3');
+});
+----
+
+==== Embedded App with File Management
+
+**Complete embedded app with file management:**
+
+[source,javascript]
+----
+class EmbeddedApp {
+    constructor(appId) {
+        this.appId = appId;
+        this.bridge = window.SmartbookBridge;
+        this.logger = new Logger(appId);
+        
+        this.initialize();
+    }
+    
+    async initialize() {
+        // Request consent first
+        await this.requestConsent();
+        
+        // Initialize app after consent
+        this.setupApp();
+    }
+    
+    requestConsent() {
+        return new Promise((resolve, reject) => {
+            this.bridge.requestAppConsent(this.appId, (consentGranted, errorCode) => {
+                if (consentGranted) {
+                    this.logger.info('Consent granted');
+                    resolve();
+                } else {
+                    this.logger.error('Consent denied', errorCode);
+                    this.showConsentError(errorCode);
+                    reject(errorCode);
+                }
+            });
+        });
+    }
+    
+    setupApp() {
+        this.logger.info('Initializing application');
+        
+        // Load configuration
+        this.loadConfig();
+        
+        // Setup UI
+        this.setupUI();
+        
+        // Setup file management
+        this.setupFileManagement();
+    }
+    
+    async loadConfig() {
+        try {
+            const result = await this.loadFile('config.json');
+            if (result.success) {
+                this.config = result.data;
+                this.logger.info('Configuration loaded', this.config);
+            } else {
+                this.config = this.getDefaultConfig();
+                this.logger.info('Using default configuration');
+            }
+        } catch (error) {
+            this.config = this.getDefaultConfig();
+            this.logger.warn('Failed to load config, using defaults', error);
+        }
+    }
+    
+    async saveConfig() {
+        try {
+            await this.saveFile('config.json', this.config);
+            this.logger.info('Configuration saved');
+            this.showMessage('Settings saved!', 'success');
+        } catch (error) {
+            this.logger.error('Failed to save config', error);
+            this.showMessage('Failed to save settings', 'error');
+        }
+    }
+    
+    loadFile(filename) {
+        return new Promise((resolve, reject) => {
+            this.bridge.loadSandboxFile(filename, (data, success, errorCode) => {
+                if (success) {
+                    if (data) {
+                        try {
+                            resolve({ success: true, data: JSON.parse(data) });
+                        } catch (e) {
+                            resolve({ success: true, data: data });
+                        }
+                    } else {
+                        reject({ success: false, errorCode: 'FILE_NOT_FOUND' });
+                    }
+                } else {
+                    reject({ success: false, errorCode });
+                }
+            });
+        });
+    }
+    
+    saveFile(filename, data) {
+        return new Promise((resolve, reject) => {
+            const dataStr = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+            this.bridge.saveSandboxFile(filename, dataStr, (success, errorCode, errorMessage) => {
+                if (success) {
+                    resolve({ success: true });
+                } else {
+                    reject({ success: false, errorCode, errorMessage });
+                }
+            });
+        });
+    }
+    
+    setupFileManagement() {
+        // Setup file management UI
+        const saveButton = document.getElementById('save-config');
+        if (saveButton) {
+            saveButton.addEventListener('click', () => this.saveConfig());
+        }
+        
+        const loadButton = document.getElementById('load-config');
+        if (loadButton) {
+            loadButton.addEventListener('click', () => this.loadConfig());
+        }
+    }
+    
+    setupUI() {
+        // Setup application UI
+        this.logger.info('UI setup complete');
+    }
+    
+    getDefaultConfig() {
+        return {
+            theme: 'light',
+            autoSave: true,
+            settings: {}
+        };
+    }
+    
+    showConsentError(errorCode) {
+        const errorMessages = {
+            'INVALID_APP_ID': 'Invalid application ID',
+            'TAMPERING_DETECTED': 'Security error: Cartridge integrity check failed',
+            'USER_CANCELLED': 'Application requires your consent to run',
+            'DIALOG_ERROR': 'Could not display consent dialog'
+        };
+        
+        const message = errorMessages[errorCode] || 'Consent request failed';
+        this.showMessage(message, 'error');
+    }
+    
+    showMessage(message, type) {
+        // Implementation depends on your UI
+        console.log(`[${type.toUpperCase()}]`, message);
+    }
+}
+
+// Initialize app
+document.addEventListener('DOMContentLoaded', () => {
+    const app = new EmbeddedApp('dice_roller_app');
+});
+----
+
+=== Best Practices
+
+==== Error Handling Best Practices
+
+**Always handle errors gracefully:**
+
+[source,javascript]
+----
+// Good: Comprehensive error handling
+function saveDataWithErrorHandling(formId, data) {
+    // Validate inputs before calling API
+    if (!formId || typeof formId !== 'string') {
+        console.error('Invalid formId');
+        return;
+    }
+    
+    if (!data) {
+        console.error('No data to save');
+        return;
+    }
+    
+    let dataJson;
+    try {
+        dataJson = JSON.stringify(data);
+    } catch (e) {
+        console.error('Failed to serialize data:', e);
+        return;
+    }
+    
+    // Call API with error handling
+    window.SmartbookBridge.saveFormData(formId, dataJson, function(success, errorCode, errorMessage) {
+        if (success) {
+            onSaveSuccess();
+        } else {
+            onSaveError(errorCode, errorMessage);
+        }
+    });
+}
+
+// Bad: No error handling
+function saveDataBad(formId, data) {
+    window.SmartbookBridge.saveFormData(formId, JSON.stringify(data), function() {
+        // No error handling - user won't know if save failed
+    });
+}
+----
+
+==== Async/Await Wrapper Pattern
+
+**Create Promise-based wrappers for easier async/await usage:**
+
+[source,javascript]
+----
+// Wrapper functions for Promise-based API
+const SmartbookBridgeAPI = {
+    saveFormData: (formId, data) => {
+        return new Promise((resolve, reject) => {
+            const dataJson = typeof data === 'string' ? data : JSON.stringify(data);
+            window.SmartbookBridge.saveFormData(formId, dataJson, (success, errorCode, errorMessage) => {
+                if (success) {
+                    resolve({ success: true });
+                } else {
+                    reject({ success: false, errorCode, errorMessage });
+                }
+            });
+        });
+    },
+    
+    loadFormData: (formId) => {
+        return new Promise((resolve, reject) => {
+            window.SmartbookBridge.loadFormData(formId, (data, success, errorCode) => {
+                if (success) {
+                    if (data) {
+                        try {
+                            resolve({ success: true, data: JSON.parse(data) });
+                        } catch (e) {
+                            resolve({ success: true, data: data });
+                        }
+                    } else {
+                        resolve({ success: true, data: null });
+                    }
+                } else {
+                    reject({ success: false, errorCode });
+                }
+            });
+        });
+    },
+    
+    requestAppConsent: (appId) => {
+        return new Promise((resolve, reject) => {
+            window.SmartbookBridge.requestAppConsent(appId, (consentGranted, errorCode) => {
+                if (consentGranted) {
+                    resolve({ success: true, consentGranted: true });
+                } else {
+                    reject({ success: false, errorCode, consentGranted: false });
+                }
+            });
+        });
+    }
+};
+
+// Usage with async/await
+async function saveAndLoadExample() {
+    try {
+        // Save data
+        await SmartbookBridgeAPI.saveFormData('my_form', { key: 'value' });
+        console.log('Data saved');
+        
+        // Load data
+        const result = await SmartbookBridgeAPI.loadFormData('my_form');
+        console.log('Data loaded:', result.data);
+    } catch (error) {
+        console.error('Operation failed:', error);
+    }
+}
+----
+
+==== Validation Before API Calls
+
+**Always validate data before calling API:**
+
+[source,javascript]
+----
+function validateAndSave(formId, formData) {
+    // Validate formId
+    if (!formId || typeof formId !== 'string' || formId.trim() === '') {
+        showError('Invalid form ID');
+        return false;
+    }
+    
+    // Validate formData
+    if (!formData || typeof formData !== 'object') {
+        showError('Invalid form data');
+        return false;
+    }
+    
+    // Additional validation based on form schema
+    if (formData.requiredField && formData.requiredField.trim() === '') {
+        showError('Required field is missing');
+        return false;
+    }
+    
+    // Serialize and save
+    try {
+        const dataJson = JSON.stringify(formData);
+        window.SmartbookBridge.saveFormData(formId, dataJson, handleSaveCallback);
+        return true;
+    } catch (e) {
+        showError('Failed to serialize data: ' + e.message);
+        return false;
+    }
+}
+----
+
+=== Common Patterns and Gotchas
+
+==== Pattern: Check Bridge Availability
+
+**Always check if bridge is available before use:**
+
+[source,javascript]
+----
+function isBridgeAvailable() {
+    return typeof window.SmartbookBridge !== 'undefined' && window.SmartbookBridge !== null;
+}
+
+function safeApiCall(callback) {
+    if (!isBridgeAvailable()) {
+        console.error('SmartbookBridge not available');
+        callback(false, 'BRIDGE_NOT_AVAILABLE');
+        return false;
+    }
+    return true;
+}
+
+function saveDataSafely(formId, data) {
+    if (!safeApiCall((success, error) => {
+        if (!success) {
+            showError('API not available');
+        }
+    })) {
+        return;
+    }
+    
+    // Proceed with API call
+    window.SmartbookBridge.saveFormData(formId, JSON.stringify(data), function(success, errorCode) {
+        // Handle result
+    });
+}
+----
+
+==== Pattern: Retry Logic
+
+**Implement retry logic for transient errors:**
+
+[source,javascript]
+----
+async function saveWithRetry(formId, data, maxRetries = 3) {
+    let attempt = 0;
+    
+    while (attempt < maxRetries) {
+        try {
+            await SmartbookBridgeAPI.saveFormData(formId, data);
+            return { success: true };
+        } catch (error) {
+            attempt++;
+            
+            // Don't retry on validation errors
+            if (error.errorCode === 'INVALID_FORM_ID' || 
+                error.errorCode === 'INVALID_JSON' ||
+                error.errorCode === 'VALIDATION_ERROR') {
+                throw error;
+            }
+            
+            // Retry on transient errors
+            if (error.errorCode === 'DATABASE_ERROR' && attempt < maxRetries) {
+                console.warn(`Save attempt ${attempt} failed, retrying...`);
+                await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); // Exponential backoff
+                continue;
+            }
+            
+            throw error;
+        }
+    }
+}
+----
+
+==== Gotcha: Callback Execution Context
+
+**Be aware of `this` context in callbacks:**
+
+[source,javascript]
+----
+class FormManager {
+    constructor(formId) {
+        this.formId = formId;
+        this.bridge = window.SmartbookBridge;
+    }
+    
+    // Bad: 'this' is lost in callback
+    saveBad() {
+        this.bridge.saveFormData(this.formId, '{}', function(success) {
+            // 'this' is undefined here!
+            this.onSaveComplete(success); // Error!
+        });
+    }
+    
+    // Good: Use arrow function or bind
+    saveGood() {
+        this.bridge.saveFormData(this.formId, '{}', (success) => {
+            // Arrow function preserves 'this'
+            this.onSaveComplete(success); // Works!
+        });
+    }
+    
+    // Alternative: Bind the callback
+    saveGoodAlternative() {
+        this.bridge.saveFormData(this.formId, '{}', function(success) {
+            this.onSaveComplete(success);
+        }.bind(this));
+    }
+    
+    onSaveComplete(success) {
+        console.log('Save complete:', success);
+    }
+}
+----
+
+=== Testing Examples
+
+==== Mock Bridge for Testing
+
+**Create a mock bridge for unit testing:**
+
+[source,javascript]
+----
+// Mock SmartbookBridge for testing
+class MockSmartbookBridge {
+    constructor() {
+        this.savedData = {};
+        this.sandboxFiles = {};
+        this.consentGranted = true;
+    }
+    
+    saveFormData(formId, dataJson, callback) {
+        setTimeout(() => {
+            this.savedData[formId] = dataJson;
+            callback(true);
+        }, 10);
+    }
+    
+    loadFormData(formId, callback) {
+        setTimeout(() => {
+            const data = this.savedData[formId] || '{}';
+            callback(data, true);
+        }, 10);
+    }
+    
+    requestAppConsent(appId, callback) {
+        setTimeout(() => {
+            callback(this.consentGranted);
+        }, 10);
+    }
+    
+    saveSandboxFile(filename, data, callback) {
+        setTimeout(() => {
+            this.sandboxFiles[filename] = data;
+            callback(true);
+        }, 10);
+    }
+    
+    loadSandboxFile(filename, callback) {
+        setTimeout(() => {
+            const data = this.sandboxFiles[filename] || '';
+            callback(data, !!data);
+        }, 10);
+    }
+}
+
+// Use mock in tests
+if (typeof window === 'undefined' || typeof window.SmartbookBridge === 'undefined') {
+    window.SmartbookBridge = new MockSmartbookBridge();
+}
+----
+
