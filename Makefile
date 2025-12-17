@@ -91,54 +91,18 @@ clean:
 docs:
 	@echo "Generating documentation PDFs..."
 	@mkdir -p $(DOCS_DIR)
-	@which asciidoctor > /dev/null 2>&1 || (echo "Error: asciidoctor not found. Install with: gem install asciidoctor" && exit 1)
+	@which asciidoctor-pdf > /dev/null 2>&1 || (echo "Error: asciidoctor-pdf not found. Install with: gem install asciidoctor-pdf" && exit 1)
 	@which mmdc > /dev/null 2>&1 || echo "Warning: mermaid-cli (mmdc) not found. Diagrams may not be converted."
-	@echo "Using HTML → PDF workflow for better list rendering..."
-	@echo "Step 1: Generating HTML from AsciiDoc..."
-	@mkdir -p $(DOCS_DIR)/html
 	@for doc in Documentation/*.adoc; do \
 		if [ -f "$$doc" ]; then \
-			echo "  Converting $$doc to HTML..."; \
-			asciidoctor -D $(DOCS_DIR)/html "$$doc" || echo "Warning: Failed to convert $$doc to HTML"; \
+			echo "Processing $$doc..."; \
+			asciidoctor-pdf -a pdf-theme=Documentation/pdf-theme.yml -D $(DOCS_DIR) "$$doc" || echo "Warning: Failed to process $$doc"; \
 		fi \
 	done
-	@echo "Step 2: Converting HTML to PDF..."
-	@CHROME_CMD=$$(command -v google-chrome || command -v chromium-browser || command -v chromium || command -v chrome || [ -f "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" ] && echo "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" || echo ""); \
-	if [ -n "$$CHROME_CMD" ]; then \
-		echo "  Using Chrome/Chromium headless mode..."; \
-		for html in $(DOCS_DIR)/html/*.html; do \
-			if [ -f "$$html" ]; then \
-				pdf_name=$$(basename "$$html" .html).pdf; \
-				html_path=$$(cd "$$(dirname "$$html")" && pwd)/$$(basename "$$html"); \
-				pdf_path=$$(cd "$(DOCS_DIR)" && pwd)/$$pdf_name; \
-				echo "  Converting $$(basename $$html) to PDF..."; \
-				"$$CHROME_CMD" --headless --disable-gpu --print-to-pdf="$$pdf_path" --print-to-pdf-no-header --no-pdf-header-footer "file://$$html_path" 2>/dev/null || echo "Warning: Failed to convert $$html"; \
-			fi \
-		done; \
-	elif command -v weasyprint > /dev/null 2>&1; then \
-		echo "  Using WeasyPrint..."; \
-		for html in $(DOCS_DIR)/html/*.html; do \
-			if [ -f "$$html" ]; then \
-				pdf_name=$$(basename "$$html" .html).pdf; \
-				echo "  Converting $$(basename $$html) to PDF..."; \
-				weasyprint "$$html" "$(DOCS_DIR)/$$pdf_name" 2>/dev/null || echo "Warning: Failed to convert $$html"; \
-			fi \
-		done; \
-	else \
-		echo "Error: No PDF converter found. Install one of:"; \
-		echo "  - Chrome/Chromium (recommended): Already installed on most systems"; \
-		echo "  - WeasyPrint: pip install weasyprint"; \
-		echo ""; \
-		echo "Falling back to asciidoctor-pdf (may have list rendering issues)..."; \
-		which asciidoctor-pdf > /dev/null 2>&1 || (echo "Error: asciidoctor-pdf not found. Install with: gem install asciidoctor-pdf" && exit 1); \
-		for doc in Documentation/*.adoc; do \
-			if [ -f "$$doc" ]; then \
-				echo "Processing $$doc..."; \
-				asciidoctor-pdf -a pdf-theme=Documentation/pdf-theme.yml -D $(DOCS_DIR) "$$doc" || echo "Warning: Failed to process $$doc"; \
-			fi \
-		done; \
-	fi
 	@echo "Documentation generated in $(DOCS_DIR)/"
+	@echo ""
+	@echo "Note: Lists in table cells may not render perfectly due to Asciidoctor PDF limitations."
+	@echo "This is a known issue with the converter, not the source documentation."
 
 # Linux platform targets
 linux:
