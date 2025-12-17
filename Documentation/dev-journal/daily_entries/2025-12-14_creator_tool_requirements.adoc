@@ -157,17 +157,20 @@ The following items require design decisions during detailed design phase:
 ** Added theming requirements (FR-CT-3.74 through FR-CT-3.80) based on user feedback
 ** Updated FR-2.2.2 to clarify embedded apps are local-only with sandboxed file system
 * **DDD Document:**
+
 ** Added complete `Embedded_Apps` table schema definition (Section 3)
 ** Added Embedded Application Specification section with concept, security model, and execution flow
 ** Clarified relationship between `Embedded_App_Manifest` JSON and database table
 ** Documented 7-step execution flow for embedded apps
 ** Added sandbox file system specification
 * **WebChannel API Specification:**
+
 ** Added four sandbox file system API methods: `saveSandboxFile`, `loadSandboxFile`, `listSandboxFiles`, `deleteSandboxFile`
 ** Documented security constraints for sandbox operations
 ** Added comprehensive error handling for all API methods with standard callback patterns, error codes, and error messages
 ** Documented error code categories and logging requirements
 * **Error Handling:**
+
 ** Added 18 error handling requirements to SRS (FR-ERR-4.1 through FR-ERR-4.18)
 ** Added comprehensive error handling strategy to DDD covering Reader and Creator Tool
 ** Specified logging requirements: minimal logging, automatic rotation (10MB or daily), 5 file retention
@@ -191,7 +194,9 @@ The following items require design decisions during detailed design phase:
 | **Decision Driver** | Discussion of whether to allow users to opt-in to network access for embedded applications on a per-cartridge basis, given security concerns and current internet security landscape.
 | **Decision** | 
 * **Network access for embedded apps will NOT be implemented in Phase 1**
+
 * Embedded applications SHALL remain **local-only** with **no network access**
+
 * All network requests from embedded apps SHALL be blocked via interceptor
 * Content pages can still have external links that open in system browser (via link delegation)
 * Sandbox file system provides app persistence without network risks
@@ -235,10 +240,12 @@ The following items require design decisions during detailed design phase:
 3. **Reset Functionality:** The original author-defined defaults are preserved in the cartridge, allowing users to reset their overrides and restore the author's intended appearance.
 
 **Requirements Added:**
+
 * **Reader:** FR-2.2.3, FR-2.2.4, FR-2.6.1 through FR-2.6.5 (settings reading, user override, reset, persistence, priority)
 * **Creator Tool:** FR-CT-3.12a through FR-CT-3.12d (settings definition, editor, validation, preview)
 
 **Schema Details:**
+
 * `Settings` table: `setting_key` (PRIMARY KEY), `setting_value`, `setting_type`, `description`
 * `Local_User_Settings` table: `settings_id`, `cartridge_guid`, `setting_key`, `setting_value`, `timestamp`
 * Settings priority: 1) User override, 2) Author default, 3) Application default
@@ -252,6 +259,7 @@ The following items require design decisions during detailed design phase:
 **Context:** Form Definition JSON Schema was defined, but specifications for form rendering, embedding, validation, persistence, and printing were missing. Forms needed to be seamlessly integrated into content pages (not as add-ons like PDF forms).
 
 **Decision:**
+
 1. **HTML Form Rendering:** Forms SHALL be rendered using standard HTML form elements (`<form>`, `<input>`, `<textarea>`, `<select>`, etc.) based on the form definition JSON schema. Forms are seamlessly integrated into content pages as part of the document flow.
 2. **Form Embedding:** Forms are embedded in content pages using HTML markers (`<div data-smartbook-form="form_id">` or `<smartbook-form>`). Reader detects markers and dynamically renders forms.
 3. **Dual Persistence:** Forms support two persistence mechanisms:
@@ -262,9 +270,11 @@ The following items require design decisions during detailed design phase:
 5. **Form State Management:** Auto-save (configurable interval), reset to defaults, clear form, and multiple instance support.
 
 **Requirements Added:**
+
 * **Reader:** FR-2.7.1 through FR-2.7.10 (form rendering, embedding, validation, persistence, printing, state management)
 
 **DDD Specifications Added:**
+
 * **Section:** "Form Rendering and Interaction Specification" with:
   * Form embedding syntax and detection flow
   * Field type to HTML element mapping
@@ -276,6 +286,7 @@ The following items require design decisions during detailed design phase:
   * Form state management (auto-save, reset, multiple instances)
 
 **Key Features:**
+
 * Forms are integral part of document (not overlays/popups)
 * Standard HTML forms ensure compatibility and accessibility
 * Sandbox persistence enables embedded app integration
@@ -293,6 +304,7 @@ The following items require design decisions during detailed design phase:
 **Context:** Content navigation was mentioned but not detailed in specifications. Users need forward/backward navigation, table of contents, bookmarking, and reading position persistence.
 
 **Decision:**
+
 1. **Forward/Backward Navigation:** Sequential navigation based on `page_order` with wrap-around or boundary handling
 2. **Table of Contents:** Generated from `chapter_title` (primary) and HTML headings (secondary), configurable depth (1-3 levels, default 2)
 3. **Tabbed Pane:** TOC and Search Results in shared tabbed interface
@@ -303,9 +315,11 @@ The following items require design decisions during detailed design phase:
 8. **Page Numbering:** Deferred for Phase 1 - not essential for electronic publications, challenging for print with variable paper sizes
 
 **Requirements Added:**
+
 * **Reader:** FR-2.8.1 through FR-2.8.8 (navigation, TOC, bookmarking, reading position, history, page numbering decision)
 
 **DDD Specifications Added:**
+
 * **Tables:** `Local_Bookmarks` and `Local_Reading_Position` schemas
 * **Section:** "Content Navigation Implementation Specification" with:
   * Forward/backward navigation algorithm
@@ -317,6 +331,7 @@ The following items require design decisions during detailed design phase:
   * Navigation history stack management
 
 **Key Features:**
+
 * TOC generated from both chapter structure and HTML headings
 * Configurable TOC depth (1-3 levels)
 * Tabbed interface for TOC and Search Results
@@ -334,6 +349,7 @@ The following items require design decisions during detailed design phase:
 **Context:** Product Concept mentioned full-text search, but no detailed requirements or UI specifications existed. Users need both document-wide search and in-page find functionality.
 
 **Decision:**
+
 1. **Document Search:** Modal dialog with search input, case sensitivity toggle, search type dropdown (Normal, Boolean, Fuzzy, Regex), and Search button. Results displayed in Search Results tab (shared with TOC) in Adobe Reader-style format.
 2. **Search Types:**
 
@@ -344,9 +360,11 @@ The following items require design decisions during detailed design phase:
 3. **In-Page Search:** Chrome-style find-in-page with compact dialog, term highlighting, match navigation, result count, case sensitivity, auto-scroll, and search persistence across pages.
 
 **Requirements Added:**
+
 * **Reader:** FR-2.9.1 through FR-2.9.8 (document search), FR-2.10.1 through FR-2.10.7 (in-page search)
 
 **DDD Specifications Added:**
+
 * **Section:** "Search Functionality Implementation Specification" with:
   * Document search modal UI specification
   * Normal search algorithm (HTML stripping, context snippets)
@@ -363,6 +381,7 @@ The following items require design decisions during detailed design phase:
   * Search persistence across pages
 
 **Key Features:**
+
 * Four search types (Normal, Boolean, Fuzzy, Regex) for different use cases
 * Regex marked as advanced feature with clear error handling
 * Adobe Reader-style result presentation for familiarity
@@ -379,6 +398,7 @@ The following items require design decisions during detailed design phase:
 **Context:** UI prototype provided for Content Theme Manager dialog. This is distinct from UI theming - it manages themes that apply to smartbook content (how content appears in the Reader), not the Creator Tool interface itself.
 
 **Decision:**
+
 1. **Content Theme Manager Dialog:** Two-panel layout with Available Themes list (left) and Theme Configuration/Preview (right)
 2. **Theme Management:** Add, Delete, Copy, Rename actions for custom themes; built-in themes (Light Content, Dark Content, Warm Content) are immutable
 3. **Theme Configuration:** Core Colors section with color pickers/swatches, Preset dropdown, Reset button, Live Preview showing sample content
@@ -386,9 +406,11 @@ The following items require design decisions during detailed design phase:
 5. **Theme Application:** Themes generate CSS that applies to content rendering in both Creator Tool preview and Reader
 
 **Requirements Added:**
+
 * **Creator Tool:** FR-CT-3.82 through FR-CT-3.90 (Content Theme Manager dialog, theme list, theme actions, configuration, preview, storage, application)
 
 **DDD Specifications Added:**
+
 * **Table:** `Content_Themes` table schema with `theme_id`, `theme_name`, `is_builtin`, `theme_config_json`, `is_active` columns
 * **Section:** "Content Theme Manager Implementation Specification" with:
   * Dialog structure (two-panel layout)
@@ -400,6 +422,7 @@ The following items require design decisions during detailed design phase:
   * Built-in themes specification
 
 **Key Features:**
+
 * Content themes (for smartbook content) separate from UI themes (for Creator Tool interface)
 * Built-in themes (Light Content, Dark Content, Warm Content) are immutable
 * Custom themes can be created, edited, copied, renamed, deleted
@@ -423,6 +446,7 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
 **Context:** Product Concept mentioned print support, but no detailed requirements existed. Users need to print documents, pages, or selections with proper formatting for common paper sizes.
 
 **Decision:**
+
 1. **Print Capabilities:** Support printing entire document, current page only, or selected text/content
 2. **System Print Dialog:** Use native Qt `QPrintDialog` for standard print configuration
 3. **Print CSS:** Provide built-in print stylesheets optimized for US Letter and A4 paper sizes, with `@media print` rules
@@ -431,9 +455,11 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
 6. **Print Quality:** Ensure high-quality output for text, images, and colors
 
 **Requirements Added:**
+
 * **Reader:** FR-2.11.1 through FR-2.11.8 (print capabilities, system dialog, print CSS, offscreen rendering, preview, quality, keyboard shortcut)
 
 **DDD Specifications Added:**
+
 * **Section:** "Print Functionality Implementation Specification" with:
   * Print capabilities (document, page, selection)
   * Print dialog integration (Qt `QPrintDialog`)
@@ -445,6 +471,7 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
   * Multi-page document printing and page break handling
 
 **Key Features:**
+
 * Three print scopes: document, page, selection
 * Native system print dialog integration
 * Built-in print CSS for common paper sizes (US Letter, A4)
@@ -462,6 +489,7 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
 **Context:** Product Concept mentioned text selection, copy, and highlight, but no detailed requirements existed. Users need to select and copy text from Reader content, with the ability to paste into forms within the book or external documents.
 
 **Decision:**
+
 1. **Text Selection:** Support standard text selection methods (mouse, keyboard, double-click word, triple-click paragraph)
 2. **Copy to Clipboard:** Copy selected text as plain text without formatting, removing background colors to prevent interference when pasting
 3. **Paste into Forms:** Allow pasting copied text into form fields within smartbook content
@@ -470,9 +498,11 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
 6. **Note:** Persistent text highlighting/annotations deferred for Phase 1
 
 **Requirements Added:**
+
 * **Reader:** FR-2.12.1 through FR-2.12.6 (text selection, copy to clipboard, background removal, paste into forms, paste into external documents, context menu)
 
 **DDD Specifications Added:**
+
 * **Section:** "Text Selection and Copy Implementation Specification" with:
   * Text selection methods and behavior
   * Copy to clipboard implementation with background removal algorithm
@@ -483,6 +513,7 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
   * Selection persistence behavior
 
 **Key Features:**
+
 * Standard text selection methods (mouse, keyboard, word/paragraph selection)
 * Plain text copy without background formatting
 * Background removal algorithm to strip styling from copied text
@@ -500,6 +531,7 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
 **Context:** The security model references CA-signed and self-signed certificates, but the documentation lacked specifications for certificate storage/management, validation against trusted CAs, expiration handling, revocation checking, and trusted CA list management.
 
 **Decision:**
+
 1. **System Certificate Store Integration:** Use Qt's `QSslCertificate` class to validate certificates against the system's trusted root CA store (Windows Certificate Store, macOS Keychain, Linux CA bundle). No manual CA list maintenance required.
 
 2. **Certificate Storage:** Add `certificate_data` column (BLOB) to `Cartridge_Security` table to store the X.509 certificate (DER or PEM format) used for signing.
@@ -516,15 +548,18 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
 5. **Certificate Revocation:** Certificate revocation checking (OCSP/CRL) is deferred for Phase 1 due to network access requirements conflicting with offline-first design, added complexity, and most Phase 1 use cases not requiring revocation checking.
 
 **Consequences:**
+
 * **Positive:** Automatic certificate validation using system trust stores, no manual CA list maintenance, expired certificates handled gracefully (downgrade rather than rejection)
 * **Negative:** No revocation checking in Phase 1, expired CA certificates require user consent (may be unexpected)
 * **Neutral:** Certificate validation adds a step to signature verification, expired certificate handling requires clear user messaging
 
 **Requirements Updated:**
+
 * Updated signature verification algorithm (Phase 1) to include certificate extraction and validation
 * Updated trust level assignment (Phase 2) to handle expired CA certificates (downgrade to Level 2)
 
 **DDD Specifications Added:**
+
 * **Section:** "Certificate Validation Implementation" with:
   * Certificate extraction process
   * System certificate store integration (platform-specific)
@@ -541,6 +576,7 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
 **Context:** DDD mentioned `public_key_fingerprint` but lacked specifications for how public keys are distributed, stored in the Reader, or how key rotation/updates would work. The signature verification algorithm referenced "Use Public Key" without specifying the source of the public key.
 
 **Decision:**
+
 1. **Public Key Source:** Public keys are extracted from X.509 certificates stored in the `certificate_data` column of `Cartridge_Security` table. No separate public key distribution mechanism is required.
 
 2. **Public Key Extraction:** Use Qt's `QSslCertificate::publicKey()` method to extract the public key from the certificate on-demand during signature verification. Public keys are not stored persistently in the Reader.
@@ -552,15 +588,18 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
 5. **Storage:** No persistent public key storage in Reader - keys are extracted fresh from certificates for each verification. Public keys are embedded in certificates stored within cartridges.
 
 **Consequences:**
+
 * **Positive:** Self-contained cartridges (no external dependencies), tamper-resistant (fingerprint verification), follows PKI best practices, simple implementation
 * **Negative:** No key revocation mechanism (by design for offline operation), compromised keys cannot invalidate existing cartridges
 * **Neutral:** Each cartridge is immutable once signed, key rotation handled by signing new cartridges with new certificates
 
 **Requirements Updated:**
+
 * Updated signature verification algorithm (Phase 1) to include public key extraction from certificate (Step 3) and fingerprint verification (Step 4)
 * Updated trust level assignment (Phase 2) to reject cartridges with fingerprint mismatch or missing public key
 
 **DDD Specifications Added:**
+
 * **Section:** "Public Key Extraction and Fingerprint Verification" with:
   * Public key source (extract from certificate)
   * Public key extraction process (certificate parsing, key extraction, usage)
@@ -578,6 +617,7 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
 **Context:** DDD referenced H1 and H2 hashes but lacked detailed specification for the hash algorithm, which tables to include, and the exact calculation process. The specification said "e.g., SHA-256" without committing to a specific algorithm, and "critical content tables" was not fully defined.
 
 **Decision:**
+
 1. **Hash Algorithm:** SHA-256 (256-bit Secure Hash Algorithm) - specified as the exact algorithm for Phase 1. Rationale: Strong security (256-bit output), efficient performance, widely supported, future-proof.
 
 2. **Tables Included in Hash:**
@@ -612,16 +652,19 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
 6. **Empty Table Handling:** Include empty tables in hash (hash of empty byte array) to detect table addition/removal.
 
 **Consequences:**
+
 * **Positive:** Complete, implementable specification; covers all attack surfaces (especially Embedded_Apps); deterministic and reproducible; cryptographically secure
 * **Negative:** More complex than single-pass hashing (but provides better debugging and verification capabilities)
 * **Neutral:** SHA-256 is standard and well-supported; algorithm is deterministic but requires careful implementation
 
 **Requirements Updated:**
+
 * Updated `digest_type` column description to specify "SHA-256" for Phase 1
 * Updated signature verification algorithm (Phase 1, Step 2) to reference Content Hash Algorithm Specification
 * Updated Creator Tool packaging algorithm (Phase 2) to reference Content Hash Algorithm Specification
 
 **DDD Specifications Added:**
+
 * **Section:** "Content Hash Algorithm Specification" with:
   * Hash algorithm (SHA-256) with rationale
   * Tables included/excluded with rationale
@@ -643,6 +686,7 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
 **Context:** Embedded JavaScript execution was mentioned but lacked detailed specification for JavaScript security sandbox, which APIs should be available/restricted, CSP configuration, and how to prevent access to file system, network, etc.
 
 **Decision:**
+
 1. **Qt WebEngine Native Sandboxing:** Leverage Qt WebEngine's built-in process isolation (separate renderer processes) and V8 JavaScript engine isolation. Each embedded app runs in its own QWebEngineView instance for complete isolation.
 
 2. **Network API Restrictions:** Block all network APIs (fetch, XMLHttpRequest, WebSocket, EventSource, external resource loading) via QWebEngineUrlRequestInterceptor (primary defense) and CSP headers (secondary defense).
@@ -672,14 +716,17 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
 14. **Network Request Interceptor:** Custom QWebEngineUrlRequestInterceptor implementation to block all HTTP/HTTPS requests, allow only data:, blob:, and file: URLs.
 
 **Consequences:**
+
 * **Positive:** Complete security specification, defense in depth approach, leverages Qt WebEngine native sandboxing, clear API restrictions, implementable CSP configuration
 * **Negative:** Some SPA frameworks may require unsafe-inline/unsafe-eval (reduces CSP effectiveness, but network interceptor provides primary defense)
 * **Neutral:** CSP is secondary defense layer, network interceptor is primary defense
 
 **Requirements Updated:**
+
 * No new requirements added (security implementation detail)
 
 **DDD Specifications Added:**
+
 * **Section:** "JavaScript Security Sandbox and API Restrictions" with:
   * Qt WebEngine native sandboxing capabilities
   * Network API restrictions (blocked APIs, implementation)
@@ -706,6 +753,7 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
 **Context:** Form data persistence was specified, but there was no handling for form schema changes, migration strategy for user data, or versioning of saved form data. If a form definition changes significantly, stored user data could become invalid.
 
 **Decision:**
+
 1. **Form Versioning:** Add `form_version` column to `Form_Definitions` table. Version starts at 1, incremented on breaking changes (field removed/renamed/type changed, validation rules changed significantly). Non-breaking changes (field added, label changed) don't require version increment.
 
 2. **Data Version Tracking:** Add `form_version` and `migrated_from_version` columns to `User_Data` table to track which version of form schema the data was saved with, and whether data was migrated from an older version.
@@ -723,17 +771,20 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
 8. **Security Considerations:** Validate migration rules JSON structure, validate field mappings reference valid fields, validate transformation rules (prevent code injection), sanitize default values, always validate migrated data against new schema, prevent version downgrades, log all migration operations.
 
 **Consequences:**
+
 * **Positive:** Preserves user data across form updates, clear form management workflow, dedicated form pages improve UX, migration rules provide flexibility for complex changes, version tracking enables audit trail
 * **Negative:** Adds complexity to form builder and data loading, migration rules must be carefully defined, breaking changes require migration rules (can't be fully automatic)
 * **Neutral:** Forms on dedicated pages may require restructuring existing content, migration adds overhead to data loading (but only when versions don't match)
 
 **Requirements Updated:**
+
 * Updated `Form_Definitions` table schema to include `form_version` and `migration_rules_json` columns
 * Updated `User_Data` table schema to include `form_version` and `migrated_from_version` columns
 * Updated form data persistence (save/load) to include version tracking and migration
 * Extended Form Builder requirements (FR-CT-3.17) to include version management and migration mapping
 
 **DDD Specifications Added:**
+
 * **Section:** "Form Versioning and Data Migration" with:
   * Form versioning strategy (version number, increment triggers, version tracking)
   * Form page structure (dedicated form pages, form embedding, rationale)
@@ -752,6 +803,7 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
 **Context:** DDD mentioned manifest updates but lacked clarity on when manifests are updated, what happens if updates fail, and how to handle errors. Two different types of manifests exist with different update cycles and failure modes.
 
 **Decision:**
+
 1. **Two Types of Manifests Clarified:**
 
    * **Embedded App Manifest** (`Embedded_App_Manifest` JSON): Created/updated when cartridge is created/updated by Creator Tool, stored in `Embedded_Apps.manifest_json` column within cartridge database
@@ -785,15 +837,18 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
    * **Local Library Manifest:** Disk space exhaustion, file permissions, database locked, database corruption, path issues
 
 **Consequences:**
+
 * **Positive:** Clear distinction between two manifest types, comprehensive error handling, user-friendly error dialogs with debugging information, non-blocking behavior for library operations
 * **Negative:** Error dialogs add complexity to UI, users may see error dialogs for background operations
 * **Neutral:** Error handling is essential for robust operation, debugging information helps users and developers
 
 **Requirements Updated:**
+
 * Updated signature verification algorithm to reference manifest update error handling
 * Extended error handling requirements to include manifest-specific error dialogs
 
 **DDD Specifications Added:**
+
 * **Section:** "Manifest Update Error Handling" with:
   * Clarification of two manifest types (Embedded App Manifest vs Local Library Manifest)
   * Creator Tool: Embedded App Manifest error handling (when created/updated, error scenarios, error dialog requirements, example, logging)
@@ -808,6 +863,7 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
 **Context:** No specification existed for cartridge format version migration, Reader database schema migration, or handling older format cartridges. This is essential for maintaining backward compatibility and supporting future schema changes.
 
 **Decision:**
+
 1. **Cartridge Format Version Migration:**
 
    * Version stored in `Metadata.schema_version` field (e.g., "1.0")
@@ -836,14 +892,17 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
    * Creator Tool compatibility: Can open/migrate older formats, can save in current format, optional save in older formats for testing
 
 **Consequences:**
+
 * **Positive:** Backward compatibility maintained, forward compatibility handled gracefully, automatic migration provides seamless user experience, backup strategy protects user data, version tracking enables audit trail
 * **Negative:** Migration adds complexity to Reader startup, migration code must be maintained for all previous versions, migration failures require error handling and recovery
 * **Neutral:** Migration is essential for long-term maintenance, in-memory migration preserves original cartridge files, backup strategy adds disk space overhead
 
 **Requirements Updated:**
+
 * No new requirements added (migration is implementation detail, but may require future requirements for migration UI)
 
 **DDD Specifications Added:**
+
 * **Section:** "Database Migration Strategy" with:
   * Cartridge format version migration (version detection, migration strategy, format version changes, migration transformations, migration error handling)
   * Reader local database schema migration (version tracking, migration process, migration transformations, migration backup, migration error handling, schema version history)
@@ -858,6 +917,7 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
 **Context:** Import functionality was mentioned but not detailed. No specification existed for import mechanisms (drag-drop, file picker), import progress indication, storage location strategy, or duplicate handling.
 
 **Decision:**
+
 1. **Import Mechanisms:**
 
    * **Drag-and-Drop:** Support dragging `.sqlite` files onto Library Manager window, visual feedback for drop target, accepts `.sqlite` files, rejects non-cartridge files
@@ -903,11 +963,13 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
    * Comprehensive logging (INFO for operations, WARN for validation errors, ERROR for file errors)
 
 **Consequences:**
+
 * **Positive:** Clear import workflow, user-friendly progress indication, flexible duplicate handling, comprehensive validation, follows OS standards for storage location
 * **Negative:** Import progress dialog adds UI complexity, duplicate handling requires user decision (may slow batch imports), file copying adds time to import process
 * **Neutral:** Storage location follows OS standards but allows user customization, import validation ensures data integrity but may reject valid files if validation is too strict
 
 **Requirements Added:**
+
 * **FR-2.5.6:** Import mechanisms (drag-drop, file picker dialog)
 * **FR-2.5.7:** Import storage location (default OS standard, user-configurable)
 * **FR-2.5.8:** Import progress indication (progress dialog with status, file list, cancel button)
@@ -916,6 +978,7 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
 * **FR-2.5.11:** Import completion (copy file, extract metadata, create manifest entry, refresh library view)
 
 **DDD Specifications Added:**
+
 * **Section:** "Cartridge Import Process Specification" with:
   * Import mechanisms (drag-and-drop, file picker dialog)
   * Import storage location (default directory, user configuration, storage strategy)
@@ -934,6 +997,7 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
 **Context:** Multi-window architecture was specified, but no details existed for how users open windows, window closing behavior, window state persistence (size, position), or minimize/restore behavior. Users need intuitive window management following platform conventions.
 
 **Decision:**
+
 1. **Window Opening Mechanisms:**
 
    * **Double-Click:** Double-clicking cartridge title (List View) or cover (Grid View) opens cartridge in new Reader View Window
@@ -971,17 +1035,20 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
    * Each window saves state independently
 
 **Consequences:**
+
 * **Positive:** Intuitive window opening (double-click, context menu), automatic state persistence, seamless restoration, follows platform conventions, familiar UX from other e-book apps
 * **Negative:** Window state table adds database complexity, state validation required for multi-monitor setups, save operations on every close (minimal overhead)
 * **Neutral:** Window state persistence is expected behavior for modern applications, reading position already persisted (extended to include window geometry)
 
 **Requirements Added:**
+
 * **FR-2.1.2:** Window opening (double-click, context menu, platform conventions)
 * **FR-2.1.3:** Window state persistence (size, position, maximized state, reading position)
 * **FR-2.1.4:** Window state restoration (size, position, reading position, defaults)
 * **FR-2.1.5:** Window minimize/restore (standard OS behavior)
 
 **DDD Specifications Added:**
+
 * **New Table:** `Local_Window_State` table schema (state_id, cartridge_guid, window_width, window_height, window_x, window_y, is_maximized, last_updated)
 * **Section:** "Application Architecture and Window Management" extended with:
   * Window opening mechanisms (double-click, context menu, platform conventions)

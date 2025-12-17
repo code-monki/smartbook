@@ -60,11 +60,13 @@ Each remote library configuration includes:
 === Library Configuration Storage
 
 **Local Storage:**
+
 * Store remote library configurations in local database table: `Remote_Library_Config`
 * Encrypt sensitive data (auth tokens, passwords) using OS credential store
 * Configuration persists across application sessions
 
 **Configuration Management:**
+
 * Users can add new remote libraries via UI
 * Users can edit library configuration (name, URL, credentials)
 * Users can enable/disable libraries without removing configuration
@@ -165,11 +167,13 @@ Store additional remote-specific metadata:
 * Filter by library source in List View
 
 **Bookshelf View:**
+
 * Location status icon in corner of cartridge tile
 * Library badge below or on cartridge tile
 * Visual distinction for remote-only cartridges (e.g., grayed out or different border)
 
 **List View:**
+
 * Location status column (icon + text)
 * Library source column (library name)
 * Sortable by location status and library source
@@ -213,10 +217,12 @@ Store additional remote-specific metadata:
 === Base API Structure
 
 **Base URL Pattern:**
+
 * Each remote library has its own base URL: `{server_url}/api/{api_version}`
 * Example: `https://library.example.com/api/v1`
 
 **Authentication:**
+
 * All API requests require authentication token
 * Token obtained via login endpoint (see User Identity and Authentication spec)
 * Token sent in `Authorization: Bearer {token}` header
@@ -327,17 +333,20 @@ Store additional remote-specific metadata:
 === Sync Strategies
 
 **Manual Sync:**
+
 * User triggers sync via UI (button, menu item)
 * Syncs selected cartridges or entire library
 * Shows progress dialog
 
 **Automatic Sync:**
+
 * Background sync at configured intervals
 * Only syncs enabled libraries
 * Respects user's sync preferences
 * Runs when application is idle (optional)
 
 **On-Demand Sync:**
+
 * Sync when user opens remote-only cartridge
 * Sync when user requests download
 * Sync when checking for updates
@@ -399,6 +408,7 @@ Store additional remote-specific metadata:
    * Or remove from manifest if no local copy
 
 **Conflict Resolution UI:**
+
 * Display conflict dialog when conflicts detected
 * Show comparison of versions
 * User chooses resolution strategy
@@ -467,6 +477,7 @@ Store additional remote-specific metadata:
 === Library Configuration Dialog
 
 **Add Remote Library:**
+
 * Dialog with fields:
   * Library Name (user-friendly name)
   * Server URL (base URL of remote library)
@@ -475,16 +486,19 @@ Store additional remote-specific metadata:
 * On success: Save configuration, enable library
 
 **Edit Remote Library:**
+
 * Same dialog as Add, pre-filled with existing values
 * Allow updating name, URL, credentials
 * Test connection before saving
 
 **Remove Remote Library:**
+
 * Confirmation dialog
 * Option to keep downloaded cartridges or remove them
 * Remove library configuration
 
 **Library List:**
+
 * Display all configured remote libraries
 * Show status (enabled/disabled, last sync, sync status)
 * Enable/disable toggle
@@ -493,17 +507,20 @@ Store additional remote-specific metadata:
 === Library Manager Enhancements
 
 **Library Filter:**
+
 * Dropdown or tabs to filter by library source
 * Options: "All Libraries", "Local Only", "Remote Only", or specific library name
 * Update view based on selection
 
 **Sync Controls:**
+
 * Sync button in toolbar (syncs all enabled libraries)
 * Sync button per library (syncs specific library)
 * Sync status indicator (spinning icon during sync)
 * Last sync timestamp display
 
 **Download Progress:**
+
 * Progress dialog for cartridge downloads
 * Shows download speed, ETA, cancel option
 * Background download support (continue in background)
@@ -513,12 +530,14 @@ Store additional remote-specific metadata:
 === Authentication per Library
 
 **Multiple Library Authentication:**
+
 * Each remote library may have different authentication
 * Store credentials per library (encrypted)
 * Handle authentication failures gracefully
 * Support token refresh per library
 
 **Credential Management:**
+
 * Use OS credential store for each library
 * Key format: `smartbook_library_{library_id}_token`
 * Encrypt sensitive data before storage
@@ -526,17 +545,20 @@ Store additional remote-specific metadata:
 === Network Handling
 
 **Offline Support:**
+
 * Gracefully handle network failures
 * Cache remote catalog data locally
 * Show offline indicator for remote libraries
 * Queue sync operations when offline
 
 **Connection Timeout:**
+
 * Set reasonable timeouts (30 seconds for API calls)
 * Retry failed requests (exponential backoff)
 * Show user-friendly error messages
 
 **Bandwidth Considerations:**
+
 * Support resumable downloads for large cartridges
 * Option to limit download bandwidth
 * Background download with pause/resume
@@ -544,17 +566,20 @@ Store additional remote-specific metadata:
 === Error Handling
 
 **Library Connection Errors:**
+
 * Invalid URL
 * Authentication failure
 * Server unavailable
 * Network timeout
 
 **Sync Errors:**
+
 * Partial sync failures
 * Cartridge download failures
 * Version conflict errors
 
 **User Notification:**
+
 * Display error messages in UI
 * Log errors for debugging
 * Provide retry options
@@ -565,11 +590,13 @@ Store additional remote-specific metadata:
 === Credential Storage
 
 **Encryption:**
+
 * Encrypt authentication tokens before storage
 * Use OS-provided encryption (Keychain, Credential Manager)
 * Never store credentials in plaintext
 
 **Token Refresh:**
+
 * Support token refresh per library
 * Handle token expiry gracefully
 * Prompt user to re-authenticate if refresh fails
@@ -577,11 +604,13 @@ Store additional remote-specific metadata:
 === Data Privacy
 
 **Remote Library Access:**
+
 * User controls which libraries to connect to
 * User can disable libraries without removing configuration
 * Clear indication of data sharing with remote servers
 
 **Download Privacy:**
+
 * Downloads are user-initiated
 * No automatic background downloads without user consent
 * User can cancel downloads at any time

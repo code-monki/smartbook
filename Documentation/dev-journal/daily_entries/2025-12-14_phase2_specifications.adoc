@@ -146,11 +146,13 @@ Created comprehensive Remote Library Integration specification (`phase2-remote-l
 **Decision:** Support multiple concurrent remote libraries, not just a single library.
 
 **Rationale:**
+
 * Users may want to access cartridges from different sources (company library, public repository, personal server)
 * Each library may have different authentication and configuration
 * Provides flexibility and scalability
 
 **Consequences:**
+
 * More complex configuration management
 * Need to track which library each cartridge belongs to
 * UI must support filtering and display by library source
@@ -161,12 +163,14 @@ Created comprehensive Remote Library Integration specification (`phase2-remote-l
 **Decision:** Use `location_status` field to track where cartridges exist (local, remote, both).
 
 **Rationale:**
+
 * Clear indication of cartridge availability
 * Enables appropriate UI actions based on status
 * Supports sync operations and conflict resolution
 * Backward compatible with Phase 1 (defaults to `local_only`)
 
 **Consequences:**
+
 * Need to maintain status accuracy during operations
 * Status changes trigger UI updates
 * Conflict resolution required for version mismatches
@@ -176,11 +180,13 @@ Created comprehensive Remote Library Integration specification (`phase2-remote-l
 **Decision:** Password reset automatically unlocks locked accounts.
 
 **Rationale:**
+
 * User who forgot password and locked themselves out needs recovery mechanism
 * Password reset proves user identity (via email verification)
 * Provides user-friendly recovery path
 
 **Consequences:**
+
 * Security consideration: Email access required for account recovery
 * Reduces support burden for locked accounts
 * Must ensure email security

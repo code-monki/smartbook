@@ -87,18 +87,21 @@ The Reader supports custom navigation bars defined within cartridges, enabling s
 === Navigation Bar Components
 
 **Navigation Structure:**
+
 * Stored in `Navigation_Structure` table within cartridge database
 * Defines navigation groups (Browse, Departments, Bibliographies, etc.)
 * Each group contains menu items with navigation targets
 * Supports hierarchical navigation (sub-menus via `parent_item_id`)
 
 **Navigation Rendering:**
+
 * Custom navigation bar rendered as HTML/CSS within Reader View
 * Positioned above main content area
 * Styled using cartridge CSS and themes
 * Separate from application menu (cartridge-specific)
 
 **Navigation Targets:**
+
 * **Page ID:** Direct navigation to specific page
 * **Anchor:** Navigation to anchor on current or specified page
 * **Page and Anchor:** Combined page and anchor navigation
@@ -113,15 +116,18 @@ The Reader supports custom navigation bars defined within cartridges, enabling s
 . **Navigation:** Reader navigates to target and updates reading position/history
 
 **Browse Navigation:**
+
 * Custom handlers filter content by metadata (Creator, Issue, Title)
 * Results displayed as filtered content view or index page
 * Filter criteria defined in `metadata_json` field
 
 **Department Navigation:**
+
 * Direct navigation to department-specific pages or sections
 * Supports hierarchical department structures
 
 **Bibliography Navigation:**
+
 * Navigation to citation format reference pages
 * Target format: page and anchor (e.g., bibliography page with format sections)
 
@@ -132,11 +138,13 @@ The Library Manager supports organizing cartridges by series, edition, and user-
 === Grouping Components
 
 **Metadata-Based Grouping:**
+
 * Cartridge `Metadata` table includes optional `series_name`, `edition_name`, and `series_order` fields
 * Author-defined series/editions are portable across systems
 * Library Manager auto-groups cartridges by series/edition metadata
 
 **Local Grouping System:**
+
 * `Local_Cartridge_Groups` table stores group definitions (series, editions, custom collections)
 * `Local_Cartridge_Group_Members` junction table links cartridges to groups
 * Custom collections are user-defined and stored locally
@@ -164,11 +172,13 @@ The Library Manager supports organizing cartridges by series, edition, and user-
 === Grouping Performance
 
 **Query Optimization:**
+
 * All grouping queries use `Local_Library_Manifest` (fast, indexed, < 500ms per NFR-3.1)
 * Group memberships queried efficiently via indexed junction table
 * No cartridge file parsing required for grouping operations
 
 **Indexes:**
+
 * Index on `Local_Cartridge_Groups.group_type` for filtering
 * Index on `Local_Cartridge_Group_Members(group_id, cartridge_guid)` for membership queries
 * Index on `Local_Library_Manifest.series_name` and `edition_name` for auto-grouping

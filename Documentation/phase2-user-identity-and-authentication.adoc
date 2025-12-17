@@ -94,18 +94,21 @@ This document specifies the user identity model and authentication system for Ph
 **Token Type:** JWT (JSON Web Token) or Opaque Token
 
 **JWT Approach (Recommended):**
+
 * **Payload:** `{ "user_id": "uuid", "username": "user", "exp": timestamp, "iat": timestamp }`
 * **Signature:** HMAC-SHA256 or RS256
 * **Expiry:** Configurable (see Session Expiry below)
 * **Storage:** Client stores in secure credential store (OS keychain/credential manager)
 
 **Opaque Token Approach (Alternative):**
+
 * **Format:** Random 256-bit token (base64 encoded)
 * **Storage:** Server stores token in database with user_id, expiry, IP address
 * **Expiry:** Configurable (see Session Expiry below)
 * **Storage:** Client stores in secure credential store
 
 **Token Storage (Client):**
+
 * **Platform-Specific Secure Storage:**
   * Windows: Windows Credential Manager
   * macOS: Keychain
@@ -129,12 +132,14 @@ This document specifies the user identity model and authentication system for Ph
    * **Security:** Longer expiry requires re-authentication for sensitive operations
 
 **Token Refresh:**
+
 * Client can refresh token before expiry using refresh endpoint
 * Refresh extends expiry by same duration (24h or 30d)
 * Refresh requires valid, non-expired token
 * Server validates refresh request and issues new token
 
 **Expiry Rationale:**
+
 * 24 hours: Balances security with user convenience (daily re-auth reasonable)
 * 30 days: "Remember Me" provides convenience while maintaining reasonable security
 * Automatic expiry prevents abandoned sessions from remaining valid indefinitely
@@ -193,6 +198,7 @@ This document specifies the user identity model and authentication system for Ph
 === Logging Requirements
 
 **All Login Attempts Logged:**
+
 * Successful logins
 * Failed logins (invalid password)
 * Failed logins (account locked)
@@ -200,17 +206,20 @@ This document specifies the user identity model and authentication system for Ph
 * Failed logins (user not found - but don't reveal this to client)
 
 **Log Retention:**
+
 * **Active Logs:** Retain for 90 days
 * **Archived Logs:** Compress and archive after 90 days, retain for 1 year
 * **Compliance:** May need longer retention for security audits (configurable)
 
 **Log Rotation:**
+
 * **Daily Rotation:** Create new log file daily at midnight UTC
 * **File Naming:** `login_log_YYYY-MM-DD.sqlite` or similar
 * **Compression:** Compress logs older than 7 days
 * **Cleanup:** Automatically delete logs older than retention period
 
 **Log Access:**
+
 * **Admin Access:** Server administrators can query login logs via admin API
 * **User Access:** Users can view their own login history (last 30 days)
 * **Privacy:** IP addresses may be anonymized after 30 days (configurable)
@@ -224,11 +233,13 @@ This document specifies the user identity model and authentication system for Ph
 . Delete compressed logs older than retention period (90 days active, 1 year archived)
 
 **Compression:**
+
 * Use gzip or similar compression
 * Compressed files: `login_log_YYYY-MM-DD.sqlite.gz`
 * Maintain index for efficient querying of compressed logs
 
 **Database Approach:**
+
 * Use separate SQLite database per day for login logs
 * Allows efficient querying and rotation
 * Alternative: Single database with partitioned tables by date
@@ -238,6 +249,7 @@ This document specifies the user identity model and authentication system for Ph
 === Account Lockout
 
 **Lockout Policy:**
+
 * **Threshold:** 5 consecutive failed login attempts
 * **Lockout Duration:** 30 minutes
 * **Reset:** Lockout resets on:
@@ -247,6 +259,7 @@ This document specifies the user identity model and authentication system for Ph
 * **Notification:** User notified of lockout (email optional)
 
 **Implementation:**
+
 * Track `failed_login_attempts` in user record
 * Set `account_locked_until` timestamp on lockout
 * Reject login attempts if current time < `account_locked_until`
@@ -254,6 +267,7 @@ This document specifies the user identity model and authentication system for Ph
 * **Password reset automatically unlocks:** When user successfully resets password, clear `account_locked_until` and reset `failed_login_attempts` to 0
 
 **User Recovery from Lockout:**
+
 * **Option 1:** Wait for lockout period to expire (30 minutes), then login
 * **Option 2:** Use password reset to immediately unlock account (if user remembers email/username)
 * **Option 3:** Contact administrator for manual unlock
@@ -261,11 +275,13 @@ This document specifies the user identity model and authentication system for Ph
 === Rate Limiting
 
 **Login Endpoint Rate Limiting:**
+
 * **Per IP:** Max 10 login attempts per 15 minutes per IP address
 * **Per Username:** Max 5 login attempts per 15 minutes per username
 * **Response:** HTTP 429 Too Many Requests with `Retry-After` header
 
 **API Rate Limiting (General):**
+
 * **Authenticated Requests:** 1000 requests per hour per user
 * **Unauthenticated Requests:** 100 requests per hour per IP
 * **Response:** HTTP 429 with rate limit headers
@@ -273,6 +289,7 @@ This document specifies the user identity model and authentication system for Ph
 === Password Security
 
 **Password Hashing:**
+
 * **Algorithm:** Bcrypt (cost factor 12+) or Argon2id (recommended)
 * **Salt:** Automatic salt generation (built into bcrypt/Argon2)
 * **Never:** Store plaintext passwords, reversible encryption, or MD5/SHA1
@@ -323,6 +340,7 @@ Password reset allows users to regain access to their account when they have for
 |===
 
 **Password Reset Security:**
+
 * **Token Generation:** Cryptographically secure random token (256 bits, base64 encoded)
 * **Token Storage:** Store SHA-256 hash of token (never plaintext)
 * **Token Expiry:** 24 hours from generation
@@ -372,6 +390,7 @@ Smartbook Team
 ```
 
 **Account Unlock via Password Reset:**
+
 * When password reset is successfully completed, automatically:
   * Set `account_locked_until` to NULL
   * Reset `failed_login_attempts` to 0
@@ -379,12 +398,14 @@ Smartbook Team
   * User doesn't need to wait for lockout period to expire
 
 **Password Reset Logging:**
+
 * Log all password reset requests (successful and failed)
 * Log password reset confirmations (successful and failed)
 * Include: timestamp, user_id, username, IP address, success/failure, reason
 * Store in separate `password_reset_logs` table or include in login logs
 
 **Rate Limiting for Password Reset:**
+
 * **Per Email:** Max 3 reset requests per email address per 24 hours
 * **Per IP:** Max 5 reset requests per IP address per hour
 * **Response:** HTTP 429 Too Many Requests with `Retry-After` header
@@ -393,6 +414,7 @@ Smartbook Team
 === HTTPS Requirement
 
 **All API Communication:**
+
 * **Protocol:** HTTPS only (TLS 1.2+)
 * **Certificate:** Valid SSL/TLS certificate (Let's Encrypt or commercial CA)
 * **HSTS:** HTTP Strict Transport Security header
@@ -401,11 +423,13 @@ Smartbook Team
 === Token Security
 
 **Token Transmission:**
+
 * **Header:** `Authorization: Bearer {token}` (never in URL parameters)
 * **HTTPS Only:** Tokens only transmitted over HTTPS
 * **Storage:** Secure credential store on client (never plaintext)
 
 **Token Validation:**
+
 * **Server-Side:** Always validate token on server for every request
 * **Expiry Check:** Verify token hasn't expired
 * **Revocation:** Support token revocation (for logout, security incidents)
@@ -417,6 +441,7 @@ Smartbook Team
 **Base URL:** `https://api.smartbook.example.com/api/v1`
 
 **Authentication Endpoints:**
+
 * `POST /auth/login` - User login
 * `POST /auth/logout` - User logout
 * `POST /auth/refresh` - Refresh session token
@@ -425,11 +450,13 @@ Smartbook Team
 * `POST /auth/password-reset/confirm` - Confirm password reset with token and new password
 
 **User Endpoints:**
+
 * `GET /users/me` - Get current user profile
 * `PUT /users/me` - Update current user profile
 * `GET /users/me/login-history` - Get user's login history
 
 **Library Endpoints (Phase 2):**
+
 * `GET /library/cartridges` - List available cartridges
 * `GET /library/cartridges/{id}` - Get cartridge metadata
 * `POST /library/cartridges/{id}/download` - Download cartridge file
@@ -512,6 +539,7 @@ Smartbook Team
 |===
 
 **Token Cleanup:**
+
 * Delete expired tokens older than 7 days (daily cleanup job)
 * Delete used tokens older than 1 day (daily cleanup job)
 
@@ -537,12 +565,14 @@ Smartbook Team
 === Email Verification (Optional for Phase 2)
 
 **Benefits:**
+
 * Prevents fake accounts
 * Enables password reset
 * Allows account recovery
 * Required for notifications
 
 **Implementation:**
+
 * Send verification email on account creation
 * Include verification token (expires in 7 days)
 * Account status: `pending_verification` until verified
@@ -551,6 +581,7 @@ Smartbook Team
 === Multi-Factor Authentication (Future Enhancement)
 
 **Not Required for Phase 2, but consider:**
+
 * TOTP (Time-based One-Time Password) via authenticator apps
 * SMS-based 2FA (less secure, but easier)
 * Hardware security keys (FIDO2/WebAuthn)
@@ -570,12 +601,14 @@ Smartbook Team
 . User can now login with new password
 
 **Account Recovery Questions (Alternative):**
+
 * Optional security questions for account recovery
 * Less secure than email-based recovery
 
 === Privacy Considerations
 
 **GDPR/Privacy Compliance:**
+
 * User data retention policies
 * Right to deletion (account deletion)
 * Data export (user can export their data)
@@ -583,6 +616,7 @@ Smartbook Team
 * Privacy policy required
 
 **Data Minimization:**
+
 * Only collect necessary user data
 * Don't store unnecessary login log details
 * Anonymize IP addresses after retention period
@@ -592,11 +626,13 @@ Smartbook Team
 === Client-Side Token Storage
 
 **Qt/C++ Implementation:**
+
 * **Windows:** Use `CredWrite`/`CredRead` Windows API
 * **macOS:** Use Keychain Services API
 * **Linux:** Use libsecret or similar
 
 **Token Refresh Strategy:**
+
 * Client should refresh token before expiry (e.g., when 80% of lifetime elapsed)
 * Automatic refresh on API calls if token expired
 * Prompt user to re-login if refresh fails
@@ -616,6 +652,7 @@ Smartbook Team
    * Consider for Phase 2 if expecting high load
 
 **Session Cleanup:**
+
 * Periodic job to delete expired sessions
 * Run daily to clean up old sessions
 * Prevents database bloat

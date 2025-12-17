@@ -45,10 +45,12 @@ Located at the top of the window (30px height), contains standard application me
 Located below menu bar (40px height), contains frequently used editing tools:
 
 **Text Formatting:**
+
 * Bold (B), Italic (I), Underline (U) buttons
 * Separator
 
 **Content Insertion:**
+
 * List button
 * Link button
 * Separator
@@ -57,10 +59,12 @@ Located below menu bar (40px height), contains frequently used editing tools:
 * Separator
 
 **Actions:**
+
 * Preview button (toggles preview pane)
 * Search button (opens search dialog)
 
 **Status Indicators:**
+
 * Draft/Published status badge (left side)
 * Theme selector dropdown (in View menu area) - shows current theme with dropdown for Light/Dark/Sepia/Custom themes
 * Save | Export | Publish buttons (right side)
@@ -68,10 +72,12 @@ Located below menu bar (40px height), contains frequently used editing tools:
 === Left Sidebar - Page Management Panel
 
 **Header Section (30px):**
+
 * Title: "Pages"
 * Add Page button (+) - green, creates new page
 
 **Page List:**
+
 * Hierarchical tree view showing:
 ** Chapters (with expand/collapse)
 ** Pages within chapters
@@ -82,6 +88,7 @@ Located below menu bar (40px height), contains frequently used editing tools:
 * Right-click context menu for: Rename, Delete, Duplicate, Move Up/Down
 
 **Features:**
+
 * Drag-and-drop reordering
 * Visual indication of page order
 * Chapter organization support
@@ -98,6 +105,7 @@ Multiple tabs for different editing modes:
 * **JavaScript** - JavaScript code editor
 
 **WYSIWYG Editor (Qt WebEngineView):**
+
 * Full editing area (780px × 650px)
 * Renders HTML content as it will appear in Reader
 * Supports rich text editing:
@@ -113,24 +121,28 @@ Multiple tabs for different editing modes:
 * Scrollable for long content
 
 **Preview Tab:**
+
 * Shows rendered content as Reader will display it
 * Can be live (real-time updates) or manual refresh
 * Toggle button in toolbar
 * Uses same Qt WebEngineView component
 
 **HTML Source Tab:**
+
 * Raw HTML editor
 * Syntax highlighting
 * Validation feedback
 * Format/beautify option
 
 **CSS Tab:**
+
 * Stylesheet editor
 * Syntax highlighting
 * CSS validation
 * Preview integration
 
 **JavaScript Tab:**
+
 * JavaScript code editor
 * Syntax highlighting
 * Code validation
@@ -146,6 +158,7 @@ Three tabs for different property categories:
 * **Forms** - Form definitions
 
 **Metadata Tab Content:**
+
 * **Title:** Text input field
 * **Author:** Text input field
 * **Year:** Number input (4 digits)
@@ -159,6 +172,7 @@ Three tabs for different property categories:
 * **Schema Version:** Display only (read-only)
 
 **Resources Tab Content:**
+
 * List of embedded resources:
 ** Images
 ** Fonts
@@ -168,6 +182,7 @@ Three tabs for different property categories:
 * Preview for image resources
 
 **Forms Tab Content:**
+
 * List of form definitions in cartridge
 * Add Form button (opens Form Builder)
 * Edit/Delete buttons

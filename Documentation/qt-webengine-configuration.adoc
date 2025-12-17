@@ -60,21 +60,25 @@ This document specifies the Qt WebEngine configuration requirements, design, and
 === Qt WebEngine Version Requirements
 
 **Minimum Qt Version:**
+
 * **Qt 6.2+** (recommended: Qt 6.5+)
 * **Qt WebEngine Module:** Required module, must be included in build
 
 **Chromium Version:**
+
 * Qt WebEngine 6.2+ uses Chromium 91+
 * Qt WebEngine 6.5+ uses Chromium 108+
 * **Documentation:** Application SHALL document the exact Chromium version at build time
 
 **V8 JavaScript Engine:**
+
 * V8 version is determined by Chromium version
 * Qt WebEngine 6.2+ uses V8 9.1+
 * Qt WebEngine 6.5+ uses V8 10.8+
 * **Documentation:** Application SHALL document the exact V8 version at build time
 
 **HTML/CSS Standards:**
+
 * HTML5 support: Full support for HTML5 specification as implemented by Chromium version
 * CSS3 support: Full support for CSS3 specification as implemented by Chromium version
 * **Standards Compliance:** Chromium's standards compliance level (typically 95%+ for HTML5, 90%+ for CSS3)
@@ -115,6 +119,7 @@ contentProfile->setHttpCacheType(QWebEngineProfile::NoCache); // Disables servic
 ----
 
 **Settings Explanation:**
+
 * `LocalContentCanAccessRemoteUrls: false` - Prevents local content from accessing remote URLs
 * `LocalContentCanAccessFileUrls: true` - Allows loading local resources
 * `JavascriptEnabled: true` - Required for interactive content
@@ -235,6 +240,7 @@ form-action 'none';
 ```
 
 **Policy Explanation:**
+
 * `default-src 'self' 'unsafe-inline' 'unsafe-eval'` - Default policy allows same-origin, inline scripts/styles, and eval (required for SPAs)
 * `script-src 'self' 'unsafe-inline' 'unsafe-eval'` - Scripts from same origin, inline, and eval allowed
 * `style-src 'self' 'unsafe-inline'` - Styles from same origin and inline allowed
@@ -297,6 +303,7 @@ void ReaderViewInstance::setupWebChannel(QWebEngineView* view) {
 ----
 
 **WebChannel Script Injection:**
+
 * Qt WebEngine requires `qwebchannel.js` to be injected into the page
 * Script is typically bundled with Qt WebEngine module
 * Inject script before any JavaScript code that uses WebChannel
@@ -371,6 +378,7 @@ void ReaderViewInstance::onRenderProcessTerminated(
 ----
 
 **Recovery Dialog:**
+
 * Display dialog: "The content viewer encountered an error. What would you like to do?"
 * Options: "Reload Page", "Close Cartridge", "Continue"
 * Reload: Reloads the page content
@@ -382,12 +390,14 @@ void ReaderViewInstance::onRenderProcessTerminated(
 ==== Memory Management
 
 **Memory Limits:**
+
 * Each `QWebEngineView` instance uses approximately 50-100MB RAM
 * Monitor memory usage for multiple simultaneous views
 * Implement view lifecycle management (destroy unused views)
 * Set memory warnings if system memory is low
 
 **View Lifecycle:**
+
 * Create views on-demand (lazy loading)
 * Destroy views when cartridge is closed
 * Reuse views when possible (but maintain isolation for embedded apps)
@@ -395,17 +405,20 @@ void ReaderViewInstance::onRenderProcessTerminated(
 ==== Cache Configuration
 
 **HTTP Cache:**
+
 * **Content Rendering:** 50MB disk cache
 * **Creator Tool:** 100MB disk cache
 * **Embedded Apps:** No cache (prevents service workers)
 
 **Cache Location:**
+
 * Platform-specific cache directories:
   * Windows: `%LOCALAPPDATA%\SmartBook\cache\`
   * macOS: `~/Library/Caches/SmartBook/`
   * Linux: `~/.cache/SmartBook/`
 
 **Cache Cleanup:**
+
 * Clear cache on application exit (optional)
 * Clear cache on cartridge deletion (if cartridge-specific cache)
 * Manual cache clear option in settings
@@ -415,6 +428,7 @@ void ReaderViewInstance::onRenderProcessTerminated(
 ==== HTML5 Support
 
 **Supported Features:**
+
 * HTML5 semantic elements (`<article>`, `<section>`, `<nav>`, etc.)
 * HTML5 form elements and validation
 * HTML5 media elements (`<audio>`, `<video>`)
@@ -422,6 +436,7 @@ void ReaderViewInstance::onRenderProcessTerminated(
 * HTML5 Web Components (Custom Elements, Shadow DOM)
 
 **Standards Compliance:**
+
 * Chromium's HTML5 implementation (typically 95%+ compliance)
 * Specific compliance level depends on Chromium version
 * Document exact Chromium version and compliance level
@@ -429,6 +444,7 @@ void ReaderViewInstance::onRenderProcessTerminated(
 ==== CSS3 Support
 
 **Supported Features:**
+
 * CSS3 selectors
 * CSS3 properties (flexbox, grid, transforms, animations)
 * CSS3 media queries
@@ -436,6 +452,7 @@ void ReaderViewInstance::onRenderProcessTerminated(
 * CSS3 modules (as implemented by Chromium)
 
 **Standards Compliance:**
+
 * Chromium's CSS3 implementation (typically 90%+ compliance)
 * Specific compliance level depends on Chromium version
 * Document exact Chromium version and compliance level
@@ -445,6 +462,7 @@ void ReaderViewInstance::onRenderProcessTerminated(
 ==== V8 Engine Features
 
 **Supported ECMAScript Versions:**
+
 * ECMAScript 2022 (ES13) - Full support
 * ECMAScript 2021 (ES12) - Full support
 * ECMAScript 2020 (ES11) - Full support
@@ -455,6 +473,7 @@ void ReaderViewInstance::onRenderProcessTerminated(
 * ECMAScript 2015 (ES6) - Full support
 
 **JavaScript Features:**
+
 * Classes, modules, async/await
 * Promises, generators, iterators
 * Arrow functions, template literals
@@ -463,6 +482,7 @@ void ReaderViewInstance::onRenderProcessTerminated(
 * WebAssembly support
 
 **V8 Engine Version:**
+
 * Document exact V8 version at build time
 * V8 version determined by Chromium version
 * Check V8 version: `QWebEngineSettings::defaultSettings()->attribute(QWebEngineSettings::JavascriptEnabled)`
@@ -472,22 +492,26 @@ void ReaderViewInstance::onRenderProcessTerminated(
 ==== Accessibility Settings
 
 **Screen Reader Support:**
+
 * Enable accessibility features: `QWebEngineSettings::ScreenReaderEnabled`
 * Ensure ARIA labels are properly rendered
 * Support keyboard navigation
 
 **High Contrast Mode:**
+
 * Respect system high contrast settings
 * Apply high contrast CSS when system setting is enabled
 
 ==== Developer Tools (Optional)
 
 **Developer Console:**
+
 * Disable in production builds
 * Enable in debug builds for development
 * Access via: `QWebEngineSettings::DeveloperExtrasEnabled`
 
 **Remote Debugging:**
+
 * Disable in production (security risk)
 * Enable only in development builds
 * Use `QWebEngineProfile::setHttpUserAgent()` for identification

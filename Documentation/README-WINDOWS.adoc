@@ -54,6 +54,7 @@ Windows builds use **PowerShell scripts** instead of GNU Make, since Make is not
 ----
 
 **Options:**
+
 * `-Target <target>` - Build target: `all`, `common`, `reader`, `creator`, `test` (default: `all`)
 * `-BuildType <type>` - Build type: `Release`, `Debug` (default: `Release`)
 * `-Platform <arch>` - Platform: `x86_64` (default: `x86_64`)

@@ -1087,6 +1087,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 |===
 
 **Performance Testing Notes:**
+
 * Most operations in a native desktop application using SQLite will be near-instantaneous (< 100ms)
 * Performance testing focuses on measurable scenarios and regression prevention
 * User-perceived performance (feels instant) is prioritized over microsecond measurements

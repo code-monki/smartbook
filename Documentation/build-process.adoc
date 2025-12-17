@@ -68,6 +68,7 @@ SmartBook/
 === Required Tools
 
 **Build Tools:**
+
 * `make` (GNU Make 4.0+)
 * `cmake` (3.20+)
 * C++ compiler with C++17 support:
@@ -76,6 +77,7 @@ SmartBook/
   * Windows: MSVC 2019+ or MinGW-w64
 
 **Qt Framework:**
+
 * Qt 6.2+ (dynamically linked, LGPL compliance)
 * Qt modules required:
   * QtCore
@@ -87,11 +89,13 @@ SmartBook/
   * QtSql
 
 **Documentation Tools:**
+
 * `asciidoctor` (2.0+)
 * `asciidoctor-pdf` (for PDF generation)
 * `mermaid-cli` or `mmdc` (for Mermaid diagram conversion to SVG/PNG)
 
 **Platform-Specific:**
+
 * Linux: Development packages for Qt, SQLite, libsecret
 * macOS: Xcode Command Line Tools, Homebrew (optional)
 * Windows: Qt installer, Visual Studio or MinGW-w64
@@ -133,6 +137,7 @@ npm install -g @mermaid-js/mermaid-cli
 ----
 
 **Windows:**
+
 * Install Qt 6.2+ from https://www.qt.io/download
 * Install Visual Studio 2019+ or MinGW-w64
 * Install Asciidoctor via Ruby installer or Chocolatey
@@ -214,6 +219,7 @@ Documentation generated in build/docs/
 === Platform-Specific Build Targets
 
 **Linux Targets:**
+
 * `make linux-debian-arm64` - Debian on ARM64
 * `make linux-debian-x86_64` - Debian on x86_64
 * `make linux-ubuntu-x86_64` - Ubuntu on x86_64
@@ -222,11 +228,13 @@ Documentation generated in build/docs/
 * `make linux` - Auto-detect current Linux distribution and architecture
 
 **macOS Targets:**
+
 * `make macos-arm64` - macOS on Apple Silicon
 * `make macos-x86_64` - macOS on Intel
 * `make macos` - Auto-detect architecture (universal binary)
 
 **Windows Targets:**
+
 * `make windows-x86_64` - Windows on x86_64
 
 **Build Process:**
@@ -237,6 +245,7 @@ Documentation generated in build/docs/
 . Packages distribution artifacts
 
 **Output:**
+
 * Binaries in `build/[platform]/bin/`
 * Libraries in `build/[platform]/lib/`
 * Distribution packages in `build/[platform]/dist/`
@@ -244,6 +253,7 @@ Documentation generated in build/docs/
 === Test Targets
 
 **Usage:**
+
 * `make test` - Build test suite, then run all tests (unit + integration)
 * `make test-unit` - Build and run unit tests only
 * `make test-integration` - Build and run integration tests only
@@ -284,6 +294,7 @@ Detects current operating system and architecture, then runs the appropriate bin
 * Windows: Runs `build/windows-x86_64/bin/smartbook-reader.exe`
 
 **Options:**
+
 * `make run READER` - Run Reader application
 * `make run CREATOR` - Run Creator Tool
 * `make run SERVER` - Run Server (Phase 2)
@@ -302,11 +313,13 @@ make
 ----
 
 **Output:**
+
 * Linux: `libsmartbook_common.so`
 * macOS: `libsmartbook_common.dylib`
 * Windows: `smartbook_common.dll`
 
 **Dependencies:**
+
 * Qt 6.2+ (Core, Gui, Sql)
 * SQLite 3.51+
 
@@ -322,10 +335,12 @@ make
 ----
 
 **Dependencies:**
+
 * Common library (dynamic)
 * Qt 6.2+ (Core, Gui, Widgets, WebEngine, WebChannel, Sql)
 
 **Output:**
+
 * Executable binary
 * Platform-specific packaging
 
@@ -341,10 +356,12 @@ make
 ----
 
 **Dependencies:**
+
 * Common library (dynamic)
 * Qt 6.2+ (Core, Gui, Widgets, WebEngine, WebChannel, Sql)
 
 **Output:**
+
 * Executable binary
 * Platform-specific packaging
 
@@ -360,10 +377,12 @@ make
 ----
 
 **Dependencies:**
+
 * Common library (dynamic)
 * Qt 6.2+ (Core, Network, Sql)
 
 **Output:**
+
 * Server executable
 * Configuration files
 
@@ -498,6 +517,7 @@ ARCH=$(uname -m)
 ----
 
 **Supported Distributions:**
+
 * Debian 13+ (ARM64, x86_64)
 * Ubuntu 24.04 LTS+ (x86_64)
 * Fedora 43+ (x86_64)
@@ -547,6 +567,7 @@ make macos
 === Windows Builds
 
 **Build Requirements:**
+
 * Qt 6.2+ installed
 * Visual Studio 2019+ or MinGW-w64
 * Windows SDK
@@ -658,16 +679,19 @@ export PATH=$QTDIR/bin:$PATH
 ----
 
 **Mermaid Diagram Conversion Fails:**
+
 * Check Mermaid CLI installation: `mmdc --version`
 * Verify diagram syntax is valid
 * Build will fall back to PNG if SVG fails
 
 **Documentation Generation Fails:**
+
 * Verify Asciidoctor installation: `asciidoctor --version`
 * Verify Asciidoctor PDF: `asciidoctor-pdf --version`
 * Check AsciiDoc syntax errors
 
 **Test Suite Build Fails:**
+
 * Ensure all dependencies are installed
 * Verify test framework is properly configured
 * Check test source files for syntax errors
@@ -675,16 +699,19 @@ export PATH=$QTDIR/bin:$PATH
 === Platform-Specific Issues
 
 **Linux:**
+
 * Ensure development packages are installed
 * Check library paths: `ldconfig -p | grep qt6`
 * Verify architecture matches: `uname -m`
 
 **macOS:**
+
 * Ensure Xcode Command Line Tools are installed
 * Check Qt installation path
 * Verify code signing certificates (if applicable)
 
 **Windows:**
+
 * Verify Qt installation path in environment
 * Check Visual Studio or MinGW-w64 installation
 * Ensure Windows SDK is installed

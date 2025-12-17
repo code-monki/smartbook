@@ -46,6 +46,7 @@ The following table summarizes the methods available to the embedded JavaScript:
     4.  Invokes the JS `callback` with a success/failure status and error details.
 
 **Error Handling:**
+
 * **Invalid `formId`:** If `formId` does not exist in `Form_Definitions`, callback is invoked with `success: false` and `errorCode: "INVALID_FORM_ID"`.
 * **Invalid JSON:** If `dataJson` is malformed or fails validation, callback is invoked with `success: false` and `errorCode: "INVALID_JSON"`.
 * **Database Error:** If database operation fails (locked, corrupted, disk full), callback is invoked with `success: false` and `errorCode: "DATABASE_ERROR"`. Error is logged.
@@ -61,6 +62,7 @@ The following table summarizes the methods available to the embedded JavaScript:
 |===
 
 **Callback Error Codes:**
+
 * `INVALID_FORM_ID` - Form ID does not exist
 * `INVALID_JSON` - JSON is malformed or invalid
 * `VALIDATION_ERROR` - Data fails form schema validation
@@ -75,6 +77,7 @@ The following table summarizes the methods available to the embedded JavaScript:
     2.  Invokes the JS `callback` with the retrieved JSON string. Returns empty JSON object (`{}`) if no data exists.
 
 **Error Handling:**
+
 * **Invalid `formId`:** If `formId` does not exist in `Form_Definitions`, callback is invoked with empty object `{}` and `success: false`, `errorCode: "INVALID_FORM_ID"`.
 * **No Data Found:** If no data exists for the `formId`, callback is invoked with empty object `{}` and `success: true` (this is not an error condition).
 * **Database Error:** If database query fails, callback is invoked with empty object `{}`, `success: false`, and `errorCode: "DATABASE_ERROR"`. Error is logged.
@@ -89,6 +92,7 @@ The following table summarizes the methods available to the embedded JavaScript:
 |===
 
 **Callback Error Codes:**
+
 * `INVALID_FORM_ID` - Form ID does not exist
 * `DATABASE_ERROR` - Database query failed
 * `CORRUPTED_DATA` - Stored data is corrupted
@@ -103,6 +107,7 @@ The following table summarizes the methods available to the embedded JavaScript:
     3.  The user's decision is returned via the callback.
 
 **Error Handling:**
+
 * **Invalid `appId`:** If `appId` does not exist in `Embedded_Apps` table, callback is invoked with `consentGranted: false` and `errorCode: "INVALID_APP_ID"`.
 * **Tampering Detected:** If cartridge tampering is detected (hash mismatch), callback is invoked with `consentGranted: false` and `errorCode: "TAMPERING_DETECTED"`. App execution is blocked.
 * **User Cancelled:** If user cancels the consent dialog, callback is invoked with `consentGranted: false` and `errorCode: "USER_CANCELLED"`.
@@ -117,6 +122,7 @@ The following table summarizes the methods available to the embedded JavaScript:
 |===
 
 **Callback Error Codes:**
+
 * `INVALID_APP_ID` - App ID does not exist
 * `TAMPERING_DETECTED` - Cartridge integrity check failed
 * `USER_CANCELLED` - User cancelled consent dialog
@@ -140,6 +146,7 @@ The following table summarizes the methods available to the embedded JavaScript:
 These methods are available **only to embedded applications** (not regular content pages) and provide access to a local, sandboxed file system. The sandbox is scoped to the specific cartridge and app instance, providing isolation and security.
 
 **Security Constraints:**
+
 * Sandbox directory path: `{local_app_data}/{cartridge_guid}/{app_id}/sandbox/`
 * Apps **cannot** access files outside their sandbox directory
 * Apps **cannot** access the host file system
@@ -157,6 +164,7 @@ These methods are available **only to embedded applications** (not regular conte
     5.  Invokes callback with success/failure status.
 
 **Error Handling:**
+
 * **Invalid Filename:** If filename contains path separators (`/`, `\`) or invalid characters, callback is invoked with `success: false` and `errorCode: "INVALID_FILENAME"`.
 * **Path Traversal:** If path traversal attempt detected (`../`), callback is invoked with `success: false` and `errorCode: "PATH_TRAVERSAL"`. Attempt is logged as security event.
 * **File Size Limit:** If data exceeds maximum file size (default: 10MB), callback is invoked with `success: false` and `errorCode: "FILE_TOO_LARGE"`.
@@ -174,6 +182,7 @@ These methods are available **only to embedded applications** (not regular conte
 |===
 
 **Callback Error Codes:**
+
 * `INVALID_FILENAME` - Filename contains invalid characters
 * `PATH_TRAVERSAL` - Path traversal attempt detected
 * `FILE_TOO_LARGE` - File exceeds size limit
@@ -192,6 +201,7 @@ These methods are available **only to embedded applications** (not regular conte
     4.  Returns content via callback (empty string if file doesn't exist).
 
 **Error Handling:**
+
 * **Invalid Filename:** If filename contains path separators or invalid characters, callback is invoked with empty data, `success: false`, and `errorCode: "INVALID_FILENAME"`.
 * **Path Traversal:** If path traversal attempt detected, callback is invoked with empty data, `success: false`, and `errorCode: "PATH_TRAVERSAL"`. Attempt is logged as security event.
 * **File Not Found:** If file does not exist, callback is invoked with empty data, `success: false`, and `errorCode: "FILE_NOT_FOUND"`.
@@ -207,6 +217,7 @@ These methods are available **only to embedded applications** (not regular conte
 |===
 
 **Callback Error Codes:**
+
 * `INVALID_FILENAME` - Filename contains invalid characters
 * `PATH_TRAVERSAL` - Path traversal attempt detected
 * `FILE_NOT_FOUND` - File does not exist
@@ -223,6 +234,7 @@ These methods are available **only to embedded applications** (not regular conte
     3.  Invokes callback with file list.
 
 **Error Handling:**
+
 * **Directory Not Found:** If sandbox directory does not exist, callback is invoked with empty array `[]`, `success: true` (directory will be created on first file save).
 * **Permission Error:** If directory read permission is denied, callback is invoked with empty array `[]`, `success: false`, and `errorCode: "PERMISSION_DENIED"`. Error is logged.
 * **Scan Error:** If directory scan fails, callback is invoked with empty array `[]`, `success: false`, and `errorCode: "SCAN_ERROR"`. Error is logged.
@@ -235,6 +247,7 @@ These methods are available **only to embedded applications** (not regular conte
 |===
 
 **Callback Error Codes:**
+
 * `PERMISSION_DENIED` - Directory read permission denied
 * `SCAN_ERROR` - Directory scan operation failed
 * `UNKNOWN_ERROR` - Unexpected error occurred
@@ -249,6 +262,7 @@ These methods are available **only to embedded applications** (not regular conte
     4.  Invokes callback with success/failure status.
 
 **Error Handling:**
+
 * **Invalid Filename:** If filename contains path separators or invalid characters, callback is invoked with `success: false` and `errorCode: "INVALID_FILENAME"`.
 * **Path Traversal:** If path traversal attempt detected, callback is invoked with `success: false` and `errorCode: "PATH_TRAVERSAL"`. Attempt is logged as security event.
 * **File Not Found:** If file does not exist, callback is invoked with `success: false` and `errorCode: "FILE_NOT_FOUND"`.
@@ -264,6 +278,7 @@ These methods are available **only to embedded applications** (not regular conte
 |===
 
 **Callback Error Codes:**
+
 * `INVALID_FILENAME` - Filename contains invalid characters
 * `PATH_TRAVERSAL` - Path traversal attempt detected
 * `FILE_NOT_FOUND` - File does not exist
@@ -283,6 +298,7 @@ These methods are available **only to embedded applications** (not regular conte
     6.  Invokes callback with selected filename or cancellation status.
 
 **Error Handling:**
+
 * **Invalid Mode:** If `mode` is not `open` or `save`, callback is invoked with `success: false` and `errorCode: "INVALID_MODE"`.
 * **Dialog Error:** If file dialog fails to open, callback is invoked with `success: false` and `errorCode: "DIALOG_ERROR"`. Error is logged.
 * **Security Violation:** If path traversal attempt detected, callback is invoked with `success: false` and `errorCode: "SECURITY_VIOLATION"`. Attempt is logged as security event.
@@ -297,17 +313,20 @@ These methods are available **only to embedded applications** (not regular conte
 |===
 
 **Callback Parameters:**
+
 * `filename` - Selected filename (relative to sandbox directory) or `null` if cancelled
 * `success` - `true` if file selected, `false` if cancelled or error occurred
 * `errorCode` - Error code if operation failed (optional)
 
 **Callback Error Codes:**
+
 * `INVALID_MODE` - Mode parameter is not "open" or "save"
 * `DIALOG_ERROR` - File dialog failed to open
 * `SECURITY_VIOLATION` - Security violation detected (path traversal attempt)
 * `UNKNOWN_ERROR` - Unexpected error occurred
 
 **Security Constraints:**
+
 * File picker MUST be restricted to sandbox directory only
 * User MUST NOT be able to navigate outside sandbox directory
 * Selected filename MUST be validated for path traversal attempts
@@ -332,21 +351,27 @@ callback(defaultValue, false, "ERROR_CODE", "Optional error message");
 === Error Code Categories
 
 **Validation Errors:**
+
 * `INVALID_FORM_ID`, `INVALID_APP_ID`, `INVALID_FILENAME`, `INVALID_JSON`
 
 **Security Errors:**
+
 * `PATH_TRAVERSAL`, `TAMPERING_DETECTED`
 
 **Resource Errors:**
+
 * `FILE_NOT_FOUND`, `FILE_TOO_LARGE`, `DISK_FULL`
 
 **Permission Errors:**
+
 * `PERMISSION_DENIED`, `USER_CANCELLED`
 
 **System Errors:**
+
 * `DATABASE_ERROR`, `READ_ERROR`, `WRITE_ERROR`, `DELETE_ERROR`, `SCAN_ERROR`
 
 **Unknown Errors:**
+
 * `UNKNOWN_ERROR` - Used for unexpected errors that don't fit other categories
 
 === Error Logging

@@ -38,6 +38,7 @@ The build system is fully implemented and tested:
 **Status:** Initial structure created
 
 **Components:**
+
 * `database/LocalDBManager` - Local SQLite database management
 * `database/CartridgeDBConnector` - Cartridge database connections
 * `security/SignatureVerifier` - 4-phase verification algorithm
@@ -53,6 +54,7 @@ The build system is fully implemented and tested:
 **Status:** Initial structure created
 
 **Components:**
+
 * `LibraryManager` - Main window and library management
 * `ReaderViewWindow` - Individual cartridge viewing window
 * `WebChannelBridge` - IPC between JavaScript and C++
@@ -67,6 +69,7 @@ The build system is fully implemented and tested:
 **Status:** Initial structure created
 
 **Components:**
+
 * `CreatorMainWindow` - Main application window
 * `ContentEditor` - HTML content editor
 * `FormBuilder` - Form definition builder
@@ -80,6 +83,7 @@ The build system is fully implemented and tested:
 **Status:** Initial structure created
 
 **Components:**
+
 * `unit/` - Unit tests (Qt Test framework)
 * `integration/` - Integration tests
 * `CMakeLists.txt` - Test build configuration

@@ -69,6 +69,7 @@ See also: <<Application Data Directory>>
 The primary file format for SmartBook content. A cartridge is a single SQLite database file (`.sqlite`) that contains all content, metadata, form definitions, embedded applications, user data, and security information. Cartridges are self-contained and portable.
 
 **Key Characteristics:**
+
 * Single-file format (SQLite database)
 * Contains HTML content, metadata, forms, embedded apps
 * Includes digital signatures and content hashes for security
@@ -92,6 +93,7 @@ A C++ class that manages the database connection and transactional persistence f
 **Pattern:** Per-Instance (one per open cartridge)
 
 **Responsibilities:**
+
 * Open and manage SQLite connection to cartridge file
 * Execute transactions for form data saves
 * Provide read access to cartridge content
@@ -110,6 +112,7 @@ See also: <<Level 1>>, <<Digital Signature>>
 The process of digitally signing executable files and applications to verify their authenticity and integrity. SmartBook applications are code-signed on platforms that support it (Windows, macOS) for security and distribution trust.
 
 **Platforms:**
+
 * **Windows:** Code signing certificate (optional but recommended)
 * **macOS:** Code signing and notarization (required for distribution outside App Store)
 * **Linux:** GPG signing for packages (optional but recommended)
@@ -132,6 +135,7 @@ See also: <<Embedded Application>>
 The authoring application for creating SmartBook cartridges. The Creator Tool provides WYSIWYG HTML editing, form builder, embedded application management, cartridge signing, and export functionality.
 
 **Key Features:**
+
 * WYSIWYG HTML content editing
 * Visual form builder with JSON schema validation
 * Embedded application definition and management
@@ -169,6 +173,7 @@ See also: <<LocalDBManager>>, <<CartridgeDBConnector>>
 A JavaScript application embedded within a cartridge that provides interactive functionality beyond static content. Embedded applications are executed in isolated WebEngine instances with restricted network access and sandboxed file system access.
 
 **Key Characteristics:**
+
 * Written in HTML, CSS, and JavaScript
 * Executed in isolated `QWebEngineView` instance
 * Network access blocked (except via sandbox API)
@@ -183,6 +188,7 @@ See also: <<Sandbox>>, <<WebChannel Bridge>>, <<SmartbookBridge>>
 The final trust decision determined by the Signature Verifier after executing the 4-Phase Verification Algorithm. The effective trust policy determines whether embedded applications can execute and whether user consent is required.
 
 **Possible Values:**
+
 * `WHITELISTED` - No consent required (Level 1 or persistent trust)
 * `CONSENT_REQUIRED` - User consent required (Level 2 or Level 3)
 * `REVOKED` - Execution blocked (user revoked trust)
@@ -196,6 +202,7 @@ See also: <<Signature Verifier>>, <<4-Phase Verification Algorithm>>
 A JSON schema that defines the structure, fields, validation rules, and presentation of a fillable form within a cartridge. Form definitions are stored in the `Form_Definitions` table and are consumed by the Reader's WebEngine for rendering and validation.
 
 **Key Components:**
+
 * `schemaVersion` - Version of the form schema
 * `formId` - Unique identifier for the form
 * `formTitle` - Human-readable title
@@ -267,6 +274,7 @@ See also: <<H1>>, <<Tampering Detection>>, <<4-Phase Verification Algorithm>>
 The process of verifying that a cartridge has not been tampered with or corrupted. Integrity checks compare H1 (original hash) against H2 (current hash) and perform SQLite integrity validation.
 
 **Types:**
+
 * **Quick Check:** `PRAGMA quick_check` - Fast integrity check
 * **Full Check:** `PRAGMA integrity_check` - Comprehensive integrity check
 
@@ -293,6 +301,7 @@ See also: <<Phase 2>>, <<Authentication>>
 The highest security level for cartridges. Level 1 cartridges are signed with a valid, non-expired certificate from a publicly-trusted Certificate Authority (CA). Level 1 cartridges are whitelisted by default, allowing embedded applications to execute without user consent.
 
 **Characteristics:**
+
 * CA-signed certificate (valid, non-expired)
 * Whitelisted by default
 * No user consent required for embedded apps
@@ -307,6 +316,7 @@ See also: <<Level 2>>, <<Level 3>>, <<Digital Signature>>
 The intermediate security level for cartridges. Level 2 cartridges are signed with a self-signed certificate (not from a trusted CA). Level 2 cartridges require user consent before embedded applications can execute.
 
 **Characteristics:**
+
 * Self-signed certificate
 * Integrity warning displayed on load
 * User consent required for embedded apps
@@ -319,6 +329,7 @@ See also: <<Level 1>>, <<Level 3>>, <<Digital Signature>>
 The lowest security level for cartridges. Level 3 cartridges are unsigned (no digital signature). Level 3 cartridges require user consent before embedded applications can execute and display a persistent integrity warning.
 
 **Characteristics:**
+
 * No digital signature
 * Persistent integrity warning displayed
 * User consent required for embedded apps
@@ -331,6 +342,7 @@ See also: <<Level 1>>, <<Level 2>>, <<Digital Signature>>
 The main application window that serves as the hub for browsing, importing, and managing cartridges. The Library Manager displays the cartridge library in either Bookshelf View or List View and handles import, delete, and trust revocation operations.
 
 **Key Responsibilities:**
+
 * Display cartridge library (from `Local_Library_Manifest`)
 * Handle cartridge import and deletion
 * Manage trust revocation
@@ -356,6 +368,7 @@ A C++ singleton class that manages the single connection to the global local rea
 **Database:** `local_reader.sqlite` (contains `Local_Library_Manifest` and `Local_Trust_Registry`)
 
 **Responsibilities:**
+
 * Manage connection to local reader database
 * Provide access to manifest and trust registry
 * Handle database operations (import, delete, trust updates)
@@ -367,6 +380,7 @@ See also: <<CartridgeDBConnector>>, <<Local_Library_Manifest>>, <<Local_Trust_Re
 A table in the local reader database (`local_reader.sqlite`) that stores browsing metadata for all imported cartridges. The manifest provides fast library loading without parsing cartridge files.
 
 **Key Fields:**
+
 * `cartridge_guid` - Unique identifier
 * `title`, `author`, `publication_year` - Display metadata
 * `cover_image_data` - Cover image (BLOB)
@@ -383,12 +397,14 @@ See also: <<LocalDBManager>>, <<H2>>
 A table in the local reader database (`local_reader.sqlite`) that stores user trust decisions for cartridges and embedded applications. The trust registry enables persistent trust management across sessions.
 
 **Key Fields:**
+
 * `cartridge_guid` - Cartridge identifier
 * `app_id` - Embedded application identifier (if app-specific)
 * `app_trust_policy` - Trust decision (PERSISTENT, SESSION, REVOKED)
 * `trust_timestamp` - When trust was granted/revoked
 
 **Trust Policies:**
+
 * `PERSISTENT` - Always trust (across sessions)
 * `SESSION` - Trust for current session only
 * `REVOKED` - Trust revoked, execution blocked
@@ -418,6 +434,7 @@ See <<Local_Library_Manifest>>
 A table in the cartridge SQLite database that stores book-level identifying information, including title, author, publication year, version, tags, cover image, and security information (H1 hash, signature data).
 
 **Key Fields:**
+
 * `cartridge_guid` - Unique identifier (UUID v4)
 * `title`, `author`, `publication_year` - Publication information
 * `version` - Content edition/revision
@@ -432,6 +449,7 @@ See also: <<Cartridge>>, <<H1>>, <<Cartridge GUID>>
 The architectural pattern used by SmartBook to ensure security isolation and separation of concerns. The application consists of a single Library Manager and multiple, independent Reader View Instances (one per open cartridge).
 
 **Benefits:**
+
 * Data isolation between cartridges
 * Security isolation for embedded applications
 * Independent process management
@@ -446,6 +464,7 @@ See also: <<Library Manager>>, <<Reader View Instance>>
 The initial development phase focusing on single-user application development. Phase 1 includes the Reader Application and Creator Tool for local use without server infrastructure.
 
 **Components:**
+
 * Reader Application
 * Creator Tool
 * Local library management
@@ -458,6 +477,7 @@ See also: <<Phase 2>>
 The planned expansion phase that adds multi-user functionality with a centralized library server. Phase 2 includes user authentication, remote library synchronization, role-based access control, and server infrastructure.
 
 **Components:**
+
 * Centralized library server
 * User authentication and authorization
 * Remote library synchronization
@@ -473,6 +493,7 @@ See also: <<Phase 1>>
 A cross-platform C++ application framework used as the primary technology stack for SmartBook. Qt provides UI widgets, WebEngine, database connectivity, and cross-platform APIs.
 
 **Key Qt Components Used:**
+
 * Qt Widgets (UI framework)
 * Qt WebEngine (Chromium-based rendering)
 * Qt SQL (SQLite database access)
@@ -492,6 +513,7 @@ See also: <<Qt>>
 Qt's Chromium-based web rendering engine used by SmartBook to render HTML content and execute JavaScript. Qt WebEngine provides HTML5, CSS3, and ECMAScript 2022 support.
 
 **Key Features:**
+
 * HTML5 and CSS3 rendering
 * JavaScript execution (V8 engine)
 * WebChannel for JavaScript-C++ communication
@@ -507,6 +529,7 @@ See also: <<Qt>>, <<WebChannel Bridge>>
 The primary application for consuming SmartBook cartridges. The Reader Application provides multi-window support, embedded application execution, form persistence, and comprehensive security features.
 
 **Key Features:**
+
 * Multi-window support for simultaneous cartridge viewing
 * Embedded JavaScript application execution with security controls
 * Form data persistence within cartridge files
@@ -526,6 +549,7 @@ An independent window/process that displays a single open cartridge. Each Reader
 **Pattern:** Per-Instance (one per open cartridge)
 
 **Key Components:**
+
 * `QWebEngineView` - Web content rendering
 * `CartridgeDBConnector` - Database connection to cartridge
 * `SmartbookBridge` - WebChannel bridge for JavaScript-C++ communication
@@ -556,6 +580,7 @@ See also: <<Level 2>>, <<Digital Signature>>, <<CA>>
 A utility class that executes the 4-Phase Verification Algorithm to determine the effective trust policy for a cartridge. The Signature Verifier reads security data from the cartridge, performs integrity checks, queries the trust registry, and determines whether embedded applications can execute.
 
 **Responsibilities:**
+
 * Read cartridge security data (H1, signature)
 * Calculate current content hash (H2)
 * Compare H1 vs. H2 for tampering detection
@@ -569,6 +594,7 @@ See also: <<4-Phase Verification Algorithm>>, <<Effective Trust Policy>>, <<H1>>
 A C++ object exposed to JavaScript via Qt WebChannel that provides a secure API for embedded applications to communicate with native code. The SmartbookBridge enables form data saving, app consent requests, and sandbox file access.
 
 **Key Methods:**
+
 * `saveFormData(formKey, data)` - Save form data to cartridge
 * `requestAppConsent(appId, appName, appDescription)` - Request user consent for app execution
 * `getSandboxPath()` - Get sandbox directory path
@@ -584,12 +610,14 @@ See also: <<WebChannel Bridge>>, <<Embedded Application>>, <<Sandbox>>
 A lightweight, serverless, self-contained SQL database engine used as the storage format for SmartBook cartridges and the local reader database. SQLite provides ACID transactions, full-text search, and excellent performance for single-file databases.
 
 **SmartBook Usage:**
+
 * Cartridge format (single `.sqlite` file)
 * Local reader database (`local_reader.sqlite`)
 * Full-text search (FTS) for content searching
 * WAL mode for better concurrency and performance
 
 **Configuration:**
+
 * Minimum version: 3.51
 * WAL mode enabled
 * Page size: 4096 bytes
@@ -604,6 +632,7 @@ See also: <<Cartridge>>, <<WAL>>
 The security mechanism that detects if a cartridge has been modified after signing. Tampering detection compares H1 (original content hash stored at signing) against H2 (current content hash calculated on load).
 
 **Process:**
+
 1. Read H1 from cartridge `Metadata` table
 2. Calculate H2 from current cartridge content
 3. Compare H1 vs. H2
@@ -630,6 +659,7 @@ See also: <<ARM64>>, <<X86_64>>
 A custom URL protocol handler that allows external applications to open SmartBook cartridges via URLs (e.g., `smartbook://cartridge-guid`). URL scheme handling is registered on platforms that support it.
 
 **Platform Support:**
+
 * **Windows:** Protocol handler registration in Registry
 * **macOS:** URL scheme registration in Info.plist
 * **Linux:** Desktop entry MIME type and protocol handling
@@ -639,6 +669,7 @@ A custom URL protocol handler that allows external applications to open SmartBoo
 Form input data stored within a cartridge's `User_Data` table. User data is associated with a specific form via `form_key` and persists across sessions. User data is stored as serialized JSON within the cartridge file itself.
 
 **Key Fields:**
+
 * `form_key` - Identifier linking to form definition
 * `serialized_data` - JSON-serialized form data
 * `timestamp` - Last modification timestamp
@@ -660,11 +691,13 @@ See also: <<Cartridge GUID>>, <<GUID>>
 A SQLite journaling mode that provides better concurrency and performance compared to rollback journal mode. WAL mode allows readers to not block writers and writers to not block readers, improving performance for mixed read/write workloads.
 
 **SmartBook Configuration:**
+
 * WAL mode enabled for all databases
 * Automatic checkpointing (10MB or 1000 pages threshold)
 * WAL file size monitoring and manual checkpointing
 
 **Benefits:**
+
 * Better concurrency
 * Improved performance
 * Reduced lock contention
@@ -676,6 +709,7 @@ See also: <<SQLite>>
 The IPC mechanism that enables secure communication between JavaScript (running in Qt WebEngine) and native C++ code. The WebChannel Bridge uses Qt WebChannel to expose the `SmartbookBridge` object to JavaScript.
 
 **Components:**
+
 * `QWebChannel` - Qt WebChannel instance
 * `SmartbookBridge` - C++ object exposed to JavaScript
 * `qwebchannel.js` - JavaScript library for WebChannel communication

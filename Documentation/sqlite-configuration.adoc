@@ -98,6 +98,7 @@ This document specifies the SQLite configuration requirements, design, and testi
 **Minimum Version:** SQLite 3.51
 
 **Rationale:**
+
 * SQLite 3.51 (released 2024) includes important bug fixes and performance improvements
 * WAL mode improvements and checkpoint optimizations
 * Better handling of large databases
@@ -122,6 +123,7 @@ if (versionParts.size() >= 2) {
 ----
 
 **Version Documentation:**
+
 * Log SQLite version at application startup
 * Include version in About dialog (optional)
 * Document version in application logs
@@ -131,12 +133,14 @@ if (versionParts.size() >= 2) {
 ==== WAL Mode Overview
 
 **Write-Ahead Logging (WAL) Benefits:**
+
 * Better concurrency (readers don't block writers)
 * Improved performance for mixed read/write workloads
 * Reduced lock contention
 * Better for multi-threaded applications
 
 **WAL Mode Trade-offs:**
+
 * Slightly larger database files (WAL file)
 * Requires checkpointing to maintain size
 * May not be compatible with very old SQLite versions (but 3.51+ supports it)
@@ -246,6 +250,7 @@ void CartridgeDBConnector::enableWALMode() {
 ----
 
 **Export Consideration:**
+
 * **Option A:** Keep WAL mode in exported cartridges (better performance, requires SQLite 3.7.0+)
 * **Option B:** Convert to rollback journal before export (maximum compatibility)
 * **Recommendation:** Keep WAL mode (SQLite 3.51+ is required, so compatibility is ensured)
@@ -257,6 +262,7 @@ void CartridgeDBConnector::enableWALMode() {
 **Page Size: 4096 bytes (4KB)**
 
 **Rationale:**
+
 * 4KB is optimal for modern systems (matches OS page size)
 * Good balance between performance and memory usage
 * Standard size for most SQLite databases
@@ -315,6 +321,7 @@ void CartridgeDBConnector::configureCache() {
 ----
 
 **Cache Size Rationale:**
+
 * Negative value = pages (absolute value in KB)
 * Local database: 2000 pages (8MB) - larger cache for frequently accessed manifest data
 * Cartridge files: 1000 pages (4MB) - smaller cache per cartridge, multiple cartridges may be open
@@ -339,11 +346,15 @@ void LocalDBManager::configureSynchronous() {
 ----
 
 **Synchronous Mode Options:**
+
 * `OFF` - Fastest but unsafe (data loss risk on power failure) - **NOT RECOMMENDED**
+
 * `NORMAL` - Safe with WAL mode, good performance - **RECOMMENDED**
+
 * `FULL` - Safest but slower - **NOT NEEDED with WAL mode**
 
 **Rationale:**
+
 * WAL mode provides durability guarantees
 * NORMAL mode with WAL is safe and performant
 * FULL mode adds unnecessary overhead with WAL
@@ -376,6 +387,7 @@ void LocalDBManager::enableForeignKeys() {
 ----
 
 **Foreign Key Benefits:**
+
 * Data integrity enforcement
 * Prevents orphaned records
 * Automatic referential integrity checks
@@ -400,12 +412,14 @@ void LocalDBManager::updateStatistics() {
 ----
 
 **When to Run ANALYZE:**
+
 * After bulk imports
 * After significant data changes
 * Periodically (e.g., weekly) for local database
 * After schema changes that affect indexes
 
 **Automatic Statistics Update:**
+
 * Run ANALYZE after import operations
 * Run ANALYZE after bulk deletes
 * Consider running during idle time
@@ -492,6 +506,7 @@ void LocalDBManager::setBusyHandler() {
 ----
 
 **Qt SQLite Driver Busy Handling:**
+
 * Qt's QSQLITE driver handles busy automatically with timeout
 * Default timeout: 5 seconds
 * Can be configured via `QSqlDatabase::setConnectOptions()`
@@ -633,12 +648,14 @@ void LocalDBManager::vacuumDatabase() {
 ----
 
 **When to Run VACUUM:**
+
 * After large deletions
 * Periodically (e.g., monthly) for local database
 * When database file size is significantly larger than data size
 * User-initiated optimization
 
 **VACUUM Considerations:**
+
 * Requires exclusive database lock
 * Can take time for large databases
 * Reduces database file size
@@ -699,6 +716,7 @@ bool CartridgeDBConnector::fullIntegrityCheck() {
 ----
 
 **Integrity Check Strategy:**
+
 * Quick check on cartridge open (fast, catches most issues)
 * Full check when corruption is suspected (slower, comprehensive)
 * Log all integrity check results
@@ -733,6 +751,7 @@ bool LocalDBManager::backupDatabase(const QString& backupPath) {
 ----
 
 **Backup Strategy:**
+
 * Create backup before schema migrations
 * Create backup before major operations
 * Store backups in backup directory

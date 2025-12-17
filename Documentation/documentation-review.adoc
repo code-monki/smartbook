@@ -116,10 +116,12 @@ The documentation is generally well-structured and comprehensive for the Reader 
 **Issue:** Product Concept shows different metadata fields than DDD:
 
 **Product Concept:**
+
 * `publisher` field mentioned
 * `cover_image_path` (path reference)
 
 **DDD:**
+
 * No `publisher` field (author field described as "Author/Publisher name")
 * `cover_image_path` exists but relationship to `cover_image_data` in manifest unclear
 
@@ -318,6 +320,7 @@ The documentation is generally well-structured and comprehensive for the Reader 
 **Status:** `[OK] RESOLVED`
 
 **Resolution:**
+
 * Added `certificate_data` column to `Cartridge_Security` table schema
 * Implemented certificate validation using Qt's `QSslCertificate` with system certificate store integration
 * Certificate expiration checking: Expired CA certificates are downgraded to Level 2 (Self-Signed Trust) and require user consent
@@ -335,6 +338,7 @@ The documentation is generally well-structured and comprehensive for the Reader 
 **Status:** `[OK] RESOLVED`
 
 **Resolution:**
+
 * Public keys are extracted from X.509 certificates stored in `certificate_data` column - no separate distribution mechanism required
 * Public keys are extracted on-demand during signature verification using Qt's `QSslCertificate::publicKey()` - no persistent storage in Reader needed
 * Fingerprint verification added: Calculate fingerprint of extracted public key and compare with stored `public_key_fingerprint` to detect tampering
@@ -351,6 +355,7 @@ The documentation is generally well-structured and comprehensive for the Reader 
 **Status:** `[OK] RESOLVED`
 
 **Resolution:**
+
 * **Hash Algorithm:** SHA-256 (256-bit Secure Hash Algorithm) - specified as the exact algorithm, not "e.g."
 * **Tables Included:** Content_Pages, Embedded_Apps (attack surface), Form_Definitions, Settings, Content_Themes, Metadata (partial - excludes cartridge_guid)
 * **Tables Excluded:** User_Data (user input, not author content), Cartridge_Security (circular dependency)
@@ -372,6 +377,7 @@ The documentation is generally well-structured and comprehensive for the Reader 
 **Status:** `[OK] RESOLVED`
 
 **Resolution:**
+
 * **Qt WebEngine Native Sandboxing:** Leverages Qt WebEngine's built-in process isolation and V8 JavaScript engine isolation (each app in separate QWebEngineView instance)
 * **Network API Restrictions:** All network APIs blocked (fetch, XMLHttpRequest, WebSocket, EventSource, external resource loading) via QWebEngineUrlRequestInterceptor and CSP
 * **File System API Restrictions:** Direct file system APIs blocked (File System Access API, FileReader for local files) - all file operations must use WebChannel sandbox API
@@ -401,6 +407,7 @@ The documentation is generally well-structured and comprehensive for the Reader 
 **Status:** `[OK] RESOLVED`
 
 **Resolution:**
+
 * **Form Versioning:** Added `form_version` column to `Form_Definitions` table, version incremented on breaking changes (field removed/renamed/type changed)
 * **Data Version Tracking:** Added `form_version` and `migrated_from_version` columns to `User_Data` table to track data version and migration history
 * **Migration Rules:** Added `migration_rules_json` column to `Form_Definitions` table for storing field mapping and transformation rules
@@ -422,6 +429,7 @@ The documentation is generally well-structured and comprehensive for the Reader 
 **Status:** `[OK] RESOLVED`
 
 **Resolution:**
+
 * **Two Types of Manifests Clarified:**
   * **Embedded App Manifest** (`Embedded_App_Manifest` JSON): Created/updated when cartridge is created/updated by Creator Tool, stored in `Embedded_Apps.manifest_json` column within cartridge
   * **Local Library Manifest** (`Local_Library_Manifest` table): Updated when cartridge is added/updated/removed from library, stored in Reader's local database
@@ -450,6 +458,7 @@ The documentation is generally well-structured and comprehensive for the Reader 
 **Status:** `[OK] RESOLVED`
 
 **Resolution:**
+
 * **Cartridge Format Version Migration:**
   * Version stored in `Metadata.schema_version` field
   * Reader detects version on cartridge open, compares with supported versions
@@ -489,6 +498,7 @@ The documentation is generally well-structured and comprehensive for the Reader 
 **Status:** `[OK] RESOLVED`
 
 **Resolution:**
+
 * **Import Mechanisms:** Drag-and-drop support (drop cartridge files onto Library Manager window) and file picker dialog (File → Import menu or toolbar button, supports single or multiple file selection)
 * **Import Storage Location:** Default library directory follows OS standards (Windows: `%USERPROFILE%\Documents\SmartBook\Library\`, macOS/Linux: `~/Documents/SmartBook/Library/`), user-configurable custom library directory via settings, preference persists across sessions
 * **Import Progress Dialog:** Progress bar showing overall progress, status text for current operation, file list with status indicators (pending, in progress, completed, failed), cancel button to abort import
@@ -509,6 +519,7 @@ The documentation is generally well-structured and comprehensive for the Reader 
 **Status:** `[OK] RESOLVED`
 
 **Resolution:**
+
 * **Window Opening Mechanisms:**
   * **Double-Click:** Double-clicking cartridge title (List View) or cover (Grid View) opens cartridge in new Reader View Window
   * **Context Menu:** Right-clicking cartridge title or cover displays context menu with "Open" option, follows platform conventions (Calibre, Apple Books pattern)

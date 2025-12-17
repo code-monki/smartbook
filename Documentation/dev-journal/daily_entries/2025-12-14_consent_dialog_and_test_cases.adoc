@@ -37,12 +37,14 @@ Added comprehensive Cartridge Loading Consent Dialog specifications to DDD Secti
 ==== Dialog Content and Verbiage
 
 **Level 2 (Self-Signed Certificate) Cartridges:**
+
 * Title: "Security Warning: Self-Signed Cartridge"
 * Warning message explaining certificate cannot be verified by trusted authority
 * Cartridge information (Title, Author, Security Level)
 * Three options: "Load and Always Trust", "Load for This Session Only", "Cancel"
 
 **Level 3 (No Signature) Cartridges:**
+
 * Title: "Security Warning: Unsigned Cartridge"
 * Warning message explaining no digital signature
 * Cartridge information (Title, Author, Security Level)
@@ -51,20 +53,25 @@ Added comprehensive Cartridge Loading Consent Dialog specifications to DDD Secti
 ==== Dismissal Behavior
 
 **When "Load and Always Trust" is selected:**
+
 * Cartridge added to `Local_Trust_Registry` with `trust_type = 'PERSISTENT'`
 * Cartridge loaded and displayed in Reader View Window
 * Future loads bypass consent dialog
 * Integrity warning bar still displayed (per FR-2.3.2/2.3.3)
 
 **When "Load for This Session Only" is selected:**
+
 * Cartridge loaded and displayed
 * No entry added to `Local_Trust_Registry`
 * Consent dialog appears again on next load
 * Integrity warning bar displayed
 
 **When "Cancel" is selected:**
+
 * Cartridge **not loaded**
+
 * Reader View Window **not opened**
+
 * User returned to Library Manager
 * No entry added to `Local_Trust_Registry`
 * No error message displayed (user choice)
