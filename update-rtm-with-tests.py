@@ -26,6 +26,9 @@ def extract_test_cases_from_test_plan():
                     # Remove any bold markers
                     test_id = test_id.replace('**', '').strip()
                     
+                    if not test_id:
+                        continue
+                    
                     # Get requirement - look for "**Requirement Covered**" in next line
                     if i+1 < len(lines):
                         req_line = lines[i+1]
