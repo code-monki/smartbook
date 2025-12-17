@@ -14,4 +14,219 @@ This matrix maps all core requirements from the Software Requirements Specificat
 
 [cols="1, 3, 2, 1", options="header", grid="all"]
 |===
-^.^| SRS ID ^.^| Requirement Summary ^.^| Design Artifact (DDD Section) ^.^| Test Case IDs[cols="1, 3, 2, 1", options="header", grid="all"]|===
+^.^| SRS ID ^.^| Requirement Summary ^.^| Design Artifact (DDD Section) ^.^| Test Case IDs
+| **FR-2.1.1** | Multi-Window Capability | Sec 8.1 (HLD), Sec 10.2 (Classes) | 
+| **FR-2.1.2** | Form Data Persistence | Sec 8.1 (HLD) | 
+| **FR-2.1.3** | Window State Persistence | Sec 19.3 (Window State) | 
+| **FR-2.1.4** | Window State Restoration | Sec 19.3 (Window State) | 
+| **FR-2.1.5** | Window Minimize/Restore | Sec 19.3 (Window State) | 
+| **FR-2.10.1** | Find-in-Page Dialog | Sec 7.6 (Find-in-Page) | 
+| **FR-2.10.2** | Term Highlighting | Sec 7.6 (Term Highlighting) | 
+| **FR-2.10.3** | Match Navigation | Sec 7.6 (Match Navigation) | 
+| **FR-2.10.4** | Result Count | Sec 7.6 (Result Count) | 
+| **FR-2.10.5** | Case Sensitivity | Sec 7.6 (Case Sensitivity) | 
+| **FR-2.10.6** | Auto-Scroll to Match | Sec 7.6 (Auto-Scroll) | 
+| **FR-2.10.7** | Search Persistence | Sec 7.6 (Search Persistence) | 
+| **FR-2.11.1** | Print Capabilities | Sec 9 (Print Functionality) | 
+| **FR-2.11.2** | System Print Dialog | Sec 9.1 (System Print Dialog) | 
+| **FR-2.11.3** | Print Media CSS | Sec 9.2 (Print Media CSS) | 
+| **FR-2.11.4** | Print CSS Application | Sec 9.2 (Print CSS Application) | 
+| **FR-2.11.5** | Offscreen Rendering | Sec 9.3 (Offscreen Rendering) | 
+| **FR-2.11.6** | Print Preview | Sec 9.4 (Print Preview) | 
+| **FR-2.11.7** | Print Quality | Sec 9.5 (Print Quality) | 
+| **FR-2.11.8** | Print Keyboard Shortcut | Sec 9.1 (Print Keyboard Shortcut) | 
+| **FR-2.12.1** | Text Selection | Sec 10 (Text Selection) | 
+| **FR-2.12.1a** | Select All | Sec 8.1 (HLD), Sec 10.2 (Classes) | 
+| **FR-2.12.2** | Copy to Clipboard | Sec 10.1 (Copy to Clipboard) | 
+| **FR-2.12.3** | Background Removal on Copy | Sec 10.1 (Background Removal) | 
+| **FR-2.12.4** | Paste into Forms | Sec 10.2 (Paste into Forms) | 
+| **FR-2.12.5** | Paste into External Documents | Sec 10.1 (Paste into External) | 
+| **FR-2.12.6** | Copy Context Menu | Sec 10.1 (Copy Context Menu) | 
+| **FR-2.12.7** | Standard Keyboard Shortcuts | Sec 10.3 (Keyboard Shortcuts) | 
+| **FR-2.13.1** | Keyboard Navigation | Sec 8.1 (HLD), Sec 10.2 (Classes) | 
+| **FR-2.13.2** | Keyboard Shortcuts | Sec 8.1 (HLD), Sec 10.2 (Classes) | 
+| **FR-2.13.3** | Screen Reader Support | Sec 8.1 (HLD), Sec 10.2 (Classes) | 
+| **FR-2.13.4** | High Contrast Support | Sec 8.1 (HLD), Sec 10.2 (Classes) | 
+| **FR-2.13.5** | Font Scaling | Sec 8.1 (HLD), Sec 10.2 (Classes) | 
+| **FR-2.13.6** | Accessibility Standards | Sec 8.1 (HLD), Sec 10.2 (Classes) | 
+| **FR-2.2.1** | HTML/CSS Rendering | Sec 5 (Qt WebEngine) | 
+| **FR-2.2.2** | Embedded Application Support | Sec 5 (Qt WebEngine), Sec 8 (Embedded Apps) | 
+| **FR-2.2.3** | Cartridge Settings Support | Sec 3.5 (Settings Table) | 
+| **FR-2.2.4** | Settings Reset | Sec 3.5 (Settings Table) | 
+| **FR-2.3.1** | Level 1: Commercial Trust | Sec 6.2 (Verification Phase 2) | 
+| **FR-2.3.1a** | Expired CA Certificate Handling | Sec 6.2-6.4 (Security Verification) | 
+| **FR-2.3.2** | Level 2: Self-Signed Trust | Sec 6.4 (Verification Phase 4), Sec 11.2 (UI) | 
+| **FR-2.3.3** | Level 3: No Signature | Sec 6.4 (Verification Phase 4), Sec 11.2 (UI) | 
+| **FR-2.4.1** | Persistent Trust Management | Sec 4.2 (Schema), Sec 6.3 (Verification Phase 3) | 
+| **FR-2.4.2** | Trust Options | Sec 4.2 (Schema), Sec 6.3 (Verification) | 
+| **FR-2.4.3** | Trust Revocation | Sec 4.2 (Schema), Sec 12.1 (Deletion Process) | 
+| **FR-2.4.4** | Tampering Detection | Sec 6.3 (Verification Phase 3) | 
+| **FR-2.5.1** | Manifest Creation | Sec 4.1 (Schema), Sec 7.1 (Import Algorithm) | 
+| **FR-2.5.10** | Import Validation | Sec 4.1 (Schema), Sec 7.1 (Import) | 
+| **FR-2.5.11** | Import Completion | Sec 4.1 (Schema), Sec 7.1 (Import) | 
+| **FR-2.5.2** | Mandatory Metadata | Sec 4.1 (Schema), Sec 7.1 (Import) | 
+| **FR-2.5.3** | Manifest Update | Sec 4.1 (Schema), Sec 7.1 (Import) | 
+| **FR-2.5.4** | Registry Storage | Sec 4.1 (Schema), Sec 7.1 (Import) | 
+| **FR-2.5.5** | Cartridge Deletion | Sec 4.1 (Schema), Sec 12.1 (Deletion Process) | 
+| **FR-2.5.6** | Import Mechanisms | Sec 4.1 (Schema), Sec 7.1 (Import) | 
+| **FR-2.5.7** | Import Storage Location | Sec 4.1 (Schema), Sec 7.1 (Import) | 
+| **FR-2.5.8** | Import Progress Indication | Sec 4.1 (Schema), Sec 7.1 (Import) | 
+| **FR-2.5.9** | Duplicate Detection | Sec 4.1 (Schema), Sec 7.1 (Import) | 
+| **FR-2.6.1** | Author-Defined Settings | See DDD | 
+| **FR-2.6.2** | User Preference Override | See DDD | 
+| **FR-2.6.3** | Settings Reset | See DDD | 
+| **FR-2.6.4** | Settings Persistence | See DDD | 
+| **FR-2.6.5** | Settings Application | See DDD | 
+| **FR-2.7.1** | HTML Form Rendering | Sec 6.2 (Form Rendering) | 
+| **FR-2.7.10** | Multiple Form Instances | Sec 6.1 (Form Embedding) | 
+| **FR-2.7.11** | Form Field Undo/Redo | Sec 6.4 (Form Field Undo/Redo) | 
+| **FR-2.7.2** | Form Embedding in Content | Sec 6.1 (Form Embedding) | 
+| **FR-2.7.3** | Form Validation | Sec 6.3 (Form Validation) | 
+| **FR-2.7.4** | Form Data Persistence to Cartridge | Sec 6.4 (Form Data Persistence) | 
+| **FR-2.7.5** | Form Data Persistence to Sandbox | Sec 6.4 (Form Data Persistence) | 
+| **FR-2.7.5a** | Sandbox File Picker | Sec 6 (Form Rendering) | 
+| **FR-2.7.6** | Form Data Loading | Sec 6.4 (Form Data Loading) | 
+| **FR-2.7.7** | Form Printing | Sec 6.5 (Form Printing) | 
+| **FR-2.7.8** | Form Auto-Save | Sec 6.4 (Form Auto-Save) | 
+| **FR-2.7.9** | Form Reset | Sec 6.4 (Form Reset) | 
+| **FR-2.8.1** | Forward/Backward Navigation | Sec 7.3 (Forward/Backward Navigation) | 
+| **FR-2.8.2** | Table of Contents Generation | Sec 7.4 (TOC Generation) | 
+| **FR-2.8.3** | Table of Contents Display | Sec 7.4 (TOC Display) | 
+| **FR-2.8.4** | Internal Link Navigation | Sec 7.5 (Link Processing) | 
+| **FR-2.8.5** | Bookmarking | Sec 7.6 (Bookmarking) | 
+| **FR-2.8.6** | Last Reading Position Persistence | Sec 7.7 (Reading Position) | 
+| **FR-2.8.7** | Navigation History | Sec 7.8 (Navigation History) | 
+| **FR-2.8.8** | Page Numbering - Deferred | Sec 7 (Navigation) | 
+| **FR-2.9.1** | Document Search Modal | Sec 7.5 (Document Search) | 
+| **FR-2.9.2** | Normal Search | Sec 7.5 (Normal Search) | 
+| **FR-2.9.3** | Boolean Search | Sec 7.5 (Boolean Search) | 
+| **FR-2.9.4** | Fuzzy Search | Sec 7.5 (Fuzzy Search) | 
+| **FR-2.9.5** | Regex Search | Sec 7.5 (Regex Search) | 
+| **FR-2.9.6** | Search Results Display | Sec 7.5 (Search Results) | 
+| **FR-2.9.7** | Search Scope | Sec 7.5 (Search Scope) | 
+| **FR-2.9.8** | Search Performance | Sec 7.5 (Search Performance) | 
+| **FR-CT-3.1** | HTML Content Authoring | Sec 13 (Creator Tool) | 
+| **FR-CT-3.10** | CSS Stylesheet Attachment | Sec 13 (Creator Tool) | 
+| **FR-CT-3.11** | Stylesheet Editing | Sec 13 (Creator Tool) | 
+| **FR-CT-3.12a** | Settings Definition | Sec 13 (Creator Tool) | 
+| **FR-CT-3.12b** | Settings Editor | Sec 13 (Creator Tool) | 
+| **FR-CT-3.12c** | Settings Validation | Sec 13 (Creator Tool) | 
+| **FR-CT-3.12d** | Settings Preview | Sec 13 (Creator Tool) | 
+| **FR-CT-3.13** | Custom JavaScript Storage | Sec 13 (Creator Tool) | 
+| **FR-CT-3.14** | Embedded Application Definition | Sec 13 (Creator Tool) | 
+| **FR-CT-3.15** | JavaScript Management | Sec 13 (Creator Tool) | 
+| **FR-CT-3.16** | Form Creation | Sec 13 (Creator Tool) | 
+| **FR-CT-3.17** | Form Builder Interface | Sec 13 (Creator Tool) | 
+| **FR-CT-3.18** | Form Schema Validation | Sec 13 (Creator Tool) | 
+| **FR-CT-3.19** | Form Integration | Sec 13 (Creator Tool) | 
+| **FR-CT-3.2** | Rich Text Editing | Sec 13 (Creator Tool) | 
+| **FR-CT-3.20** | Document Metadata | Sec 13 (Creator Tool) | 
+| **FR-CT-3.21** | Cover Image Management | Sec 13 (Creator Tool) | 
+| **FR-CT-3.22** | GUID Generation | Sec 13 (Creator Tool) | 
+| **FR-CT-3.23** | Schema Version Management | Sec 13 (Creator Tool) | 
+| **FR-CT-3.24** | Asset Management | Sec 13 (Creator Tool) | 
+| **FR-CT-3.25** | Resource Storage | Sec 13 (Creator Tool) | 
+| **FR-CT-3.26** | Content Search | Sec 13 (Creator Tool) | 
+| **FR-CT-3.27** | New Cartridge Creation | Sec 13 (Creator Tool) | 
+| **FR-CT-3.28** | Cartridge Opening | Sec 13 (Creator Tool) | 
+| **FR-CT-3.29** | Cartridge Saving | Sec 13 (Creator Tool) | 
+| **FR-CT-3.3** | Direct HTML Editing | Sec 13 (Creator Tool) | 
+| **FR-CT-3.30** | Content Validation | Sec 13 (Creator Tool) | 
+| **FR-CT-3.31** | Hash Calculation | Sec 13 (Creator Tool) | 
+| **FR-CT-3.32** | Cartridge Signing | Sec 13 (Creator Tool) | 
+| **FR-CT-3.33** | Certificate Management | Sec 13 (Creator Tool) | 
+| **FR-CT-3.34** | Export Process | Sec 13 (Creator Tool) | 
+| **FR-CT-3.35** | Export Validation | Sec 13 (Creator Tool) | 
+| **FR-CT-3.37** | Auto-Save Functionality | Sec 13 (Creator Tool) | 
+| **FR-CT-3.38** | Auto-Save Configuration | Sec 13 (Creator Tool) | 
+| **FR-CT-3.39** | Auto-Save Indication | Sec 13 (Creator Tool) | 
+| **FR-CT-3.4** | Standard Edit Operations | Sec 13 (Creator Tool) | 
+| **FR-CT-3.40** | Recovery on Startup | Sec 13 (Creator Tool) | 
+| **FR-CT-3.41** | Draft Mode | Sec 13 (Creator Tool) | 
+| **FR-CT-3.42** | Publishing State | Sec 13 (Creator Tool) | 
+| **FR-CT-3.43** | State Management | Sec 13 (Creator Tool) | 
+| **FR-CT-3.44** | Publish Workflow | Sec 13 (Creator Tool) | 
+| **FR-CT-3.45** | Template Creation | Sec 13 (Creator Tool) | 
+| **FR-CT-3.46** | Template Library | Sec 13 (Creator Tool) | 
+| **FR-CT-3.47** | Template Application | Sec 13 (Creator Tool) | 
+| **FR-CT-3.48** | Template Management | Sec 13 (Creator Tool) | 
+| **FR-CT-3.49** | Markdown Import | Sec 13 (Creator Tool) | 
+| **FR-CT-3.5** | Preview Functionality | Sec 13 (Creator Tool) | 
+| **FR-CT-3.50** | DOCX Import | Sec 13 (Creator Tool) | 
+| **FR-CT-3.51** | HTML Import | Sec 13 (Creator Tool) | 
+| **FR-CT-3.52** | Import Validation | Sec 13 (Creator Tool) | 
+| **FR-CT-3.53** | Import Options | Sec 13 (Creator Tool) | 
+| **FR-CT-3.54** | Version Tracking | Sec 13 (Creator Tool) | 
+| **FR-CT-3.55** | Version Snapshots | Sec 13 (Creator Tool) | 
+| **FR-CT-3.56** | Version Comparison | Sec 13 (Creator Tool) | 
+| **FR-CT-3.57** | Version Restoration | Sec 13 (Creator Tool) | 
+| **FR-CT-3.58** | Version Metadata | Sec 13 (Creator Tool) | 
+| **FR-CT-3.59** | Corruption Detection | Sec 13 (Creator Tool) | 
+| **FR-CT-3.6** | Page Selection | Sec 13 (Creator Tool) | 
+| **FR-CT-3.60** | Incomplete Save Recovery | Sec 13 (Creator Tool) | 
+| **FR-CT-3.61** | Backup Creation | Sec 13 (Creator Tool) | 
+| **FR-CT-3.62** | Data Validation | Sec 13 (Creator Tool) | 
+| **FR-CT-3.63** | Transaction Safety | Sec 13 (Creator Tool) | 
+| **FR-CT-3.64** | Keyboard Navigation | Sec 13 (Creator Tool) | 
+| **FR-CT-3.65** | Screen Reader Support | Sec 13 (Creator Tool) | 
+| **FR-CT-3.66** | High Contrast Mode | Sec 13 (Creator Tool) | 
+| **FR-CT-3.67** | Font Scaling | Sec 13 (Creator Tool) | 
+| **FR-CT-3.68** | Accessibility Standards | Sec 13 (Creator Tool) | 
+| **FR-CT-3.69** | Keyboard Shortcuts Documentation | Sec 13 (Creator Tool) | 
+| **FR-CT-3.7** | Page CRUD Operations | Sec 13 (Creator Tool) | 
+| **FR-CT-3.70** | UI Localization | Sec 13 (Creator Tool) | 
+| **FR-CT-3.71** | Language Selection | Sec 13 (Creator Tool) | 
+| **FR-CT-3.72** | Content Language Support | Sec 13 (Creator Tool) | 
+| **FR-CT-3.73** | Language Pack Management | Sec 13 (Creator Tool) | 
+| **FR-CT-3.74** | Metadata Localization | Sec 13 (Creator Tool) | 
+| **FR-CT-3.75** | Built-in UI Themes | Sec 13 (Creator Tool) | 
+| **FR-CT-3.76** | UI Theme Selection | Sec 13 (Creator Tool) | 
+| **FR-CT-3.77** | Custom UI Theme Creation | Sec 13 (Creator Tool) | 
+| **FR-CT-3.78** | Custom UI Theme Management | Sec 13 (Creator Tool) | 
+| **FR-CT-3.79** | UI Theme Application | Sec 13 (Creator Tool) | 
+| **FR-CT-3.8** | Page Ordering | Sec 13 (Creator Tool) | 
+| **FR-CT-3.80** | UI Theme Preview | Sec 13 (Creator Tool) | 
+| **FR-CT-3.81** | UI Theme Export/Import | Sec 13 (Creator Tool) | 
+| **FR-CT-3.82** | Content Theme Manager Dialog | Sec 13 (Creator Tool) | 
+| **FR-CT-3.83** | Content Theme List | Sec 13 (Creator Tool) | 
+| **FR-CT-3.84** | Content Theme Actions | Sec 13 (Creator Tool) | 
+| **FR-CT-3.85** | Persist on Add | Sec 13 (Creator Tool) | 
+| **FR-CT-3.86** | Content Theme Configuration | Sec 13 (Creator Tool) | 
+| **FR-CT-3.87** | Content Theme Live Preview | Sec 13 (Creator Tool) | 
+| **FR-CT-3.88** | Content Theme Actions | Sec 13 (Creator Tool) | 
+| **FR-CT-3.89** | Content Theme Storage | Sec 13 (Creator Tool) | 
+| **FR-CT-3.9** | Chapter Organization | Sec 13 (Creator Tool) | 
+| **FR-CT-3.90** | Content Theme Application | Sec 13 (Creator Tool) | 
+| **FR-NAV-9.1** | Custom Navigation Bar Support | Sec 7.1 (Navigation Structure) | 
+| **FR-NAV-9.10** | Creator Tool Navigation Support | Sec 7.1 (Navigation Structure) | 
+| **FR-NAV-9.2** | Navigation Bar Definition | Sec 7.1 (Navigation Structure) | 
+| **FR-NAV-9.3** | Browse Navigation | Sec 7.1 (Navigation Structure) | 
+| **FR-NAV-9.4** | Department Navigation | Sec 7.1 (Navigation Structure) | 
+| **FR-NAV-9.5** | Bibliography Navigation | Sec 7.1 (Navigation Structure) | 
+| **FR-NAV-9.6** | Navigation Bar Rendering | Sec 7.1 (Navigation Structure) | 
+| **FR-NAV-9.7** | Navigation Bar Visibility | Sec 7.1 (Navigation Structure) | 
+| **FR-NAV-9.8** | Navigation Target Resolution | Sec 7.1 (Navigation Structure) | 
+| **FR-NAV-9.9** | Navigation Structure Storage | Sec 7.1 (Navigation Structure) | 
+| **FR-SERIES-10.1** | Series Name Metadata | Sec 14 (Series and Edition Grouping) | 
+| **FR-SERIES-10.10** | Grouping Display | Sec 14 (Series and Edition Grouping) | 
+| **FR-SERIES-10.11** | Grouping Persistence | Sec 14 (Series and Edition Grouping) | 
+| **FR-SERIES-10.12** | Grouping Performance | Sec 14 (Series and Edition Grouping) | 
+| **FR-SERIES-10.2** | Edition Name Metadata | Sec 14 (Series and Edition Grouping) | 
+| **FR-SERIES-10.3** | Series Order Metadata | Sec 14 (Series and Edition Grouping) | 
+| **FR-SERIES-10.4** | Creator Tool Series Support | Sec 14 (Series and Edition Grouping) | 
+| **FR-SERIES-10.5** | Auto-Grouping by Series | Sec 14 (Series and Edition Grouping) | 
+| **FR-SERIES-10.6** | Auto-Grouping by Edition | Sec 14 (Series and Edition Grouping) | 
+| **FR-SERIES-10.7** | Series Display Ordering | Sec 14 (Series and Edition Grouping) | 
+| **FR-SERIES-10.8** | Custom Collections | Sec 14 (Series and Edition Grouping) | 
+| **FR-SERIES-10.9** | Collection Management | Sec 14 (Series and Edition Grouping) | 
+| **FR-WE-5.1** | WebEngine Profile Configuration | Sec 5 (Qt WebEngine Configuration) | 
+| **FR-WE-5.10** | Error Handling Configuration | Sec 5 (Qt WebEngine Configuration) | 
+| **FR-WE-5.2** | JavaScript Engine Version | Sec 5 (Qt WebEngine Configuration) | 
+| **FR-WE-5.3** | HTML/CSS Standards Compliance | Sec 5 (Qt WebEngine Configuration) | 
+| **FR-WE-5.4** | Security Settings | Sec 5 (Qt WebEngine Configuration) | 
+| **FR-WE-5.5** | Performance Settings | Sec 5 (Qt WebEngine Configuration) | 
+| **FR-WE-5.6** | Profile Isolation | Sec 5 (Qt WebEngine Configuration) | 
+| **FR-WE-5.7** | Network Interceptor Configuration | Sec 5 (Qt WebEngine Configuration) | 
+| **FR-WE-5.8** | CSP Header Configuration | Sec 5 (Qt WebEngine Configuration) | 
+| **FR-WE-5.9** | WebChannel Configuration | Sec 5 (Qt WebEngine Configuration) | 
+|===
