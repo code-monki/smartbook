@@ -368,12 +368,12 @@ These tables exist in a separate, local SQLite database maintained by the Reader
 |===
 ^.^| Column Name ^.^| SQLite Type ^.^| Constraints ^.^| Description
 
-|| `group_id` | INTEGER | PRIMARY KEY | Unique ID for the group.
-|| `group_name` | TEXT | NOT NULL | User-defined name for the group/collection.
-|| `group_type` | TEXT | NOT NULL | Type of group: `custom_collection` (user-defined), `series` (auto-grouped by series_name), `edition` (auto-grouped by edition_name).
-|| `created_timestamp` | INTEGER | NOT NULL | UNIX timestamp when the group was created.
-|| `last_modified_timestamp` | INTEGER | NOT NULL | UNIX timestamp when the group was last modified.
-|| `description` | TEXT | | Optional user-provided description of the group.
+| `group_id` | INTEGER | PRIMARY KEY | Unique ID for the group.
+| `group_name` | TEXT | NOT NULL | User-defined name for the group/collection.
+| `group_type` | TEXT | NOT NULL | Type of group: `custom_collection` (user-defined), `series` (auto-grouped by series_name), `edition` (auto-grouped by edition_name).
+| `created_timestamp` | INTEGER | NOT NULL | UNIX timestamp when the group was created.
+| `last_modified_timestamp` | INTEGER | NOT NULL | UNIX timestamp when the group was last modified.
+| `description` | TEXT | | Optional user-provided description of the group.
 |===
 
 **Purpose:** Stores user-defined custom collections and metadata for auto-grouped series/editions. Custom collections allow users to organize cartridges independently of author-defined series/edition metadata.
@@ -389,11 +389,11 @@ These tables exist in a separate, local SQLite database maintained by the Reader
 |===
 ^.^| Column Name ^.^| SQLite Type ^.^| Constraints ^.^| Description
 
-|| `membership_id` | INTEGER | PRIMARY KEY | Unique ID for the membership record.
-|| `group_id` | INTEGER | NOT NULL | Foreign key to `Local_Cartridge_Groups.group_id`.
-|| `cartridge_guid` | TEXT | NOT NULL | Foreign key to `Local_Library_Manifest.cartridge_guid`.
-|| `added_timestamp` | INTEGER | NOT NULL | UNIX timestamp when the cartridge was added to the group.
-|| `display_order` | INTEGER | | Optional display order within the group (for custom collections). NULL for auto-grouped series/editions (uses series_order from metadata).
+| `membership_id` | INTEGER | PRIMARY KEY | Unique ID for the membership record.
+| `group_id` | INTEGER | NOT NULL | Foreign key to `Local_Cartridge_Groups.group_id`.
+| `cartridge_guid` | TEXT | NOT NULL | Foreign key to `Local_Library_Manifest.cartridge_guid`.
+| `added_timestamp` | INTEGER | NOT NULL | UNIX timestamp when the cartridge was added to the group.
+| `display_order` | INTEGER | | Optional display order within the group (for custom collections). NULL for auto-grouped series/editions (uses series_order from metadata).
 |===
 
 **Purpose:** Junction table linking cartridges to groups (custom collections, series, or editions). For custom collections, users can manually add/remove cartridges. For series/editions, memberships are automatically maintained based on metadata.
