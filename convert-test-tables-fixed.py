@@ -114,22 +114,25 @@ def convert_test_case_table(content):
                 result.append(f'| Test Case ID | {tc["id"]}')
                 result.append(f'| Requirement Covered | {tc["requirement"]}')
                 
-                # Test Steps - put a| on same line as first step
+                # Test Steps - a| must be on same line as first content
                 result.append('| Test Steps |')
                 if tc['steps']:
                     steps_lines = [s for s in tc['steps'].split('\n') if s.strip()]
                     if steps_lines:
-                        # First line: a| followed by first step
+                        # First line: a| followed immediately by first step (no space after |)
                         result.append(f'a|{steps_lines[0]}')
-                        # Remaining steps on separate lines (indented)
+                        # Remaining steps continue in same cell
                         for step in steps_lines[1:]:
                             result.append(step)
+                    else:
+                        result.append('a|')
                 else:
                     result.append('a|')
                 
-                # Expected Result - put a| on same line as content
+                # Expected Result - a| must be on same line as content
                 result.append('| Expected Result (Acceptance Criteria) |')
                 if tc['expected']:
+                    # Put a| and content on same line
                     result.append(f'a|{tc["expected"]}')
                 else:
                     result.append('a|')
