@@ -88,14 +88,16 @@ clean:
 	@cd test && $(MAKE) clean 2>/dev/null || true
 	@echo "Clean complete."
 
-docs: docs-html docs-pdf
+docs: docs-html
 	@echo ""
-	@echo "Documentation generated in $(DOCS_DIR)/"
-	@echo "  - HTML files: Perfect rendering, view in browser, print to PDF if needed"
-	@echo "  - PDF files: For distribution (may have list rendering limitations)"
+	@echo "Documentation generated in $(DOCS_DIR)/html/"
 	@echo ""
-	@echo "Note: HTML is recommended for best formatting quality."
-	@echo "      Open HTML files in browser and use 'Print to PDF' for perfect results."
+	@echo "HTML is the primary format - it renders everything correctly."
+	@echo "To create PDFs: Open HTML files in browser and use Print → Save as PDF"
+	@echo ""
+	@echo "Alternative PDF generation (may have limitations):"
+	@echo "  make docs-pdf     # Asciidoctor PDF (lists in tables may not render perfectly)"
+	@echo "  make docs-mmd-pdf # MultiMarkdown → PDF (some files may fail conversion)"
 
 docs-mmd: docs-mmd-source docs-mmd-pdf
 
