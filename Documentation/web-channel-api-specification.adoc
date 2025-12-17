@@ -203,7 +203,7 @@ These methods are available **only to embedded applications** (not regular conte
 ^.^| Parameter ^.^| Type ^.^| Description
 
 | `filename` | String | The filename to load (must exist in sandbox).
-| `callback` | Function | JS function to execute with file content (`callback(data: string|BLOB, success: bool, errorCode?: string)`).
+| `callback` | Function | JS function to execute with file content (`callback(data: string{vbar}BLOB, success: bool, errorCode?: string)`).
 |===
 
 **Callback Error Codes:**
@@ -293,7 +293,7 @@ These methods are available **only to embedded applications** (not regular conte
 
 | `mode` | String | File picker mode: `"open"` (select existing file) or `"save"` (select/enter filename for saving).
 | `filter` | String | Optional file filter (e.g., `"JSON Files (*.json)"`). If not provided, shows all files.
-| `callback` | Function | JS function to execute with result (`callback(filename: string|null, success: bool, errorCode?: string)`).
+| `callback` | Function | JS function to execute with result (`callback(filename: string{vbar}null, success: bool, errorCode?: string)`).
 |===
 
 **Callback Parameters:**
