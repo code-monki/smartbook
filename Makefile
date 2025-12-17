@@ -93,6 +93,23 @@ docs: docs-docx docs-pdf
 	@echo "Documentation generated in $(DOCS_DIR)/"
 	@echo "  - DOCX files: Better list/table rendering, editable in Word/LibreOffice"
 	@echo "  - PDF files: For distribution (may have list rendering limitations)"
+	@echo ""
+	@echo "To generate LaTeX source files, run: make docs-latex"
+
+docs-latex:
+	@echo "Generating documentation as LaTeX source files..."
+	@mkdir -p $(DOCS_DIR)/latex
+	@which pandoc > /dev/null 2>&1 || (echo "Error: pandoc not found. Install with: brew install pandoc" && exit 1)
+	@for doc in Documentation/*.adoc; do \
+		if [ -f "$$doc" ]; then \
+			doc_name=$$(basename "$$doc" .adoc); \
+			echo "  Converting $$doc_name.adoc to LaTeX..."; \
+			pandoc --from=asciidoc --to=latex "$$doc" -o "$(DOCS_DIR)/latex/$$doc_name.tex" 2>/dev/null || echo "Warning: Failed to convert $$doc"; \
+		fi \
+	done
+	@echo "LaTeX files generated in $(DOCS_DIR)/latex/"
+	@echo "To compile LaTeX to PDF, install a LaTeX distribution (e.g., MacTeX) and run:"
+	@echo "  cd $(DOCS_DIR)/latex && pdflatex <filename>.tex"
 
 docs-docx:
 	@echo "Generating documentation as DOCX (Word format)..."
