@@ -53,12 +53,19 @@ def convert_test_case_table(content):
                 
                 # New test case: | **T-XXX** | requirement | a|
                 if stripped.startswith('|') and '**T-' in stripped:
-                    # Parse first row
-                    parts = stripped[1:].rstrip('|').split('|')
-                    parts = [p.strip() for p in parts if p.strip()]
+                    # Parse first row: | **T-XXX** | requirement | a|
+                    # Remove leading | and trailing |
+                    cell_content = stripped[1:].strip()
+                    if cell_content.endswith('|'):
+                        cell_content = cell_content[:-1].strip()
+                    
+                    # Split by | - should give us: [test_id, requirement, 'a']
+                    parts = [p.strip() for p in cell_content.split('|') if p.strip()]
                     
                     test_id = parts[0] if len(parts) > 0 else ''
-                    requirement = parts[1].rstrip(' a').strip() if len(parts) > 1 else ''
+                    # Requirement might have trailing 'a' from format specifier
+                    requirement_raw = parts[1] if len(parts) > 1 else ''
+                    requirement = requirement_raw.rstrip(' a').strip()
                     
                     # Collect steps
                     i += 1
