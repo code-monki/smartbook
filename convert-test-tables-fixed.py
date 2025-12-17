@@ -116,12 +116,14 @@ def convert_test_case_table(content):
                 
                 # Test Steps - a| must be on same line as first content
                 result.append('| Test Steps |')
-                if tc['steps']:
+                if tc['steps'] and tc['steps'].strip():
                     steps_lines = [s for s in tc['steps'].split('\n') if s.strip()]
                     if steps_lines:
-                        # First line: a| followed immediately by first step (no space after |)
-                        result.append(f'a|{steps_lines[0]}')
-                        # Remaining steps continue in same cell
+                        # First line: a| followed immediately by first step
+                        # Remove any leading whitespace from first step
+                        first_step = steps_lines[0].lstrip()
+                        result.append(f'a|{first_step}')
+                        # Remaining steps continue in same cell (no leading |)
                         for step in steps_lines[1:]:
                             result.append(step)
                     else:
