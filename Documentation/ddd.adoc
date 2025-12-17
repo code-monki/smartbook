@@ -2407,19 +2407,20 @@ This section details how certificates are validated in the Reader application.
 
 **Step 1: Determine Certificate Type**
 . Extract certificate from `certificate_data`
-. Use `QSslCertificate::verify()` to check if certificate is signed by a trusted CA
-. If `verify()` returns `QSslCertificate::Valid` → Certificate is CA-signed
-. If `verify()` returns `QSslCertificate::SelfSigned` → Certificate is self-signed
-. If `verify()` returns `QSslCertificate::Invalid` → Certificate validation failed
+. Use `QSslCertificate::verify()` to check if certificate is signed by a trusted CA:
+  * If `verify()` returns `QSslCertificate::Valid` → Certificate is CA-signed
+  * If `verify()` returns `QSslCertificate::SelfSigned` → Certificate is self-signed
+  * If `verify()` returns `QSslCertificate::Invalid` → Certificate validation failed
 
 **Step 2: Check Certificate Expiration**
 . Get certificate validity dates:
    * `QSslCertificate::effectiveDate()` - Certificate becomes valid
    * `QSslCertificate::expiryDate()` - Certificate expires
 . Get current system date/time
-. If current date < `effectiveDate` → Certificate not yet valid → Certificate Status = `INVALID`
-. If current date > `expiryDate` → Certificate expired → Certificate Status = `CA_EXPIRED` (if CA-signed) or `INVALID` (if self-signed)
-. If current date is within validity period → Certificate is valid
+. Compare dates and determine status:
+  * If current date < `effectiveDate` → Certificate not yet valid → Certificate Status = `INVALID`
+  * If current date > `expiryDate` → Certificate expired → Certificate Status = `CA_EXPIRED` (if CA-signed) or `INVALID` (if self-signed)
+  * If current date is within validity period → Certificate is valid
 
 **Step 3: Determine Final Certificate Status**
 * **CA-signed AND valid AND not expired:** Certificate Status = `CA_VALID`
