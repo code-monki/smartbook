@@ -75,21 +75,29 @@ def update_rtm_with_test_cases():
     # Update lines with test case IDs
     updated_lines = []
     for line in lines:
-        # Check if this is a requirement row
-        match = re.match(r'^\| \*\*([A-Z0-9\./-]+)\*\* \| (.+?) \| (.+?) \| (.+?)$', line.strip())
-        if match:
-            req_id = match.group(1)
-            req_summary = match.group(2)
-            ddd_section = match.group(3)
-            existing_tests = match.group(4).strip()
-            
-            # Get test cases for this requirement
-            test_ids = sorted(req_to_tests.get(req_id, []))
-            test_ids_str = ', '.join(test_ids) if test_ids else ''
-            
-            # Update the line
-            updated_line = f'| **{req_id}** | {req_summary} | {ddd_section} | {test_ids_str}\n'
-            updated_lines.append(updated_line)
+        # Check if this is a requirement row - format: | **FR-X.Y.Z** | Summary | DDD Section | Tests |
+        if line.strip().startswith('| **') and '|' in line:
+            parts = line.split('|')
+            if len(parts) >= 4:
+                # Extract requirement ID (remove ** markers)
+                req_id_part = parts[1].strip()
+                req_id_match = re.search(r'\*\*([A-Z0-9\./-]+)\*\*', req_id_part)
+                if req_id_match:
+                    req_id = req_id_match.group(1)
+                    req_summary = parts[2].strip()
+                    ddd_section = parts[3].strip()
+                    
+                    # Get test cases for this requirement
+                    test_ids = sorted(req_to_tests.get(req_id, []))
+                    test_ids_str = ', '.join(test_ids) if test_ids else ''
+                    
+                    # Update the line
+                    updated_line = f'| **{req_id}** | {req_summary} | {ddd_section} | {test_ids_str}\n'
+                    updated_lines.append(updated_line)
+                else:
+                    updated_lines.append(line)
+            else:
+                updated_lines.append(line)
         else:
             updated_lines.append(line)
     
