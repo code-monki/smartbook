@@ -1,0 +1,135 @@
+extends: default
+base:
+  font_color: #333333
+  font_family: Noto Serif
+  font_size: 11
+  line_height: 1.4
+  margin: [0.75in, 0.75in, 0.75in, 0.75in]
+  page_size: Letter
+  page_layout: portrait
+  text_align: left
+  vertical_align: top
+page:
+  margin: [0.75in, 0.75in, 0.75in, 0.75in]
+  size: Letter
+  layout: portrait
+  background_color: #FFFFFF
+base_font:
+  color: #333333
+  family: Noto Serif
+  size: 11
+  style: normal
+  line_height: 1.4
+  letter_spacing: 0
+  text_align: left
+  text_transform: none
+  text_decoration: none
+  text_decoration_color: #333333
+  text_decoration_style: solid
+  text_decoration_width: auto
+  word_spacing: normal
+heading:
+  font_family: Noto Serif
+  font_size: 11
+  font_style: normal
+  font_color: #333333
+  line_height: 1.4
+  margin_top: 0.5em
+  margin_bottom: 0.25em
+  text_align: left
+  text_transform: none
+  text_decoration: none
+  word_spacing: normal
+  letter_spacing: 0
+list:
+  font_family: Noto Serif
+  font_size: 11
+  font_color: #333333
+  line_height: 1.4
+  margin_top: 0.25em
+  margin_bottom: 0.25em
+  indent: 1.5em
+  text_align: left
+  word_spacing: normal
+  letter_spacing: 0
+list_item:
+  font_family: Noto Serif
+  font_size: 11
+  font_color: #333333
+  line_height: 1.4
+  margin_top: 0.125em
+  margin_bottom: 0.125em
+  text_align: left
+  word_spacing: normal
+  letter_spacing: 0
+paragraph:
+  font_family: Noto Serif
+  font_size: 11
+  font_color: #333333
+  line_height: 1.4
+  margin_top: 0.5em
+  margin_bottom: 0.5em
+  text_align: left
+  word_spacing: normal
+  letter_spacing: 0
+  text_indent: 0
+  text_transform: none
+  text_decoration: none
+literal:
+  font_family: Courier
+  font_size: 10
+  font_color: #333333
+  background_color: #F5F5F5
+  line_height: 1.4
+  margin_top: 0.25em
+  margin_bottom: 0.25em
+  padding: [0.25em, 0.5em]
+  text_align: left
+  word_spacing: normal
+  letter_spacing: 0
+code:
+  font_family: Courier
+  font_size: 10
+  font_color: #D32F2F
+  background_color: #F5F5F5
+  line_height: 1.4
+  text_align: left
+  word_spacing: normal
+  letter_spacing: 0
+table:
+  font_family: Noto Serif
+  font_size: 10
+  font_color: #333333
+  line_height: 1.3
+  margin_top: 0.5em
+  margin_bottom: 0.5em
+  border_width: 0.5
+  border_color: #CCCCCC
+  text_align: left
+  word_spacing: normal
+  letter_spacing: 0
+table_cell:
+  font_family: Noto Serif
+  font_size: 10
+  font_color: #333333
+  line_height: 1.3
+  padding: [0.25em, 0.5em]
+  text_align: left
+  word_spacing: normal
+  letter_spacing: 0
+footer:
+  font_family: Noto Serif
+  font_size: 9
+  font_color: #666666
+  line_height: 1.2
+  text_align: center
+  word_spacing: normal
+  letter_spacing: 0
+header:
+  font_family: Noto Serif
+  font_size: 9
+  font_color: #666666
+  line_height: 1.2
+  text_align: center
+  word_spacing: normal
+  letter_spacing: 0
