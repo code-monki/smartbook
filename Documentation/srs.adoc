@@ -936,8 +936,8 @@ Both applications are documented in a single SRS document as they are tightly co
 
 * **FR-HELP-8.13 (Help Content Updates):** The help system SHALL support content updates:
   a. Help content MAY be updated independently of application updates
-  a. Help content version SHALL be displayed in help viewer or About dialog
-  b. Users SHALL be notified if help content is outdated compared to application version
+  b. Help content version SHALL be displayed in help viewer or About dialog
+  c. Users SHALL be notified if help content is outdated compared to application version
 
 === Platform-Specific Help Integration
 
