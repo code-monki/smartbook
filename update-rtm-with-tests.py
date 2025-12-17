@@ -29,40 +29,31 @@ def extract_test_cases_from_test_plan():
                     # Get requirement - look for "**Requirement Covered**" in next line
                     if i+1 < len(lines):
                         req_line = lines[i+1]
-                        if '|' in req_line and 'Requirement Covered' in lines[i] or (i+1 < len(lines) and 'Requirement Covered' in lines[i+1]):
-                            # Check if next line has Requirement Covered
-                            if i+1 < len(lines) and '**Requirement Covered**' in lines[i+1]:
-                                req_line = lines[i+1]
-                            elif i+2 < len(lines) and '**Requirement Covered**' in lines[i+2]:
-                                req_line = lines[i+2]
-                            else:
-                                continue
-                                
-                            if '|' in req_line:
-                                req_parts = req_line.split('|')
-                                if len(req_parts) >= 2:
-                                    req_text = req_parts[1].strip()
-                                    # Extract requirement IDs from text
-                                    req_matches = re.findall(r'((?:FR|NFR|FR-CT|FR-WE|FR-NAV|FR-SERIES|DDD)-[\d\.]+(?:/[0-9\.]+)?)', req_text)
-                                    for req_match in req_matches:
-                                        req_id = req_match
-                                        # Handle combined requirements like FR-2.3.2/2.3.3
-                                        if '/' in req_id:
-                                            # Split into individual requirements
-                                            base = req_id.split('/')[0]
-                                            second = req_id.split('/')[1]
-                                            # Reconstruct second requirement ID
-                                            base_parts = base.split('-')
-                                            if len(base_parts) >= 2:
-                                                req_type = base_parts[0]
-                                                req_id2 = f"{req_type}-{second}"
-                                                if test_id not in req_to_tests[base]:
-                                                    req_to_tests[base].append(test_id)
-                                                if test_id not in req_to_tests[req_id2]:
-                                                    req_to_tests[req_id2].append(test_id)
-                                        else:
-                                            if test_id not in req_to_tests[req_id]:
-                                                req_to_tests[req_id].append(test_id)
+                        if '**Requirement Covered**' in req_line and '|' in req_line:
+                            req_parts = req_line.split('|')
+                            if len(req_parts) >= 2:
+                                req_text = req_parts[1].strip()
+                                # Extract requirement IDs from text
+                                req_matches = re.findall(r'((?:FR|NFR|FR-CT|FR-WE|FR-NAV|FR-SERIES|DDD)-[\d\.]+(?:/[0-9\.]+)?)', req_text)
+                                for req_match in req_matches:
+                                    req_id = req_match
+                                    # Handle combined requirements like FR-2.3.2/2.3.3
+                                    if '/' in req_id:
+                                        # Split into individual requirements
+                                        base = req_id.split('/')[0]
+                                        second = req_id.split('/')[1]
+                                        # Reconstruct second requirement ID
+                                        base_parts = base.split('-')
+                                        if len(base_parts) >= 2:
+                                            req_type = base_parts[0]
+                                            req_id2 = f"{req_type}-{second}"
+                                            if test_id not in req_to_tests[base]:
+                                                req_to_tests[base].append(test_id)
+                                            if test_id not in req_to_tests[req_id2]:
+                                                req_to_tests[req_id2].append(test_id)
+                                    else:
+                                        if test_id not in req_to_tests[req_id]:
+                                            req_to_tests[req_id].append(test_id)
             i += 1
     
     return req_to_tests
