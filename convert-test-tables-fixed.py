@@ -114,30 +114,28 @@ def convert_test_case_table(content):
                 result.append(f'| **Test Case ID** | {tc["id"]}')
                 result.append(f'| **Requirement Covered** | {tc["requirement"]}')
                 
-                # Test Steps - a| must be on same line as first content
-                result.append('| **Test Steps** |')
+                # Test Steps - a| must be on same line as label, in right cell
                 if tc['steps'] and tc['steps'].strip():
                     steps_lines = [s for s in tc['steps'].split('\n') if s.strip()]
                     if steps_lines:
-                        # First line: a| followed immediately by first step
-                        # Remove any leading whitespace from first step
+                        # Label and a| on same line, first step on next line
                         first_step = steps_lines[0].lstrip()
-                        result.append(f'a|{first_step}')
-                        # Remaining steps continue in same cell (no leading |)
+                        result.append(f'| **Test Steps** | a|')
+                        result.append(first_step)
+                        # Remaining steps continue in same cell
                         for step in steps_lines[1:]:
                             result.append(step)
                     else:
-                        result.append('a|')
+                        result.append('| **Test Steps** | a|')
                 else:
-                    result.append('a|')
+                    result.append('| **Test Steps** | a|')
                 
-                # Expected Result - a| must be on same line as content
-                result.append('| **Expected Result (Acceptance Criteria)** |')
+                # Expected Result - a| must be on same line as label, in right cell
                 if tc['expected']:
-                    # Put a| and content on same line
-                    result.append(f'a|{tc["expected"]}')
+                    result.append(f'| **Expected Result (Acceptance Criteria)** | a|')
+                    result.append(tc['expected'])
                 else:
-                    result.append('a|')
+                    result.append('| **Expected Result (Acceptance Criteria)** | a|')
                 
                 result.append('|===')
                 result.append('')
