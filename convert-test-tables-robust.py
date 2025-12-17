@@ -15,8 +15,17 @@ def convert_test_case_table(content):
     while i < len(lines):
         line = lines[i]
         
-        # Check if this is a test case table (cols= line with Test Case ID in next few lines)
-        if 'cols=' in line and i+2 < len(lines) and 'Test Case ID' in lines[i+2]:
+        # Check if this is a test case table (cols= line with Test Case ID in header)
+        # Look ahead to see if next lines contain Test Case ID header
+        is_test_table = False
+        if 'cols=' in line:
+            # Check next 5 lines for Test Case ID header
+            for j in range(i+1, min(i+6, len(lines))):
+                if 'Test Case ID' in lines[j]:
+                    is_test_table = True
+                    break
+        
+        if is_test_table:
             # This is a test case table section
             result.append(line)  # Keep the cols= line for now, we'll replace the table
             i += 1
