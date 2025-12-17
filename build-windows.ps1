@@ -3,6 +3,7 @@
 
 param(
     [string]$Target = "all",
+    [switch]$Run = $false,
     [string]$BuildType = "Release",
     [string]$Platform = "x86_64",
     [string]$QtPath = "",
@@ -25,12 +26,13 @@ if ($Help) {
     Write-Host "Usage: .\build-windows.ps1 [options]" -ForegroundColor Yellow
     Write-Host ""
     Write-Host "Options:"
-    Write-Host "  -Target <target>     Build target: all, common, reader, creator, test (default: all)"
+    Write-Host "  -Target <target>     Build target: all, common, reader, creator, test, run-reader, run-creator (default: all)"
     Write-Host "  -BuildType <type>    Build type: Release, Debug (default: Release)"
     Write-Host "  -Platform <arch>     Platform: x86_64 (default: x86_64)"
     Write-Host "  -QtPath <path>       Custom Qt installation path (auto-detected if not specified)"
     Write-Host "  -Clean               Clean build directories before building"
     Write-Host "  -Install             Install after building"
+    Write-Host "  -Run                 Run application after building"
     Write-Host "  -Help                Show this help message"
     Write-Host ""
     Write-Host "Examples:"
@@ -186,6 +188,38 @@ function Install-Component {
     }
 }
 
+# Handle run targets (don't build, just run)
+if ($Target -match "^run-") {
+    $RunTarget = $Target -replace "run-", ""
+    $BuildPath = Join-Path $BuildDir $RunTarget
+    $ExePath = $null
+    
+    if ($RunTarget -eq "reader") {
+        $ExePath = Join-Path $BuildPath "smartbook-reader.exe"
+        if (-not (Test-Path $ExePath)) {
+            $ExePath = Join-Path (Join-Path $BuildDir "bin") "smartbook-reader.exe"
+        }
+    } elseif ($RunTarget -eq "creator") {
+        $ExePath = Join-Path $BuildPath "smartbook-creator.exe"
+        if (-not (Test-Path $ExePath)) {
+            $ExePath = Join-Path (Join-Path $BuildDir "bin") "smartbook-creator.exe"
+        }
+    } elseif ($RunTarget -eq "server") {
+        Write-Host "Server application not yet implemented (Phase 2)" -ForegroundColor Yellow
+        exit 1
+    }
+    
+    if ($ExePath -and (Test-Path $ExePath)) {
+        Write-Host "Running $RunTarget..." -ForegroundColor Cyan
+        & $ExePath
+        exit 0
+    } else {
+        Write-Host "Error: $RunTarget not built. Run build first." -ForegroundColor Red
+        Write-Host "  .\build-windows.ps1 -Target $RunTarget" -ForegroundColor Yellow
+        exit 1
+    }
+}
+
 # Main build logic
 Write-Host "`n=== SmartBook Windows Build ===" -ForegroundColor Cyan
 Write-Host "Target: $Target" -ForegroundColor Yellow
@@ -245,3 +279,28 @@ if ($Install) {
 }
 
 Write-Host "`n=== Build Complete ===" -ForegroundColor Green
+
+# Run after build if requested
+if ($Run) {
+    $RunTarget = if ($Target -eq "reader") { "reader" } elseif ($Target -eq "creator") { "creator" } else { "reader" }
+    
+    $BuildPath = Join-Path $BuildDir $RunTarget
+    $ExePath = $null
+    
+    if ($RunTarget -eq "reader") {
+        $ExePath = Join-Path $BuildPath "smartbook-reader.exe"
+        if (-not (Test-Path $ExePath)) {
+            $ExePath = Join-Path (Join-Path $BuildDir "bin") "smartbook-reader.exe"
+        }
+    } elseif ($RunTarget -eq "creator") {
+        $ExePath = Join-Path $BuildPath "smartbook-creator.exe"
+        if (-not (Test-Path $ExePath)) {
+            $ExePath = Join-Path (Join-Path $BuildDir "bin") "smartbook-creator.exe"
+        }
+    }
+    
+    if ($ExePath -and (Test-Path $ExePath)) {
+        Write-Host "`nRunning $RunTarget..." -ForegroundColor Cyan
+        & $ExePath
+    }
+}
