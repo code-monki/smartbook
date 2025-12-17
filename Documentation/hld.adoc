@@ -152,18 +152,21 @@ The Library Manager supports organizing cartridges by series, edition, and user-
 === Grouping Flow
 
 **Auto-Grouping (Series/Edition):**
+
 . On library load or cartridge import, Library Manager queries `Local_Library_Manifest` for unique `series_name` and `edition_name` values
 . For each unique value, creates or updates group in `Local_Cartridge_Groups` (group_type: "series" or "edition")
 . Adds cartridges to group memberships based on metadata
 . Auto-grouped series/editions are read-only (managed by system)
 
 **Custom Collections:**
+
 . User creates custom collection via Library Manager UI
 . Collection stored in `Local_Cartridge_Groups` (group_type: "custom_collection")
 . User adds/removes cartridges to/from collection
 . Custom collections are user-managed and local-only
 
 **Grouping Display:**
+
 . Library Manager provides filter/view options: "All", "By Series", "By Edition", "Custom Collections"
 . When filter selected, Library Manager queries appropriate groups and displays members
 . Series members ordered by `series_order` (if available), otherwise alphabetical

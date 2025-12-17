@@ -227,6 +227,7 @@ This document specifies the user identity model and authentication system for Ph
 === Log Rotation Implementation
 
 **Daily Rotation Algorithm:**
+
 . At midnight UTC, close current log file
 . Create new log file with date suffix
 . Compress log files older than 7 days
@@ -589,6 +590,7 @@ Smartbook Team
 === Account Recovery
 
 **Password Reset Flow (Detailed):**
+
 . User requests password reset via username/email (works even if account is locked)
 . Server validates user exists (but returns generic message)
 . Server generates secure 256-bit token, stores SHA-256 hash in database
@@ -640,6 +642,7 @@ Smartbook Team
 === Server-Side Session Management
 
 **Token Storage Options:**
+
 . **Database (Recommended for Phase 2):**
    * Store sessions in `sessions` table
    * Simple to implement, easy to query/revoke

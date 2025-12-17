@@ -204,6 +204,7 @@ git commit
 == Testing Priorities
 
 === Phase 1: Build System
+
 . [x] Dependencies check
 . [ ] Common library builds
 . [ ] Reader builds
@@ -211,12 +212,14 @@ git commit
 . [ ] Tests build
 
 === Phase 2: Basic Functionality
+
 . [ ] Applications launch without crashing
 . [ ] Database initialization works
 . [ ] Basic UI displays
 . [ ] No immediate crashes
 
 === Phase 3: Core Features
+
 . [ ] Library management
 . [ ] Cartridge loading
 . [ ] Content display

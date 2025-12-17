@@ -201,6 +201,7 @@ Generates PDF versions of all documentation from AsciiDoc sources:
 * All other documentation files
 
 **Process:**
+
 . Converts Mermaid diagrams to SVG (or PNG if SVG fails)
 . Processes AsciiDoc files with Asciidoctor PDF
 . Outputs PDFs to `build/docs/`
@@ -238,6 +239,7 @@ Documentation generated in build/docs/
 * `make windows-x86_64` - Windows on x86_64
 
 **Build Process:**
+
 . Builds common library (shared library)
 . Builds Reader application
 . Builds Creator Tool application
@@ -276,6 +278,7 @@ Test Results:
 **Usage:** `make all`
 
 Executes complete build process:
+
 . `make clean` - Remove all build artifacts
 . Build all platform targets
 . `make docs` - Generate documentation

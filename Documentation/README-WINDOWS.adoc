@@ -122,6 +122,7 @@ cmake --install build\windows-x86_64 --config Release --prefix "C:\Program Files
 == Qt Detection
 
 The build scripts automatically detect Qt installations in:
+
 . `%USERPROFILE%\Qt\6.x.x\msvc*_64` (MSVC - preferred)
 . `%USERPROFILE%\Qt\6.x.x\mingw*_64` (MinGW)
 . `C:\Qt\6.x.x\msvc*_64` (alternative)

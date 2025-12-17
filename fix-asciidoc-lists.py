@@ -13,25 +13,39 @@ def fix_list_spacing(content):
     """Fix list spacing issues in AsciiDoc content."""
     fixes_applied = 0
     
-    # Pattern 1: Bold text immediately followed by list (most common)
+    # Helper to check if a line is a nested list item (a., b., c., etc. with indentation)
+    def is_nested_list_item(line):
+        stripped = line.strip()
+        # Lettered list items (a., b., c., etc.) with indentation are nested
+        if re.match(r'^\s+[a-z]\.\s', line):
+            return True
+        # Numbered items with significant indentation are likely nested
+        if re.match(r'^\s{3,}\d+\.\s', line):
+            return True
+        return False
+    
+    # Pattern 1: Bold text immediately followed by bullet list
     # **text:**\n* becomes **text:**\n\n*
-    pattern1 = re.compile(r'(\*\*[^*]+\*\*)\n(\*)', re.MULTILINE)
+    pattern1 = re.compile(r'(\*\*[^*]+\*\*)\n(\*[^*\s])', re.MULTILINE)
     def replacer1(match):
         nonlocal fixes_applied
+        # Skip if it's a nested list item
+        if is_nested_list_item(match.group(2)):
+            return match.group(0)
         fixes_applied += 1
         return f"{match.group(1)}\n\n{match.group(2)}"
     content = pattern1.sub(replacer1, content)
     
-    # Pattern 2: Regular text ending with colon followed by list
+    # Pattern 2: Regular text ending with colon followed by bullet list
     # text:\n* becomes text:\n\n*
-    pattern2 = re.compile(r'^([A-Z][^:\n]+:)\n(\*)', re.MULTILINE)
+    pattern2 = re.compile(r'^([A-Z][^:\n]+:)\n(\*[^*\s])', re.MULTILINE)
     def replacer2(match):
         nonlocal fixes_applied
-        # Only fix if it's not already part of a list or code block
-        if not match.group(0).strip().startswith('*'):
-            fixes_applied += 1
-            return f"{match.group(1)}\n\n{match.group(2)}"
-        return match.group(0)
+        # Skip if it's a nested list item
+        if is_nested_list_item(match.group(2)):
+            return match.group(0)
+        fixes_applied += 1
+        return f"{match.group(1)}\n\n{match.group(2)}"
     content = pattern2.sub(replacer2, content)
     
     # Pattern 3: Numbered list (starting with .) after bold
@@ -42,13 +56,54 @@ def fix_list_spacing(content):
         return f"{match.group(1)}\n\n{match.group(2)}"
     content = pattern3.sub(replacer3, content)
     
-    # Pattern 4: Numbered list (starting with digit) after bold (less common)
-    pattern4 = re.compile(r'(\*\*[^*]+\*\*)\n(\d+\.)', re.MULTILINE)
+    # Pattern 4: Numbered list (starting with digit) after bold
+    pattern4 = re.compile(r'(\*\*[^*]+\*\*)\n(\d+\.\s)', re.MULTILINE)
     def replacer4(match):
         nonlocal fixes_applied
         fixes_applied += 1
         return f"{match.group(1)}\n\n{match.group(2)}"
     content = pattern4.sub(replacer4, content)
+    
+    # Pattern 5: Numbered list (starting with .) after regular text ending with colon
+    pattern5 = re.compile(r'^([A-Z][^:\n]+:)\n(\.\s)', re.MULTILINE)
+    def replacer5(match):
+        nonlocal fixes_applied
+        fixes_applied += 1
+        return f"{match.group(1)}\n\n{match.group(2)}"
+    content = pattern5.sub(replacer5, content)
+    
+    # Pattern 6: Numbered list (starting with digit) after regular text ending with colon
+    pattern6 = re.compile(r'^([A-Z][^:\n]+:)\n(\d+\.\s)', re.MULTILINE)
+    def replacer6(match):
+        nonlocal fixes_applied
+        fixes_applied += 1
+        return f"{match.group(1)}\n\n{match.group(2)}"
+    content = pattern6.sub(replacer6, content)
+    
+    # Pattern 7: List after section headers (===, ====, etc.)
+    pattern7 = re.compile(r'^(={2,}\s+.+)\n(\*[^*\s])', re.MULTILINE)
+    def replacer7(match):
+        nonlocal fixes_applied
+        fixes_applied += 1
+        return f"{match.group(1)}\n\n{match.group(2)}"
+    content = pattern7.sub(replacer7, content)
+    
+    # Pattern 8: Numbered list after section headers
+    pattern8 = re.compile(r'^(={2,}\s+.+)\n(\.\s)', re.MULTILINE)
+    def replacer8(match):
+        nonlocal fixes_applied
+        fixes_applied += 1
+        return f"{match.group(1)}\n\n{match.group(2)}"
+    content = pattern8.sub(replacer8, content)
+    
+    # Pattern 9: List after code block or other block elements
+    # Look for lines ending with ---- or ``` followed by list
+    pattern9 = re.compile(r'^(----|```)\n(\*[^*\s])', re.MULTILINE)
+    def replacer9(match):
+        nonlocal fixes_applied
+        fixes_applied += 1
+        return f"{match.group(1)}\n\n{match.group(2)}"
+    content = pattern9.sub(replacer9, content)
     
     return content, fixes_applied
 
