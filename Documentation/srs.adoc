@@ -263,7 +263,6 @@ Both applications are documented in a single SRS document as they are tightly co
      * Keep both (rename new file to avoid conflict)
   +
   b. The dialog SHALL display information about both cartridges (title, author, publisher, file paths, file sizes, modification dates)
-  +
   c. The dialog SHALL allow the user to make a choice for each duplicate cartridge when importing multiple files
 
 * **FR-2.5.10 (Import Validation):** The Reader SHALL validate imported cartridges before adding them to the library:
