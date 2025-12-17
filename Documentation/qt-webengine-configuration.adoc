@@ -506,61 +506,61 @@ void ReaderViewInstance::onRenderProcessTerminated(
 . Launch Reader application.
 . Open a cartridge.
 . Verify WebEngine profile is configured.
-| | | **AC:** WebEngine profile is created and configured with appropriate settings. Profile settings match specification (security, performance, cache).
+| | | | *AC:** WebEngine profile is created and configured with appropriate settings. Profile settings match specification (security, performance, cache).
 
 | **T-WE-02** | FR-WE-5.2 (JavaScript Engine Version) | a|
 . Launch Reader application.
 . Check JavaScript engine version information.
-| | | **AC:** Application reports V8 engine version. Version matches Qt WebEngine version requirements. Version is documented in application or logs.
+| | | | *AC:** Application reports V8 engine version. Version matches Qt WebEngine version requirements. Version is documented in application or logs.
 
 | **T-WE-03** | FR-WE-5.3 (HTML/CSS Standards) | a|
 . Create test cartridge with HTML5 features (semantic elements, canvas, video).
 . Create test cartridge with CSS3 features (flexbox, grid, animations).
 . Open cartridges in Reader.
-| | | **AC:** HTML5 features render correctly. CSS3 features render correctly. Standards compliance matches Chromium version capabilities.
+| | | | *AC:** HTML5 features render correctly. CSS3 features render correctly. Standards compliance matches Chromium version capabilities.
 
 | **T-WE-04** | FR-WE-5.4 (Security Settings) | a|
 . Launch Reader with embedded app.
 . Attempt to access local file system from JavaScript.
 . Attempt to make network request from embedded app.
-| | | **AC:** Local file system access blocked (except via WebChannel). Network requests blocked by interceptor. Security settings enforced correctly.
+| | | | *AC:** Local file system access blocked (except via WebChannel). Network requests blocked by interceptor. Security settings enforced correctly.
 
 | **T-WE-05** | FR-WE-5.5 (Performance Settings) | a|
 . Launch Reader with multiple cartridges open.
 . Monitor memory usage.
 . Check hardware acceleration status.
-| | | **AC:** Memory usage is reasonable per view (~50-100MB). Hardware acceleration enabled if available. Performance is acceptable.
+| | | | *AC:** Memory usage is reasonable per view (~50-100MB). Hardware acceleration enabled if available. Performance is acceptable.
 
 | **T-WE-06** | FR-WE-5.6 (Profile Isolation) | a|
 . Open cartridge with content.
 . Open embedded app in same cartridge.
 . Verify profiles are separate.
-| | | **AC:** Content rendering uses separate profile from embedded apps. Each embedded app has isolated profile or view. Profiles do not interfere with each other.
+| | | | *AC:** Content rendering uses separate profile from embedded apps. Each embedded app has isolated profile or view. Profiles do not interfere with each other.
 
 | **T-WE-07** | FR-WE-5.7 (Network Interceptor) | a|
 . Launch embedded app.
 . Attempt to use fetch() to make HTTP request.
 . Attempt to use XMLHttpRequest.
 . Attempt to use WebSocket.
-| | | **AC:** All network requests are blocked by interceptor. Error messages indicate request was blocked. No network traffic occurs.
+| | | | *AC:** All network requests are blocked by interceptor. Error messages indicate request was blocked. No network traffic occurs.
 
 | **T-WE-08** | FR-WE-5.8 (CSP Headers) | a|
 . Launch embedded app.
 . Check HTTP headers for CSP policy.
 . Attempt to violate CSP policy.
-| | | **AC:** CSP headers are set correctly. CSP policy matches specification. CSP violations are logged or blocked.
+| | | | *AC:** CSP headers are set correctly. CSP policy matches specification. CSP violations are logged or blocked.
 
 | **T-WE-09** | FR-WE-5.9 (WebChannel Configuration) | a|
 . Launch Reader with cartridge containing forms.
 . Verify SmartbookBridge is available in JavaScript.
 . Call WebChannel API method.
-| | | **AC:** SmartbookBridge object is accessible from JavaScript. WebChannel communication works correctly. API methods can be called from JavaScript.
+| | | | *AC:** SmartbookBridge object is accessible from JavaScript. WebChannel communication works correctly. API methods can be called from JavaScript.
 
 | **T-WE-10** | FR-WE-5.10 (Error Handling) | a|
 . Load cartridge with JavaScript errors.
 . Simulate WebEngine process crash.
 . Verify error handling.
-| | | **AC:** JavaScript errors are caught and logged. Process crashes are detected. Recovery options are provided. Application does not crash.
+| | | | *AC:** JavaScript errors are caught and logged. Process crashes are detected. Recovery options are provided. Application does not crash.
 
 |===
 
@@ -576,37 +576,37 @@ void ReaderViewInstance::onRenderProcessTerminated(
 . Create embedded app that uses fetch() API.
 . Launch app in Reader.
 . Monitor network traffic.
-| | | **AC:** fetch() requests are blocked. No network traffic occurs. Error is returned to JavaScript.
+| | | | *AC:** fetch() requests are blocked. No network traffic occurs. Error is returned to JavaScript.
 
 | **T-WE-12** | Network Blocking - XMLHttpRequest | a|
 . Create embedded app that uses XMLHttpRequest.
 . Launch app in Reader.
 . Monitor network traffic.
-| | | **AC:** XMLHttpRequest is blocked. No network traffic occurs. Error is returned to JavaScript.
+| | | | *AC:** XMLHttpRequest is blocked. No network traffic occurs. Error is returned to JavaScript.
 
 | **T-WE-13** | Network Blocking - WebSocket | a|
 . Create embedded app that uses WebSocket.
 . Launch app in Reader.
 . Monitor network traffic.
-| | | **AC:** WebSocket connections are blocked. No network traffic occurs. Connection fails.
+| | | | *AC:** WebSocket connections are blocked. No network traffic occurs. Connection fails.
 
 | **T-WE-14** | Network Blocking - Image Loading | a|
 . Create embedded app with `<img src="http://example.com/image.png">`.
 . Launch app in Reader.
 . Monitor network traffic.
-| | | **AC:** External image loading is blocked. Image fails to load. No network traffic occurs.
+| | | | *AC:** External image loading is blocked. Image fails to load. No network traffic occurs.
 
 | **T-WE-15** | Network Blocking - Script Loading | a|
 . Create embedded app with `<script src="http://example.com/script.js">`.
 . Launch app in Reader.
 . Monitor network traffic.
-| | | **AC:** External script loading is blocked. Script fails to load. No network traffic occurs.
+| | | | *AC:** External script loading is blocked. Script fails to load. No network traffic occurs.
 
 | **T-WE-16** | Network Blocking - Service Workers | a|
 . Create embedded app that registers service worker.
 . Launch app in Reader.
 . Verify service worker is not registered.
-| | | **AC:** Service workers are disabled. Registration fails. No service worker is created.
+| | | | *AC:** Service workers are disabled. Registration fails. No service worker is created.
 
 |===
 
@@ -623,25 +623,25 @@ void ReaderViewInstance::onRenderProcessTerminated(
 . Measure memory usage of WebEngine process.
 . Open multiple cartridges.
 . Measure total memory usage.
-| | | **AC:** Single view uses ~50-100MB RAM. Multiple views scale linearly. Memory usage is reasonable.
+| | | | *AC:** Single view uses ~50-100MB RAM. Multiple views scale linearly. Memory usage is reasonable.
 
 | **T-WE-18** | Hardware Acceleration | a|
 . Launch Reader on system with hardware acceleration.
 . Verify acceleration is enabled.
 . Test rendering performance.
-| | | **AC:** Hardware acceleration is enabled if available. Rendering performance is improved. No visual artifacts.
+| | | | *AC:** Hardware acceleration is enabled if available. Rendering performance is improved. No visual artifacts.
 
 | **T-WE-19** | Cache Performance | a|
 . Load cartridge with large resources.
 . Reload cartridge.
 . Measure load time.
-| | | **AC:** Second load is faster due to cache. Cache is working correctly. Cache size is within limits.
+| | | | *AC:** Second load is faster due to cache. Cache is working correctly. Cache size is within limits.
 
 | **T-WE-20** | Multiple Embedded Apps | a|
 . Open cartridge with multiple embedded apps.
 . Launch all apps simultaneously.
 . Monitor memory and performance.
-| | | **AC:** All apps run without performance degradation. Memory usage is acceptable. No crashes or freezes.
+| | | | *AC:** All apps run without performance degradation. Memory usage is acceptable. No crashes or freezes.
 
 |===
 
@@ -657,37 +657,37 @@ void ReaderViewInstance::onRenderProcessTerminated(
 . Create cartridge with HTML5 semantic elements.
 . Open in Reader.
 . Verify rendering.
-| | | **AC:** Semantic elements render correctly. Elements are properly styled. Structure is maintained.
+| | | | *AC:** Semantic elements render correctly. Elements are properly styled. Structure is maintained.
 
 | **T-WE-22** | HTML5 Canvas | a|
 . Create cartridge with HTML5 canvas element.
 . Draw graphics on canvas.
 . Verify rendering.
-| | | **AC:** Canvas renders correctly. Graphics are drawn properly. Performance is acceptable.
+| | | | *AC:** Canvas renders correctly. Graphics are drawn properly. Performance is acceptable.
 
 | **T-WE-23** | CSS3 Flexbox | a|
 . Create cartridge with CSS3 flexbox layout.
 . Open in Reader.
 . Verify layout.
-| | | **AC:** Flexbox layout renders correctly. Elements are positioned properly. Layout is responsive.
+| | | | *AC:** Flexbox layout renders correctly. Elements are positioned properly. Layout is responsive.
 
 | **T-WE-24** | CSS3 Grid | a|
 . Create cartridge with CSS3 grid layout.
 . Open in Reader.
 . Verify layout.
-| | | **AC:** Grid layout renders correctly. Elements are positioned properly. Layout matches specification.
+| | | | *AC:** Grid layout renders correctly. Elements are positioned properly. Layout matches specification.
 
 | **T-WE-25** | CSS3 Animations | a|
 . Create cartridge with CSS3 animations.
 . Open in Reader.
 . Verify animations.
-| | | **AC:** Animations play correctly. Performance is smooth. No visual artifacts.
+| | | | *AC:** Animations play correctly. Performance is smooth. No visual artifacts.
 
 | **T-WE-26** | ECMAScript 2022 Features | a|
 . Create embedded app using ES2022 features.
 . Launch app in Reader.
 . Verify execution.
-| | | **AC:** ES2022 features work correctly. JavaScript executes without errors. Features are supported.
+| | | | *AC:** ES2022 features work correctly. JavaScript executes without errors. Features are supported.
 
 |===
 

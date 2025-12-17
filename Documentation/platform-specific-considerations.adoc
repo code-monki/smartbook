@@ -736,31 +736,31 @@ MimeType=application/x-sqlite3;application/vnd.sqlite3;x-scheme-handler/smartboo
 . Install application on Arch Linux 2025.09.01.
 . Verify application launches and functions correctly.
 . Repeat for Debian 13, Fedora 43, Ubuntu 24.04 LTS.
-| | | **AC:** Application installs and runs correctly on all specified Linux distributions. All core functionality works. No distribution-specific errors.
+| | | | *AC:** Application installs and runs correctly on all specified Linux distributions. All core functionality works. No distribution-specific errors.
 
 | **T-PLAT-02** | FR-PLAT-7.2 (macOS Support) | a|
 . Install application on macOS 26.1.
 . Verify application launches and functions correctly.
 . Test on both ARM64 and X86_64 architectures.
-| | | **AC:** Application installs and runs correctly on macOS 26.1. Works on both ARM64 and X86_64. All core functionality works.
+| | | | *AC:** Application installs and runs correctly on macOS 26.1. Works on both ARM64 and X86_64. All core functionality works.
 
 | **T-PLAT-03** | FR-PLAT-7.3 (Windows Support) | a|
 . Install application on Windows 11.
 . Verify application launches and functions correctly.
 . Test on X86_64 architecture.
-| | | **AC:** Application installs and runs correctly on Windows 11. All core functionality works. No Windows-specific errors.
+| | | | *AC:** Application installs and runs correctly on Windows 11. All core functionality works. No Windows-specific errors.
 
 | **T-PLAT-04** | FR-PLAT-7.4 (Architecture Support) | a|
 . Build application for ARM64 architecture.
 . Build application for X86_64 architecture.
 . Verify both builds function correctly.
-| | | **AC:** Application builds successfully for both ARM64 and X86_64. Both builds function correctly. Architecture-specific optimizations work.
+| | | | *AC:** Application builds successfully for both ARM64 and X86_64. Both builds function correctly. Architecture-specific optimizations work.
 
 | **T-PLAT-05** | FR-PLAT-7.6 (Universal Binary - macOS) | a|
 . Build universal binary for macOS.
 . Verify binary contains both ARM64 and X86_64 architectures.
 . Test on both ARM64 and X86_64 Macs.
-| | | **AC:** Universal binary is created successfully. Binary contains both architectures (verified with `lipo -info`). Application runs correctly on both ARM64 and X86_64 Macs.
+| | | | *AC:** Universal binary is created successfully. Binary contains both architectures (verified with `lipo -info`). Application runs correctly on both ARM64 and X86_64 Macs.
 
 |===
 
@@ -775,13 +775,13 @@ MimeType=application/x-sqlite3;application/vnd.sqlite3;x-scheme-handler/smartboo
 . Verify Fusion style is applied to all UI components.
 . Launch on macOS and Linux.
 . Compare UI appearance across platforms.
-| | | **AC:** Fusion style is applied to all UI components. UI appearance is consistent across all platforms. No platform-specific style differences (except where necessary for platform integration).
+| | | | *AC:** Fusion style is applied to all UI components. UI appearance is consistent across all platforms. No platform-specific style differences (except where necessary for platform integration).
 
 | **T-PLAT-07** | FR-PLAT-7.8 (UI Consistency) | a|
 . Test all UI components on Windows, macOS, and Linux.
 . Verify consistent behavior across platforms.
 . Check for platform-specific adaptations (menu bar, system tray).
-| | | **AC:** UI components behave consistently across platforms. Platform-specific adaptations are minimal and appropriate. Menu bar integration works on macOS. System tray works on Windows/Linux.
+| | | | *AC:** UI components behave consistently across platforms. Platform-specific adaptations are minimal and appropriate. Menu bar integration works on macOS. System tray works on Windows/Linux.
 
 |===
 
@@ -795,19 +795,19 @@ MimeType=application/x-sqlite3;application/vnd.sqlite3;x-scheme-handler/smartboo
 . Test secure credential storage on Windows (Credential Manager).
 . Test secure credential storage on macOS (Keychain).
 . Test secure credential storage on Linux (libsecret).
-| | | **AC:** Credentials are stored using platform-specific secure storage. Credentials are encrypted and protected. Credentials can be retrieved correctly.
+| | | | *AC:** Credentials are stored using platform-specific secure storage. Credentials are encrypted and protected. Credentials can be retrieved correctly.
 
 | **T-PLAT-09** | FR-PLAT-7.10 (Secure Storage) | a|
 . Store application credentials using SecureStorage API.
 . Verify credentials are stored in platform-specific secure storage.
 . Retrieve credentials and verify correctness.
-| | | **AC:** Credentials are stored in Windows Credential Manager (Windows), Keychain (macOS), or libsecret (Linux). Credentials are encrypted. Credentials can be retrieved correctly.
+| | | | *AC:** Credentials are stored in Windows Credential Manager (Windows), Keychain (macOS), or libsecret (Linux). Credentials are encrypted. Credentials can be retrieved correctly.
 
 | **T-PLAT-10** | FR-PLAT-7.11 (Certificate Validation) | a|
 . Test HTTPS connection with valid certificate.
 . Test HTTPS connection with invalid certificate.
 . Verify certificate validation uses platform-specific stores.
-| | | **AC:** Valid certificates are accepted. Invalid certificates are rejected. Certificate validation uses Windows Certificate Store (Windows), Keychain (macOS), or system CA bundle (Linux).
+| | | | *AC:** Valid certificates are accepted. Invalid certificates are rejected. Certificate validation uses Windows Certificate Store (Windows), Keychain (macOS), or system CA bundle (Linux).
 
 |===
 
@@ -822,20 +822,20 @@ MimeType=application/x-sqlite3;application/vnd.sqlite3;x-scheme-handler/smartboo
 . Create macOS application bundle (.app) or DMG.
 . Create Linux packages (DEB, RPM, PKG).
 . Verify installation works correctly.
-| | | **AC:** Installers/packages are created successfully. Installation works correctly on each platform. Application is installed to correct locations.
+| | | | *AC:** Installers/packages are created successfully. Installation works correctly on each platform. Application is installed to correct locations.
 
 | **T-PLAT-12** | FR-PLAT-7.14 (Universal Binary - macOS) | a|
 . Build universal binary for macOS.
 . Create DMG or application bundle.
 . Verify universal binary is included.
-| | | **AC:** Universal binary is created and included in distribution. Binary contains both ARM64 and X86_64 architectures. Distribution is preferred format for macOS.
+| | | | *AC:** Universal binary is created and included in distribution. Binary contains both ARM64 and X86_64 architectures. Distribution is preferred format for macOS.
 
 | **T-PLAT-13** | FR-PLAT-7.15 (Code Signing) | a|
 . Code sign application on Windows (if certificate available).
 . Code sign and notarize application on macOS.
 . GPG sign Linux packages (if key available).
 . Verify signatures are valid.
-| | | **AC:** Application is code-signed on Windows (if certificate available). Application is code-signed and notarized on macOS. Linux packages are GPG signed (if key available). Signatures are valid.
+| | | | *AC:** Application is code-signed on Windows (if certificate available). Application is code-signed and notarized on macOS. Linux packages are GPG signed (if key available). Signatures are valid.
 
 |===
 
@@ -849,13 +849,13 @@ MimeType=application/x-sqlite3;application/vnd.sqlite3;x-scheme-handler/smartboo
 . Install application.
 . Double-click .sqlite cartridge file.
 . Verify application opens with cartridge loaded.
-| | | **AC:** File association is registered correctly. Double-clicking .sqlite file opens application with cartridge loaded. File association works on all platforms.
+| | | | *AC:** File association is registered correctly. Double-clicking .sqlite file opens application with cartridge loaded. File association works on all platforms.
 
 | **T-PLAT-15** | FR-PLAT-7.24 (URL Scheme Handling) | a|
 . Register URL scheme handler.
 . Open `smartbook://` URL from browser or command line.
 . Verify application handles URL correctly.
-| | | **AC:** URL scheme handler is registered correctly. Application handles `smartbook://` URLs correctly. URL scheme works on all platforms that support it.
+| | | | *AC:** URL scheme handler is registered correctly. Application handles `smartbook://` URLs correctly. URL scheme works on all platforms that support it.
 
 |===
 
