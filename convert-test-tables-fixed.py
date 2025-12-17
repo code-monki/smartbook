@@ -111,11 +111,11 @@ def convert_test_case_table(content):
                 result.append('')
                 result.append('[cols="1,4"]')
                 result.append('|===')
-                result.append(f'| Test Case ID | {tc["id"]}')
-                result.append(f'| Requirement Covered | {tc["requirement"]}')
+                result.append(f'| **Test Case ID** | {tc["id"]}')
+                result.append(f'| **Requirement Covered** | {tc["requirement"]}')
                 
                 # Test Steps - a| must be on same line as first content
-                result.append('| Test Steps |')
+                result.append('| **Test Steps** |')
                 if tc['steps'] and tc['steps'].strip():
                     steps_lines = [s for s in tc['steps'].split('\n') if s.strip()]
                     if steps_lines:
@@ -132,7 +132,7 @@ def convert_test_case_table(content):
                     result.append('a|')
                 
                 # Expected Result - a| must be on same line as content
-                result.append('| Expected Result (Acceptance Criteria) |')
+                result.append('| **Expected Result (Acceptance Criteria)** |')
                 if tc['expected']:
                     # Put a| and content on same line
                     result.append(f'a|{tc["expected"]}')
