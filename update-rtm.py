@@ -14,7 +14,7 @@ def extract_requirements_from_srs():
         content = f.read()
         
         # Pattern: * **FR-X.Y.Z (Title):** Description
-        pattern = re.compile(r'\*\s+\*\*(FR|NFR|FR-CT|FR-WE|FR-NAV|FR-SERIES)-(\d+\.\d+(?:\.\d+)?[a-z]?)\s*\((.*?)\):', re.MULTILINE)
+        pattern = re.compile(r'\*\s+\*\*(FR|NFR|FR-CT|FR-WE|FR-NAV|FR-SERIES|FR-PLAT|FR-ERR|FR-SQL|FR-HELP)-(\d+\.\d+(?:\.\d+)?[a-z]?)\s*\((.*?)\):', re.MULTILINE)
         for match in pattern.finditer(content):
             req_type = match.group(1)
             req_num = match.group(2)
@@ -191,6 +191,14 @@ def get_ddd_section_for_requirement(req_id):
         return 'Sec 7.1 (Navigation Structure)'
     elif req_id.startswith('FR-SERIES'):
         return 'Sec 14 (Series and Edition Grouping)'
+    elif req_id.startswith('FR-PLAT'):
+        return 'Sec 15 (Platform-Specific Considerations)'
+    elif req_id.startswith('FR-ERR'):
+        return 'Sec 4 (Error Handling)'
+    elif req_id.startswith('FR-SQL'):
+        return 'Sec 16 (SQLite Configuration)'
+    elif req_id.startswith('FR-HELP'):
+        return 'Sec 9 (Help System)'
     
     return 'See DDD'
 
