@@ -88,13 +88,33 @@ clean:
 	@cd test && $(MAKE) clean 2>/dev/null || true
 	@echo "Clean complete."
 
-docs: docs-docx docs-pdf
+docs: docs-html docs-pdf
 	@echo ""
 	@echo "Documentation generated in $(DOCS_DIR)/"
-	@echo "  - DOCX files: Better list/table rendering, editable in Word/LibreOffice"
+	@echo "  - HTML files: Perfect rendering, view in browser, print to PDF if needed"
 	@echo "  - PDF files: For distribution (may have list rendering limitations)"
 	@echo ""
-	@echo "To generate LaTeX source files, run: make docs-latex"
+	@echo "Note: HTML is recommended for best formatting quality."
+	@echo "      Open HTML files in browser and use 'Print to PDF' for perfect results."
+
+docs-html:
+	@echo "Generating documentation as HTML (recommended format)..."
+	@mkdir -p $(DOCS_DIR)/html
+	@which asciidoctor > /dev/null 2>&1 || (echo "Error: asciidoctor not found. Install with: gem install asciidoctor" && exit 1)
+	@which mmdc > /dev/null 2>&1 || echo "Warning: mermaid-cli (mmdc) not found. Diagrams may not be converted."
+	@for doc in Documentation/*.adoc; do \
+		if [ -f "$$doc" ]; then \
+			echo "  Converting $$(basename $$doc) to HTML..."; \
+			asciidoctor -D $(DOCS_DIR)/html "$$doc" || echo "Warning: Failed to convert $$doc"; \
+		fi \
+	done
+	@echo "HTML files generated in $(DOCS_DIR)/html/"
+	@echo ""
+	@echo "To create PDFs from HTML:"
+	@echo "  1. Open HTML file in browser"
+	@echo "  2. Use browser's Print function (Cmd/Ctrl+P)"
+	@echo "  3. Choose 'Save as PDF' as destination"
+	@echo "  This produces perfect PDFs with all formatting preserved."
 
 docs-latex:
 	@echo "Generating documentation as LaTeX source files..."
