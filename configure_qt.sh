@@ -19,20 +19,44 @@ fi
 
 # Detect platform and find appropriate Qt installation
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    # macOS
-    QT_PREFIX=$(find "$QT_VERSIONS" -type d -name "clang_64" | head -1)
+    # macOS: ~/Qt/6.x.x/macos
+    QT_PREFIX=$(find "$QT_VERSIONS" -type d -name "macos" | head -1)
     if [ -z "$QT_PREFIX" ]; then
-        QT_PREFIX=$(find "$QT_VERSIONS" -type d -name "macos" | head -1)
+        QT_PREFIX=$(find "$QT_VERSIONS" -type d -name "clang_64" | head -1)
     fi
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    # Linux
+    # Linux: ~/Qt/6.x.x/gcc_64 or ~/Qt/6.x.x/clang_64
     QT_PREFIX=$(find "$QT_VERSIONS" -type d -name "gcc_64" | head -1)
+    if [ -z "$QT_PREFIX" ]; then
+        QT_PREFIX=$(find "$QT_VERSIONS" -type d -name "clang_64" | head -1)
+    fi
     if [ -z "$QT_PREFIX" ]; then
         QT_PREFIX=$(find "$QT_VERSIONS" -type d -name "linux" | head -1)
     fi
+elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]] || [[ -n "$WINDIR" ]]; then
+    # Windows (Git Bash, Cygwin, or native)
+    # Try %USERPROFILE%\Qt first, then C:\Qt
+    if [ -n "$USERPROFILE" ]; then
+        WIN_QT_HOME=$(cygpath -u "$USERPROFILE/Qt" 2>/dev/null || echo "$USERPROFILE/Qt")
+    else
+        WIN_QT_HOME="C:/Qt"
+    fi
+    
+    if [ -d "$WIN_QT_HOME" ]; then
+        QT_VERSIONS=$(find "$WIN_QT_HOME" -maxdepth 1 -type d -name "6.*" | sort -V | tail -1)
+    fi
+    
+    if [ -n "$QT_VERSIONS" ]; then
+        # Windows: C:/Qt/6.x.x/msvc2019_64 or C:/Qt/6.x.x/mingw*_64
+        QT_PREFIX=$(find "$QT_VERSIONS" -type d -name "msvc*_64" | head -1)
+        if [ -z "$QT_PREFIX" ]; then
+            QT_PREFIX=$(find "$QT_VERSIONS" -type d -name "mingw*_64" | head -1)
+        fi
+    fi
 else
-    echo "Error: Unsupported platform: $OSTYPE"
-    exit 1
+    echo "Warning: Unsupported platform: $OSTYPE"
+    echo "Attempting generic detection..."
+    QT_PREFIX=$(find "$QT_VERSIONS" -type d -maxdepth 1 | grep -E "(macos|gcc_64|clang_64|msvc|mingw)" | head -1)
 fi
 
 if [ -z "$QT_PREFIX" ]; then
