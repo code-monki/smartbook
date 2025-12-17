@@ -34,13 +34,21 @@ def fix_list_spacing(content):
         return match.group(0)
     content = pattern2.sub(replacer2, content)
     
-    # Pattern 3: Numbered list after bold (less common but possible)
-    pattern3 = re.compile(r'(\*\*[^*]+\*\*)\n(\d+\.)', re.MULTILINE)
+    # Pattern 3: Numbered list (starting with .) after bold
+    pattern3 = re.compile(r'(\*\*[^*]+\*\*)\n(\.\s)', re.MULTILINE)
     def replacer3(match):
         nonlocal fixes_applied
         fixes_applied += 1
         return f"{match.group(1)}\n\n{match.group(2)}"
     content = pattern3.sub(replacer3, content)
+    
+    # Pattern 4: Numbered list (starting with digit) after bold (less common)
+    pattern4 = re.compile(r'(\*\*[^*]+\*\*)\n(\d+\.)', re.MULTILINE)
+    def replacer4(match):
+        nonlocal fixes_applied
+        fixes_applied += 1
+        return f"{match.group(1)}\n\n{match.group(2)}"
+    content = pattern4.sub(replacer4, content)
     
     return content, fixes_applied
 

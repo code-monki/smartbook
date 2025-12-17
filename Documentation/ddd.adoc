@@ -527,6 +527,7 @@ The Reader converts form definition JSON schema to HTML form elements using the 
 ==== Form Structure Generation
 
 **Algorithm:**
+
 . Create `<form>` element with `id="smartbook-form-{formId}-{instanceId}"`
 . Add form title as `<h2>` or `<legend>` if `formTitle` is defined
 . Iterate through `fields` array in order:
@@ -583,6 +584,7 @@ Validation is performed using HTML5 validation attributes and custom JavaScript 
 ==== Persistence to Cartridge (`User_Data` Table)
 
 **Save Operation:**
+
 . User clicks "Save" button or auto-save triggers
 . Form data is serialized to JSON: `{ "fieldId1": "value1", "fieldId2": "value2", ... }`
 . JSON is validated against form schema
@@ -595,6 +597,7 @@ Validation is performed using HTML5 validation attributes and custom JavaScript 
    * `timestamp` = current UNIX timestamp
 
 **Load Operation:**
+
 . Form is rendered
 . Reader retrieves current form version from `Form_Definitions` table
 . WebChannel API `loadFormData(formId, callback)` is called
@@ -606,6 +609,7 @@ Validation is performed using HTML5 validation attributes and custom JavaScript 
 ==== Persistence to Sandbox File System
 
 **Save Operation:**
+
 . User selects "Save to Sandbox" option (if available)
 . Form data is serialized to JSON
 . **File Selection:** Reader presents sandbox file picker dialog:
@@ -618,6 +622,7 @@ Validation is performed using HTML5 validation attributes and custom JavaScript 
 . Embedded app can access file via `loadSandboxFile` API
 
 **Load Operation:**
+
 . Form checks for sandbox file on load
 . **File Selection:** Reader provides option to use sandbox file picker:
    a. User can browse available files in sandbox directory
@@ -645,6 +650,7 @@ Validation is performed using HTML5 validation attributes and custom JavaScript 
 **Print Button:** Forms include a "Print" button that triggers print functionality.
 
 **Print Algorithm:**
+
 . User clicks "Print" button
 . Form is cloned and transformed for printing:
    a. Remove all `<input>`, `<select>`, `<textarea>` elements
@@ -685,6 +691,7 @@ Validation is performed using HTML5 validation attributes and custom JavaScript 
 * Auto-save scope: Current form instance only
 
 **Implementation:**
+
 . Timer starts when form is loaded
 . On field blur or timer expiration, form data is serialized
 . If data has changed since last save, `saveFormData` is called
@@ -693,12 +700,14 @@ Validation is performed using HTML5 validation attributes and custom JavaScript 
 ==== Form Reset
 
 **Reset to Defaults:**
+
 . User clicks "Reset" button
 . All form fields are restored to `defaultValue` from form schema
 . Unsaved changes are discarded
 . Saved data remains in `User_Data` table (not deleted)
 
 **Clear Form:**
+
 . User selects "Clear" option
 . All form fields are set to empty/null values
 . Saved data remains in `User_Data` table (not deleted)
@@ -778,6 +787,7 @@ This section defines how form schemas are versioned and how user data is migrate
 * Migration mapping interface for defining field mappings
 
 **Version Increment Workflow:**
+
 . Author makes changes to form in Form Builder
 . Form Builder detects if changes are breaking (field removed, renamed, type changed)
 . If breaking changes detected, prompt author to increment version
@@ -856,6 +866,7 @@ Migration rules are stored in `Form_Definitions.migration_rules_json` as a JSON 
 ==== Form Data Migration Algorithm
 
 **Migration Process:**
+
 . **Load Saved Data:** Retrieve most recent user data for form
 . **Check Version:** Compare saved data `form_version` with current form version
 . **If Versions Match:** Return data as-is (no migration needed)
@@ -994,6 +1005,7 @@ This section defines how custom navigation bars (e.g., Browse, Departments, Bibl
 === Navigation Structure Loading
 
 **Load Navigation Structure:**
+
 . On cartridge open, query `Navigation_Structure` table:
    `SELECT * FROM Navigation_Structure ORDER BY group_order, item_order`
 . Group results by `group_name`
@@ -1021,6 +1033,7 @@ This section defines how custom navigation bars (e.g., Browse, Departments, Bibl
    ```
 
 **Navigation Bar Rendering:**
+
 . If navigation structure exists, render custom navigation bar
 . Navigation bar is rendered as HTML/CSS within the Reader View
 . Navigation bar is positioned above main content area
@@ -1059,23 +1072,27 @@ This section defines how custom navigation bars (e.g., Browse, Departments, Bibl
 === Navigation Target Resolution
 
 **Page ID Navigation:**
+
 . Extract `target_value` (page_id)
 . Load page: `SELECT html_content FROM Content_Pages WHERE page_id = ?`
 . Navigate to page (update reading position, add to history)
 
 **Anchor Navigation:**
+
 . Extract `target_value` (anchor_id)
 . If on current page: Scroll to anchor element
 . If anchor is on different page: Load page first, then scroll to anchor
 . Update reading position with `anchor_id`
 
 **Page and Anchor Navigation:**
+
 . Parse `target_value` format: "page_id#anchor_id"
 . Load page: `SELECT html_content FROM Content_Pages WHERE page_id = ?`
 . After page loads, scroll to anchor element
 . Update reading position with both `page_id` and `anchor_id`
 
 **Custom Handler Navigation:**
+
 . Extract `target_value` (handler identifier)
 . Execute custom JavaScript handler (if defined in embedded app or content)
 . Custom handlers may:
@@ -1087,6 +1104,7 @@ This section defines how custom navigation bars (e.g., Browse, Departments, Bibl
 === Browse Navigation Implementation
 
 **Browse by Creator:**
+
 . Custom handler: `browse_by_creator`
 . Query `Content_Pages` for pages with metadata matching creator filter
 . Display filtered results or navigate to creator index page
@@ -1102,11 +1120,13 @@ This section defines how custom navigation bars (e.g., Browse, Departments, Bibl
    ```
 
 **Browse by Issue:**
+
 . Custom handler: `browse_by_issue`
 . Query pages filtered by issue metadata
 . Display issue index or filtered content view
 
 **Browse by Title:**
+
 . Custom handler: `browse_by_title`
 . Query pages filtered by title metadata
 . Display title index or filtered content view
@@ -1114,11 +1134,13 @@ This section defines how custom navigation bars (e.g., Browse, Departments, Bibl
 === Department Navigation Implementation
 
 **Department Structure:**
+
 . Departments are defined as navigation items in `Navigation_Structure` table
 . Each department item links to a specific page or section
 . Departments may have hierarchical structure (parent_item_id for sub-departments)
 
 **Department Navigation:**
+
 . User selects department from dropdown
 . Resolve target (page_id, anchor, or custom handler)
 . Navigate to department content
@@ -1127,11 +1149,13 @@ This section defines how custom navigation bars (e.g., Browse, Departments, Bibl
 === Bibliography Navigation Implementation
 
 **Bibliography Formats:**
+
 . Bibliography items link to citation format reference pages
 . Target format: `page_and_anchor` (e.g., "100#apa-bibliography")
 . Navigation loads bibliography reference page and scrolls to format section
 
 **Bibliography Display:**
+
 . Load target page
 . Scroll to anchor (format section)
 . Display citation format guidelines and examples
@@ -1211,6 +1235,7 @@ This section defines how custom navigation bars (e.g., Browse, Departments, Bibl
 === Keyboard Navigation
 
 **Navigation Bar Keyboard Access:**
+
 . Tab key: Navigate between navigation groups
 . Arrow keys: Navigate within dropdown menus
 . Enter/Space: Activate selected menu item
@@ -1229,6 +1254,7 @@ This section defines how content navigation, table of contents, bookmarking, and
 === Forward/Backward Navigation
 
 **Implementation:**
+
 . Reader maintains current `page_id` and `page_order` for active cartridge
 . Forward button: Query `SELECT page_id FROM Content_Pages WHERE page_order = (SELECT page_order FROM Content_Pages WHERE page_id = ?) + 1 LIMIT 1`
 . Backward button: Query `SELECT page_id FROM Content_Pages WHERE page_order = (SELECT page_order FROM Content_Pages WHERE page_id = ?) - 1 LIMIT 1`
@@ -1245,6 +1271,7 @@ This section defines how content navigation, table of contents, bookmarking, and
 === Table of Contents Generation
 
 **TOC Generation Algorithm:**
+
 . **Primary Structure (Chapters):**
    a. Query `SELECT DISTINCT chapter_title, MIN(page_order) as first_page_order FROM Content_Pages WHERE chapter_title IS NOT NULL GROUP BY chapter_title ORDER BY first_page_order`
    b. For each chapter, query pages: `SELECT page_id, page_order FROM Content_Pages WHERE chapter_title = ? ORDER BY page_order`
@@ -1316,6 +1343,7 @@ This section defines how content navigation, table of contents, bookmarking, and
 === Internal Link Navigation
 
 **Link Processing:**
+
 . Reader intercepts link clicks within content pages
 . Parse link href:
    a. **Page reference:** `smartbook://page/{page_id}` or `#page-{page_id}`
@@ -1348,6 +1376,7 @@ This section defines how content navigation, table of contents, bookmarking, and
 === Bookmarking Implementation
 
 **Add Bookmark:**
+
 . User clicks "Add Bookmark" button or uses keyboard shortcut (Ctrl+B / Cmd+B)
 . Reader prompts for bookmark label (default: page title or heading text)
 . Reader captures:
@@ -1371,6 +1400,7 @@ This section defines how content navigation, table of contents, bookmarking, and
 * Click bookmark to navigate to saved position
 
 **Navigate to Bookmark:**
+
 . User selects bookmark from list
 . Load page: `SELECT html_content FROM Content_Pages WHERE page_id = ?`
 . If `anchor_id` present, scroll to element
@@ -1380,6 +1410,7 @@ This section defines how content navigation, table of contents, bookmarking, and
 === Reading Position Persistence
 
 **Save Reading Position:**
+
 . On page navigation or cartridge close:
    a. Capture current `page_id`
    b. Capture current `anchor_id` (if on a heading/anchor)
@@ -1393,6 +1424,7 @@ This section defines how content navigation, table of contents, bookmarking, and
       * `last_access_timestamp` = current timestamp
 
 **Restore Reading Position:**
+
 . On cartridge open:
    a. Query `Local_Reading_Position` table: `SELECT * FROM Local_Reading_Position WHERE cartridge_guid = ?`
    b. If record exists:
@@ -1419,12 +1451,14 @@ This section defines how content navigation, table of contents, bookmarking, and
 * Maximum stack size: 50 entries (configurable)
 
 **Back Navigation:**
+
 . Pop current position from stack (save to end of forward stack)
 . Pop previous position from history stack
 . Navigate to previous position
 . Update `Local_Reading_Position` table
 
 **Forward Navigation:**
+
 . Pop next position from forward stack
 . Push current position to history stack
 . Navigate to next position
@@ -1467,6 +1501,7 @@ This section defines how document search and in-page search are implemented in t
 ==== Normal Search Algorithm
 
 **Implementation:**
+
 . User enters search term in input field
 . If case-sensitive toggle is OFF, convert search term and content to lowercase for comparison
 . Query all pages: `SELECT page_id, page_order, chapter_title, html_content FROM Content_Pages ORDER BY page_order`
@@ -1493,6 +1528,7 @@ This section defines how document search and in-page search are implemented in t
 * Parentheses for grouping: `(character OR player) AND sheet`
 
 **Implementation:**
+
 . Parse search query into boolean expression tree
 . For each page, evaluate boolean expression against page content
 . If expression evaluates to true, include page in results
@@ -1513,6 +1549,7 @@ This section defines how document search and in-page search are implemented in t
 * Match similar words despite typos or misspellings
 
 **Implementation:**
+
 . For each word in search term, find similar words in content
 . Calculate edit distance between search term and candidate words
 . If edit distance <= threshold (default: 2), consider it a match
@@ -1527,6 +1564,7 @@ This section defines how document search and in-page search are implemented in t
 ==== Regex Search Algorithm
 
 **Implementation:**
+
 . Validate regex pattern syntax
 . If invalid, display error message: "Invalid regular expression: [error details]"
 . If valid, compile regex pattern
@@ -1612,6 +1650,7 @@ Match 1 of 15
 ==== Term Highlighting
 
 **Highlighting Implementation:**
+
 . User enters search term in find dialog
 . Reader searches current page content for all matches
 . Wrap each match in HTML span with highlight class:
@@ -1641,6 +1680,7 @@ Match 1 of 15
 ==== Match Navigation
 
 **Navigation Implementation:**
+
 . Maintain array of all match positions: `[{ element, offset, text }]`
 . Track current match index
 . On "Next":
@@ -1686,6 +1726,7 @@ Match 1 of 15
 ==== Search Persistence Across Pages
 
 **Persistence Implementation:**
+
 . Store current search term in Reader View Window state
 . When user navigates to new page:
    a. Check if search term exists
@@ -1918,6 +1959,7 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
 * **Middle Ground:** This separation provides a reasonable middle ground between strict author control (no customization) and complete user control (which could break author intent), allowing both parties to achieve their goals without conflict
 
 **Theme CSS Generation:**
+
 . Load active theme from `Content_Themes` table
 . Parse `theme_config_json` to extract colors, fonts, styling
 . Generate CSS rules using CSS custom properties (variables) for **colors and fonts only**:
@@ -1965,6 +2007,7 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
 . Theme will be applied when cartridge is opened in Reader
 
 **Rendering Priority:**
+
 . Structural CSS (`associated_css`) is applied first (layout, positioning, spacing)
 . Theme CSS is applied second (colors, fonts override defaults)
 . User settings (from `Local_User_Settings`) can override theme colors/fonts
@@ -2095,6 +2138,7 @@ The Reader provides built-in print CSS optimized for common paper sizes:
 ----
 
 **Print CSS Application:**
+
 . Detect selected paper size from print dialog
 . Load appropriate built-in print CSS (US Letter or A4)
 . Merge with author's structural CSS (`associated_css`)
@@ -2105,6 +2149,7 @@ The Reader provides built-in print CSS optimized for common paper sizes:
 === Print Rendering Implementation
 
 **Rendering Strategy:**
+
 . **Content Preparation:**
    a. Load content from `Content_Pages` table
    b. Apply structural CSS (`associated_css`)
@@ -2126,6 +2171,7 @@ The Reader provides built-in print CSS optimized for common paper sizes:
    d. Handle page breaks and multi-page documents
 
 **Print Algorithm:**
+
 . User triggers print (menu item, keyboard shortcut Ctrl+P / Cmd+P, or toolbar button)
 . Determine print scope:
    * If text selected: Print selection only
@@ -2144,6 +2190,7 @@ The Reader provides built-in print CSS optimized for common paper sizes:
 === Print Preview
 
 **Preview Implementation:**
+
 . User selects "Print Preview" option
 . Prepare content with print CSS applied (same as print rendering)
 . Display preview in dialog or separate window
@@ -2193,6 +2240,7 @@ The Reader provides built-in print CSS optimized for common paper sizes:
 === Print CSS Priority
 
 **CSS Application Order:**
+
 . **Structural CSS** (`associated_css`) - Base layout and structure
 . **Theme CSS** (from `Content_Themes`) - Colors and fonts
 . **Print CSS** (`@media print` rules) - Print-specific optimizations
@@ -2267,6 +2315,7 @@ This section defines how text selection, copying, and pasting are implemented in
 * **Menu Bar:** Edit menu provides "Copy" option when text is selected
 
 **Copy Implementation:**
+
 . User selects text and triggers copy (keyboard shortcut, context menu, or menu bar)
 . Reader captures selected text from WebEngine
 . **Background Removal:** Strip background colors and styling from copied text
@@ -2274,6 +2323,7 @@ This section defines how text selection, copying, and pasting are implemented in
 . Copy plain text to system clipboard
 
 **Background Removal Algorithm:**
+
 . Get selected HTML content from WebEngine
 . Parse HTML to extract text nodes
 . For each text node:
@@ -2294,6 +2344,7 @@ This section defines how text selection, copying, and pasting are implemented in
 === Paste Functionality
 
 **Paste into Forms:**
+
 . User focuses on a form field (input, textarea, etc.)
 . User triggers paste (Ctrl+V / Cmd+V or context menu)
 . Reader retrieves plain text from system clipboard
@@ -2368,6 +2419,7 @@ This section defines how text selection, copying, and pasting are implemented in
 * Handle paste events in form input elements
 
 **Paste into Form Fields:**
+
 . User focuses on form field (click or Tab navigation)
 . User triggers paste (Ctrl+V / Cmd+V)
 . WebEngine handles paste event in form field
@@ -2426,6 +2478,7 @@ This section defines how text selection, copying, and pasting are implemented in
 * Shortcuts should not conflict with WebEngine's native shortcuts
 
 **Shortcut Priority:**
+
 . Form field shortcuts take precedence when form field is focused
 . Content page shortcuts apply when no form field is focused
 . Application-level shortcuts (menu items) always available
@@ -2500,6 +2553,7 @@ This section details how certificates are validated in the Reader application.
 ==== Certificate Extraction
 
 **Process:**
+
 . Read `certificate_data` BLOB from `Cartridge_Security` table
 . Parse certificate data (supports DER and PEM formats)
 . Create `QSslCertificate` object from certificate data
@@ -2522,6 +2576,7 @@ This section details how certificates are validated in the Reader application.
 ==== Certificate Validation Algorithm
 
 **Step 1: Determine Certificate Type**
+
 . Extract certificate from `certificate_data`
 . Use `QSslCertificate::verify()` to check if certificate is signed by a trusted CA:
   * If `verify()` returns `QSslCertificate::Valid` → Certificate is CA-signed
@@ -2529,6 +2584,7 @@ This section details how certificates are validated in the Reader application.
   * If `verify()` returns `QSslCertificate::Invalid` → Certificate validation failed
 
 **Step 2: Check Certificate Expiration**
+
 . Get certificate validity dates:
    * `QSslCertificate::effectiveDate()` - Certificate becomes valid
    * `QSslCertificate::expiryDate()` - Certificate expires
@@ -2605,6 +2661,7 @@ This section defines the exact algorithm used to calculate content hashes (H1 an
 The content hash includes the following tables, which represent author-controlled content and potential attack surfaces:
 
 **Included Tables:**
+
 . **`Content_Pages`** - Primary content (HTML pages, chapter structure)
 . **`Embedded_Apps`** - Embedded JavaScript applications (critical attack surface)
 . **`Form_Definitions`** - Form schemas and validation rules
@@ -2835,11 +2892,13 @@ This section details how public keys are obtained and verified during signature 
 ==== Public Key Extraction Process
 
 **Step 1: Certificate Parsing**
+
 . Read `certificate_data` BLOB from `Cartridge_Security` table
 . Parse certificate data (supports DER and PEM formats)
 . Create `QSslCertificate` object from certificate data
 
 **Step 2: Public Key Extraction**
+
 . Call `QSslCertificate::publicKey()` to extract the public key
 . The public key is returned as a `QSslKey` object
 . If certificate is missing or invalid, public key extraction fails → Public Key Status = `MISSING` or `INVALID`
@@ -2859,11 +2918,13 @@ This section details how public keys are obtained and verified during signature 
 * Fingerprint mismatch indicates potential tampering or corruption
 
 **Fingerprint Calculation:**
+
 . Extract public key from certificate (as described above)
 . Calculate fingerprint of the public key using the same algorithm used when creating the cartridge (typically SHA-256)
 . Convert fingerprint to the same format as stored `public_key_fingerprint` (typically hexadecimal string)
 
 **Fingerprint Verification Process:**
+
 . Calculate fingerprint of extracted public key
 . Compare calculated fingerprint with stored `public_key_fingerprint` from `Cartridge_Security` table
 . If fingerprints match → Fingerprint Status = `MATCH`
@@ -3248,6 +3309,7 @@ public:
 ==== Security Layers Summary
 
 **Defense in Depth:**
+
 . **Process Isolation** (Qt WebEngine native) - Apps run in separate renderer processes
 . **Network Interceptor** (Primary defense) - Blocks all network requests at the profile level
 . **CSP Headers** (Secondary defense) - Restricts resource loading and connections
@@ -3329,6 +3391,7 @@ The Smartbook Reader SHALL implement a Multi-Window Architecture: a single **Lib
 * Both saves occur atomically (in same transaction if possible)
 
 **Window State Save Algorithm:**
+
 . **On Window Close Event:**
    a. Get current window geometry: `QMainWindow::geometry()` or `QMainWindow::frameGeometry()`
    b. Get window state: `QMainWindow::isMaximized()`
@@ -3369,6 +3432,7 @@ The Smartbook Reader SHALL implement a Multi-Window Architecture: a single **Lib
 * If no reading position exists, navigate to first page
 
 **Window State Restoration Algorithm:**
+
 . **On Cartridge Open:**
    a. Create new `ReaderViewInstance` window
    b. Query `Local_Window_State` for `cartridge_guid`
@@ -3622,6 +3686,7 @@ Do you want to load this cartridge?
 ----
 
 **Options:**
+
 . "Load and Always Trust" (Adds to whitelist) — Default button
 . "Load for This Session Only" (Temporary trust)
 . "Cancel" (Do not load)
@@ -3644,6 +3709,7 @@ Do you want to load this cartridge?
 ----
 
 **Options:**
+
 . "Load and Always Trust" (Adds to whitelist)
 . "Load for This Session Only" (Temporary trust)
 . "Cancel" (Do not load)
@@ -3705,6 +3771,7 @@ Do you want to load this cartridge?
 | **Trust Options (FR-2.4.2)** | Three mutually exclusive radio button choices: a|
 . Trust for this session.
 . **Always trust this cartridge.**
+
 . Block execution.
 |===
 // Removed Image placeholder
@@ -5595,6 +5662,7 @@ This section defines how series, edition, and custom collection grouping is impl
 === Auto-Grouping by Series
 
 **Series Detection:**
+
 . On library load or cartridge import, query `Local_Library_Manifest`:
    `SELECT DISTINCT series_name FROM Local_Library_Manifest WHERE series_name IS NOT NULL`
 . For each unique `series_name`, create or update `Local_Cartridge_Groups` entry:
@@ -5603,6 +5671,7 @@ This section defines how series, edition, and custom collection grouping is impl
    * Auto-created groups are read-only (managed by system)
 
 **Series Membership:**
+
 . Query cartridges for series:
    `SELECT cartridge_guid FROM Local_Library_Manifest WHERE series_name = ?`
 . For each cartridge, ensure membership in series group:
@@ -5611,6 +5680,7 @@ This section defines how series, edition, and custom collection grouping is impl
    * Use `series_order` from metadata for `display_order` (if available)
 
 **Series Display:**
+
 . Load series groups: `SELECT * FROM Local_Cartridge_Groups WHERE group_type = 'series' ORDER BY group_name`
 . For selected series, load members:
    ```
@@ -5625,6 +5695,7 @@ This section defines how series, edition, and custom collection grouping is impl
 === Auto-Grouping by Edition
 
 **Edition Detection:**
+
 . On library load or cartridge import, query `Local_Library_Manifest`:
    `SELECT DISTINCT edition_name FROM Local_Library_Manifest WHERE edition_name IS NOT NULL`
 . For each unique `edition_name`, create or update `Local_Cartridge_Groups` entry:
@@ -5633,6 +5704,7 @@ This section defines how series, edition, and custom collection grouping is impl
    * Auto-created groups are read-only (managed by system)
 
 **Edition Membership:**
+
 . Query cartridges for edition:
    `SELECT cartridge_guid FROM Local_Library_Manifest WHERE edition_name = ?`
 . For each cartridge, ensure membership in edition group:
@@ -5641,6 +5713,7 @@ This section defines how series, edition, and custom collection grouping is impl
    * `display_order` is NULL (alphabetical by title)
 
 **Edition Display:**
+
 . Load edition groups: `SELECT * FROM Local_Cartridge_Groups WHERE group_type = 'edition' ORDER BY group_name`
 . For selected edition, load members:
    ```
@@ -5655,6 +5728,7 @@ This section defines how series, edition, and custom collection grouping is impl
 === Custom Collections
 
 **Create Custom Collection:**
+
 . User provides collection name (and optional description)
 . Insert into `Local_Cartridge_Groups`:
    ```sql
@@ -5664,6 +5738,7 @@ This section defines how series, edition, and custom collection grouping is impl
 . Return `group_id` for adding members
 
 **Add Cartridge to Collection:**
+
 . User selects cartridge(s) and target collection
 . For each cartridge, insert into `Local_Cartridge_Group_Members`:
    ```sql
@@ -5673,6 +5748,7 @@ This section defines how series, edition, and custom collection grouping is impl
 . Update collection's `last_modified_timestamp`
 
 **Remove Cartridge from Collection:**
+
 . User selects cartridge and collection
 . Delete membership:
    ```sql
@@ -5682,6 +5758,7 @@ This section defines how series, edition, and custom collection grouping is impl
 . Update collection's `last_modified_timestamp`
 
 **Rename Custom Collection:**
+
 . User provides new name
 . Update `Local_Cartridge_Groups`:
    ```sql
@@ -5691,6 +5768,7 @@ This section defines how series, edition, and custom collection grouping is impl
    ```
 
 **Delete Custom Collection:**
+
 . User confirms deletion
 . Delete all memberships:
    ```sql
@@ -5702,6 +5780,7 @@ This section defines how series, edition, and custom collection grouping is impl
    ```
 
 **Display Custom Collection:**
+
 . Load collection: `SELECT * FROM Local_Cartridge_Groups WHERE group_id = ?`
 . Load members:
    ```
@@ -5715,18 +5794,21 @@ This section defines how series, edition, and custom collection grouping is impl
 === Grouping UI Implementation
 
 **Browse by Series View:**
+
 . Display list of all series (from `Local_Cartridge_Groups` where `group_type = 'series'`)
 . User selects series
 . Display all cartridges in series (ordered by `series_order` or title)
 . User can open cartridges from series view
 
 **Browse by Edition View:**
+
 . Display list of all editions (from `Local_Cartridge_Groups` where `group_type = 'edition'`)
 . User selects edition
 . Display all cartridges in edition (ordered alphabetically by title)
 . User can open cartridges from edition view
 
 **Custom Collections View:**
+
 . Display list of all custom collections (from `Local_Cartridge_Groups` where `group_type = 'custom_collection'`)
 . User can:
    * Create new collection
@@ -5735,6 +5817,7 @@ This section defines how series, edition, and custom collection grouping is impl
    * Rename/delete collection
 
 **Grouping Filters:**
+
 . Add filter dropdown or sidebar to Library Manager
 . Filter options:
    * "All Cartridges" (default)
@@ -5744,6 +5827,7 @@ This section defines how series, edition, and custom collection grouping is impl
 . When filter selected, update library view to show filtered content
 
 **Search by Series/Edition:**
+
 . Add search field with autocomplete
 . Search suggestions include:
    * Series names
@@ -5754,6 +5838,7 @@ This section defines how series, edition, and custom collection grouping is impl
 === Grouping Maintenance
 
 **On Cartridge Import:**
+
 . After importing cartridge, check metadata for `series_name` and `edition_name`
 . If `series_name` present:
    * Ensure series group exists in `Local_Cartridge_Groups`
@@ -5763,6 +5848,7 @@ This section defines how series, edition, and custom collection grouping is impl
    * Add cartridge to edition group membership
 
 **On Cartridge Deletion:**
+
 . Before deleting cartridge, remove from all group memberships:
    ```sql
    DELETE FROM Local_Cartridge_Group_Members WHERE cartridge_guid = ?
@@ -5771,6 +5857,7 @@ This section defines how series, edition, and custom collection grouping is impl
 . If series/edition group becomes empty, optionally remove group (or keep for future imports)
 
 **On Cartridge Metadata Update:**
+
 . If `series_name` or `edition_name` changes:
    * Remove from old group memberships
    * Add to new group memberships (if applicable)
@@ -6568,6 +6655,7 @@ This section defines the complete workflow for importing cartridges into the Rea
 === Import Validation
 
 **Validation Steps:**
+
 . **File Format Validation:**
    * Verify file exists and is readable
    * Verify file has `.sqlite` extension (or is valid SQLite database)
@@ -6603,11 +6691,13 @@ This section defines the complete workflow for importing cartridges into the Rea
 === Import Workflow Algorithm
 
 **Step 1: File Selection**
+
 . User initiates import (drag-drop or file picker)
 . Collect list of files to import
 . Filter to only `.sqlite` files (warn about non-cartridge files)
 
 **Step 2: Progress Dialog Display**
+
 . Display import progress dialog
 . Initialize progress bar to 0%
 . Add all files to file list with "pending" status
@@ -6646,12 +6736,14 @@ For each file in import list:
    * **Set Status:** Set file status to "completed" in progress dialog
 
 **Step 4: Completion**
+
 . Update progress bar to 100%
 . Close progress dialog (or show completion summary)
 . Refresh library view to display imported cartridges
 . Display success notification (optional): "Successfully imported X cartridges"
 
 **Step 5: Error Summary (if any failures)**
+
 . If any files failed validation or were skipped:
 . Display summary dialog: "Import completed with X errors. Y files imported successfully, Z files skipped/failed."
 . Provide option to view error log
@@ -6696,6 +6788,7 @@ Cartridge format version is stored in the `Metadata.schema_version` field and in
 ==== Version Detection
 
 **When Cartridge is Opened:**
+
 . Reader reads `schema_version` from `Metadata` table
 . Reader compares cartridge `schema_version` with current supported format version
 . If versions match: Cartridge is loaded normally
@@ -6723,6 +6816,7 @@ Cartridge format version is stored in the `Metadata.schema_version` field and in
 * Reader SHALL NOT attempt to load cartridges with unsupported newer format versions
 
 **Migration Process:**
+
 . **Detect Version:** Read `schema_version` from cartridge `Metadata` table
 . **Check Compatibility:** Compare with Reader's supported format versions
 . **If Older Version:**
@@ -6826,6 +6920,7 @@ The Reader's local database (`local_reader.sqlite`) contains the `Local_Library_
 ==== Migration Process
 
 **Migration on Startup:**
+
 . **Check Version:** Query `_schema_version` table for current database version
 . **Compare Versions:** Compare with Reader's current schema version
 . **If Versions Match:** Continue normal startup
@@ -7048,10 +7143,12 @@ The Reader's local database (`local_reader.sqlite`) contains the `Local_Library_
 ==== Log Rotation Algorithm
 
 **Trigger Conditions:**
+
 . Log file size >= 10MB
 . Daily rotation (at midnight or application start if >24 hours since last rotation)
 
 **Rotation Process:**
+
 . Close current log file
 . Rename existing rotated files: `smartbook.log.N` → `smartbook.log.N+1`
 . Rename current log: `smartbook.log` → `smartbook.log.1`
