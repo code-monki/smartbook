@@ -100,7 +100,7 @@ set(COMMON_SOURCES
     src/database/LocalDBManager.cpp
     src/database/CartridgeDBConnector.cpp
     src/security/SignatureVerifier.cpp
-    src/security/TrustRegistry.cpp
+    # src/security/TrustRegistry.cpp  # TODO: Implement TrustRegistry
     src/utils/PlatformUtils.cpp
     src/utils/PathUtils.cpp
     src/metadata/MetadataExtractor.cpp

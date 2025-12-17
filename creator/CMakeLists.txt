@@ -94,7 +94,7 @@ set(CREATOR_SOURCES
     src/ContentEditor.cpp
     src/FormBuilder.cpp
     src/CartridgeExporter.cpp
-    src/ui/MainWindow.cpp
+    # src/ui/MainWindow.cpp  # TODO: Implement MainWindow UI
     src/ui/ContentEditorView.cpp
     src/ui/FormBuilderDialog.cpp
 )
