@@ -261,6 +261,7 @@ Both applications are documented in a single SRS document as they are tightly co
      * Replace the existing cartridge (delete old file, import new file)
      * Skip the duplicate (abort import for this cartridge)
      * Keep both (rename new file to avoid conflict)
+  +
   b. The dialog SHALL display information about both cartridges (title, author, publisher, file paths, file sizes, modification dates)
   c. The dialog SHALL allow the user to make a choice for each duplicate cartridge when importing multiple files
 
