@@ -567,19 +567,19 @@ Windows builds create installer packages:
 
 === Initial Setup
 
-1. **Clone Repository:**
+. **Clone Repository:**
 [source,bash]
 ----
 git clone <repository-url>
 cd SmartBook
 ----
 
-2. **Install Prerequisites:**
+. **Install Prerequisites:**
    * Install Qt 6.2+
    * Install build tools (CMake, compiler)
    * Install documentation tools
 
-3. **Verify Setup:**
+. **Verify Setup:**
 [source,bash]
 ----
 make help                # Verify Makefile is working
@@ -589,7 +589,7 @@ cmake --version          # Verify CMake installation
 
 === Daily Development
 
-1. **Build for Development:**
+. **Build for Development:**
 [source,bash]
 ----
 # Build for current platform
@@ -600,21 +600,21 @@ cd reader
 make
 ----
 
-2. **Run Application:**
+. **Run Application:**
 [source,bash]
 ----
 make run                # Run Reader
 make run CREATOR        # Run Creator Tool
 ----
 
-3. **Run Tests:**
+. **Run Tests:**
 [source,bash]
 ----
 make test               # Run all tests
 make test-unit          # Run unit tests during development
 ----
 
-4. **Generate Documentation:**
+. **Generate Documentation:**
 [source,bash]
 ----
 make docs               # Generate all PDFs
@@ -622,20 +622,20 @@ make docs               # Generate all PDFs
 
 === Before Committing
 
-1. **Clean Build:**
+. **Clean Build:**
 [source,bash]
 ----
 make clean
 make all                # Full build including tests
 ----
 
-2. **Verify Tests Pass:**
+. **Verify Tests Pass:**
 [source,bash]
 ----
 make test
 ----
 
-3. **Check Documentation:**
+. **Check Documentation:**
 [source,bash]
 ----
 make docs               # Ensure docs build successfully
