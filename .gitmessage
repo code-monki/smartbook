@@ -1,0 +1,38 @@
+# SmartBook Commit Message Guidelines
+# 
+# During testing phase, use atomic commits for easier regression tracking:
+#
+# Format:
+# <type>(<scope>): <subject>
+#
+# <body>
+#
+# Types:
+# - fix: Bug fix
+# - feat: New feature
+# - test: Test-related changes
+# - build: Build system changes
+# - docs: Documentation changes
+# - refactor: Code refactoring
+# - style: Code style changes (formatting, etc.)
+# - perf: Performance improvements
+#
+# Examples:
+#
+# fix(reader): Resolve crash when opening empty cartridge
+# 
+# Fixed null pointer dereference in LibraryManager when cartridge
+# metadata is missing. Added validation before accessing metadata fields.
+#
+# test(common): Add unit tests for LocalDBManager
+#
+# Added test cases for:
+# - Database initialization
+# - Schema creation
+# - Query execution
+# - Error handling
+#
+# feat(creator): Add form builder UI
+#
+# Implemented form builder dialog with drag-and-drop interface.
+# Supports JSON schema generation and validation.
