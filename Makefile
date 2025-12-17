@@ -97,6 +97,23 @@ docs: docs-html docs-pdf
 	@echo "Note: HTML is recommended for best formatting quality."
 	@echo "      Open HTML files in browser and use 'Print to PDF' for perfect results."
 
+docs-mmd:
+	@echo "Generating documentation as MultiMarkdown..."
+	@mkdir -p $(DOCS_DIR)/mmd
+	@which pandoc > /dev/null 2>&1 || (echo "Error: pandoc not found. Install with: brew install pandoc" && exit 1)
+	@for doc in Documentation/*.adoc; do \
+		if [ -f "$$doc" ]; then \
+			doc_name=$$(basename "$$doc" .adoc); \
+			echo "  Converting $$doc_name.adoc to MultiMarkdown..."; \
+			pandoc --from=asciidoc --to=markdown_mmd "$$doc" -o "$(DOCS_DIR)/mmd/$$doc_name.mmd" 2>/dev/null || echo "Warning: Failed to convert $$doc"; \
+		fi \
+	done
+	@echo "MultiMarkdown files generated in $(DOCS_DIR)/mmd/"
+	@echo ""
+	@echo "To generate PDFs from MultiMarkdown:"
+	@echo "  cd $(DOCS_DIR)/mmd && mmd <filename>.mmd"
+	@echo "Or use Pandoc: pandoc <filename>.mmd -o <filename>.pdf"
+
 docs-html:
 	@echo "Generating documentation as HTML (recommended format)..."
 	@mkdir -p $(DOCS_DIR)/html

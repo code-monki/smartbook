@@ -1348,10 +1348,10 @@ This section defines how content navigation, table of contents, bookmarking, and
 . On cartridge open:
    a. Query `Local_Reading_Position` table: `SELECT * FROM Local_Reading_Position WHERE cartridge_guid = ?`
    b. If record exists:
-
       * Load page: `SELECT html_content FROM Content_Pages WHERE page_id = ?`
       * If `anchor_id` present, scroll to element after page loads
       * If `scroll_position` present, restore scroll position
+   +
    c. If no record exists, load first page (`page_order = 1`)
 
 **Position Update Frequency:**
@@ -3197,24 +3197,23 @@ The Smartbook Reader SHALL implement a Multi-Window Architecture: a single **Lib
    a. Create new `ReaderViewInstance` window
    b. Query `Local_Window_State` for `cartridge_guid`
    c. If entry found:
-
       * Validate saved geometry (see "Window State Validation" above)
       * If valid: Set window geometry using `QMainWindow::setGeometry()` or `QMainWindow::resize()` and `QMainWindow::move()`
       * If was maximized: Call `QMainWindow::showMaximized()`
       * If invalid: Use default geometry
+   +
    d. If entry not found:
-
       * Use default window size (e.g., 1024x768) and center on screen
+   +
    e. Show window
    f. Load cartridge content
    g. Query `Local_Reading_Position` for `cartridge_guid`
    h. If entry found:
-
       * Navigate to saved `page_id`
       * If `anchor_id` present, scroll to anchor
       * If `scroll_position` present, scroll to position
+   +
    i. If entry not found:
-
       * Navigate to first page
 
 **Default Window Geometry:**
