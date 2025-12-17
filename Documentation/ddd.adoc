@@ -2107,6 +2107,7 @@ The Reader provides built-in print CSS optimized for common paper sizes:
 . **Print CSS** (`@media print` rules) - Print-specific optimizations
 
 **Print CSS Overrides:**
+
 * Print CSS can override structural CSS for print-specific layout
 * Print CSS can override theme colors for print optimization (e.g., force black text)
 * Print CSS takes precedence within `@media print` blocks

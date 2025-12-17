@@ -16,7 +16,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 == Test Cases: Security and Trust Validation
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -44,7 +44,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 == Test Cases: Architectural and Persistence Validation
 
-[cols="1, 2, 4, 3"]
+[cols="1, 2, a, 3"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -70,13 +70,13 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Content Authoring and Editing
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
 | **T-CT-01** | FR-CT-3.1 (HTML Content Authoring) | 
 . Create a new cartridge in Creator Tool.
-. Open the WYSIWYG editing interface.
+. Open the WYSIWYG editing interface
 . Enter text content in the editor.
 . Save the cartridge.
 | **AC:** Content is stored in the `Content_Pages` table as HTML. The WYSIWYG interface displays and allows editing of HTML content using Qt WebEngineView.
@@ -117,7 +117,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Page Management
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -151,7 +151,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Cartridge Creation and Export
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -233,7 +233,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Metadata and Resource Management
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -272,7 +272,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Form Definition Management
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -307,7 +307,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Auto-Save and Recovery
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -342,7 +342,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Error Handling
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -381,7 +381,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Stylesheet and Settings Management
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -425,7 +425,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === JavaScript and Embedded Applications
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -454,7 +454,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Search and Import Capabilities
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -497,7 +497,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Draft and Publishing States
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -530,7 +530,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Content Templates
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -563,7 +563,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Version History
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -601,7 +601,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Accessibility
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -641,7 +641,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === UI Theming Support
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -688,7 +688,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Content Theme Management
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -759,7 +759,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Reader Application Error Scenarios
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -890,7 +890,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Creator Tool Error Scenarios
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -1031,7 +1031,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 == Test Cases: Performance Validation
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -1096,7 +1096,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === WebEngine Configuration and Standards
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -1168,7 +1168,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Network Blocking Security Tests
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -1213,7 +1213,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Performance and Standards Tests
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -1284,7 +1284,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === SQLite Configuration and Optimization
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -1388,7 +1388,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Connection and Transaction Testing
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -1436,7 +1436,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Error Handling and Recovery Testing
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -1473,7 +1473,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Performance and Stress Testing
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -1545,7 +1545,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Platform Support Testing
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -1583,7 +1583,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === UI Framework Testing
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -1604,7 +1604,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Security Testing
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -1630,7 +1630,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Distribution and Packaging Testing
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -1658,7 +1658,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === File Association and URL Scheme Testing
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -1680,7 +1680,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Help System Access and Content
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -1730,7 +1730,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === PDF User Manual Distribution
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -1769,7 +1769,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Help System Integration
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -1802,7 +1802,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Platform-Specific Help Integration
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -1836,7 +1836,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Navigation Structure and Display
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -1866,7 +1866,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Browse Navigation
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -1903,7 +1903,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Department Navigation
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -1926,7 +1926,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Bibliography Navigation
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -1950,7 +1950,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Navigation Target Resolution
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -1988,7 +1988,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Navigation Bar Styling and Accessibility
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -2011,7 +2011,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Creator Tool Navigation Support
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -2036,7 +2036,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Series and Edition Metadata
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -2075,7 +2075,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Auto-Grouping by Series and Edition
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -2109,7 +2109,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Custom Collections
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -2141,7 +2141,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Grouping Display and Navigation
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
@@ -2174,7 +2174,7 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 
 === Performance and Edge Cases
 
-[cols="1, 2, 4, 3", options="headers"]
+[cols="1, 2, a, 3", options="headers"]
 |===
 ^.^| Test Case ID ^.^| Requirement Covered ^.^| Test Steps ^.^| Expected Result (Acceptance Criteria)
 
