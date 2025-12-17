@@ -97,8 +97,10 @@ docs: docs-html docs-pdf
 	@echo "Note: HTML is recommended for best formatting quality."
 	@echo "      Open HTML files in browser and use 'Print to PDF' for perfect results."
 
-docs-mmd:
-	@echo "Generating documentation as MultiMarkdown..."
+docs-mmd: docs-mmd-source docs-mmd-pdf
+
+docs-mmd-source:
+	@echo "Generating documentation as MultiMarkdown source files..."
 	@mkdir -p $(DOCS_DIR)/mmd
 	@which pandoc > /dev/null 2>&1 || (echo "Error: pandoc not found. Install with: brew install pandoc" && exit 1)
 	@for doc in Documentation/*.adoc; do \
@@ -108,13 +110,23 @@ docs-mmd:
 			pandoc --from=asciidoc --to=markdown_mmd "$$doc" -o "$(DOCS_DIR)/mmd/$$doc_name.mmd" 2>/dev/null || echo "Warning: Failed to convert $$doc"; \
 		fi \
 	done
-	@echo "MultiMarkdown files generated in $(DOCS_DIR)/mmd/"
+	@echo "MultiMarkdown source files generated in $(DOCS_DIR)/mmd/"
+
+docs-mmd-pdf:
+	@echo "Generating PDFs from MultiMarkdown..."
+	@mkdir -p $(DOCS_DIR)
+	@which pandoc > /dev/null 2>&1 || (echo "Error: pandoc not found. Install with: brew install pandoc" && exit 1)
+	@for mmd in $(DOCS_DIR)/mmd/*.mmd; do \
+		if [ -f "$$mmd" ]; then \
+			doc_name=$$(basename "$$mmd" .mmd); \
+			echo "  Converting $$doc_name.mmd to PDF..."; \
+			pandoc --from=markdown_mmd --to=pdf "$$mmd" -o "$(DOCS_DIR)/$$doc_name.pdf" 2>/dev/null || echo "Warning: Failed to convert $$mmd"; \
+		fi \
+	done
+	@echo "PDFs generated from MultiMarkdown in $(DOCS_DIR)/"
 	@echo ""
-	@echo "To generate PDFs from MultiMarkdown using Pandoc:"
-	@echo "  cd $(DOCS_DIR)/mmd && pandoc --from=markdown_mmd --to=pdf <filename>.mmd -o <filename>.pdf"
-	@echo ""
-	@echo "Note: Pandoc converts complex tables to HTML in MultiMarkdown output."
-	@echo "      This preserves table structure but uses HTML syntax."
+	@echo "Note: MultiMarkdown preserves lists in table cells as HTML,"
+	@echo "      which should render correctly in PDFs."
 
 docs-html:
 	@echo "Generating documentation as HTML (recommended format)..."
