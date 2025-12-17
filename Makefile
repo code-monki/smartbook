@@ -103,15 +103,20 @@ docs:
 		fi \
 	done
 	@echo "Step 2: Converting HTML to PDF..."
-	@if command -v wkhtmltopdf > /dev/null 2>&1; then \
+	@CHROME_CMD=$$(command -v google-chrome || command -v chromium-browser || command -v chromium || command -v chrome || [ -f "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" ] && echo "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" || echo ""); \
+	if [ -n "$$CHROME_CMD" ]; then \
+		echo "  Using Chrome/Chromium headless mode..."; \
 		for html in $(DOCS_DIR)/html/*.html; do \
 			if [ -f "$$html" ]; then \
 				pdf_name=$$(basename "$$html" .html).pdf; \
+				html_path=$$(cd "$$(dirname "$$html")" && pwd)/$$(basename "$$html"); \
+				pdf_path=$$(cd "$(DOCS_DIR)" && pwd)/$$pdf_name; \
 				echo "  Converting $$(basename $$html) to PDF..."; \
-				wkhtmltopdf --page-size Letter --margin-top 0.75in --margin-bottom 0.75in --margin-left 0.75in --margin-right 0.75in --print-media-type "$$html" "$(DOCS_DIR)/$$pdf_name" 2>/dev/null || echo "Warning: Failed to convert $$html"; \
+				"$$CHROME_CMD" --headless --disable-gpu --print-to-pdf="$$pdf_path" --print-to-pdf-no-header --no-pdf-header-footer "file://$$html_path" 2>/dev/null || echo "Warning: Failed to convert $$html"; \
 			fi \
 		done; \
 	elif command -v weasyprint > /dev/null 2>&1; then \
+		echo "  Using WeasyPrint..."; \
 		for html in $(DOCS_DIR)/html/*.html; do \
 			if [ -f "$$html" ]; then \
 				pdf_name=$$(basename "$$html" .html).pdf; \
@@ -121,8 +126,8 @@ docs:
 		done; \
 	else \
 		echo "Error: No PDF converter found. Install one of:"; \
-		echo "  - wkhtmltopdf: brew install wkhtmltopdf (macOS) or apt-get install wkhtmltopdf (Linux)"; \
-		echo "  - weasyprint: pip install weasyprint"; \
+		echo "  - Chrome/Chromium (recommended): Already installed on most systems"; \
+		echo "  - WeasyPrint: pip install weasyprint"; \
 		echo ""; \
 		echo "Falling back to asciidoctor-pdf (may have list rendering issues)..."; \
 		which asciidoctor-pdf > /dev/null 2>&1 || (echo "Error: asciidoctor-pdf not found. Install with: gem install asciidoctor-pdf" && exit 1); \
