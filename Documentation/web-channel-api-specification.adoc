@@ -53,7 +53,7 @@ The following table summarizes the methods available to the embedded JavaScript:
 
 [cols="2, ^1, 4", options="headers"]
 |===
-^.^| Parameter ^.^ Type ^.^| Description
+^.^| Parameter ^.^| Type ^.^| Description
 
 | `formId` | String | The unique ID of the form being saved.
 | `dataJson` | String | The entire serialized form data (JSON string), ready for storage.
