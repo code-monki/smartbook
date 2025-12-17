@@ -88,21 +88,38 @@ clean:
 	@cd test && $(MAKE) clean 2>/dev/null || true
 	@echo "Clean complete."
 
-docs:
-	@echo "Generating documentation PDFs..."
+docs: docs-docx docs-pdf
+	@echo ""
+	@echo "Documentation generated in $(DOCS_DIR)/"
+	@echo "  - DOCX files: Better list/table rendering, editable in Word/LibreOffice"
+	@echo "  - PDF files: For distribution (may have list rendering limitations)"
+
+docs-docx:
+	@echo "Generating documentation as DOCX (Word format)..."
 	@mkdir -p $(DOCS_DIR)
-	@which asciidoctor-pdf > /dev/null 2>&1 || (echo "Error: asciidoctor-pdf not found. Install with: gem install asciidoctor-pdf" && exit 1)
+	@which pandoc > /dev/null 2>&1 || (echo "Error: pandoc not found. Install with: brew install pandoc" && exit 1)
+	@for doc in Documentation/*.adoc; do \
+		if [ -f "$$doc" ]; then \
+			doc_name=$$(basename "$$doc" .adoc); \
+			echo "  Converting $$doc_name.adoc to DOCX..."; \
+			pandoc --from=asciidoc --to=docx "$$doc" -o "$(DOCS_DIR)/$$doc_name.docx" 2>/dev/null || echo "Warning: Failed to convert $$doc"; \
+		fi \
+	done
+	@echo "DOCX files generated in $(DOCS_DIR)/"
+
+docs-pdf:
+	@echo "Generating documentation as PDF..."
+	@mkdir -p $(DOCS_DIR)
+	@which asciidoctor-pdf > /dev/null 2>&1 || (echo "Warning: asciidoctor-pdf not found. Install with: gem install asciidoctor-pdf" && echo "Skipping PDF generation..." && exit 0)
 	@which mmdc > /dev/null 2>&1 || echo "Warning: mermaid-cli (mmdc) not found. Diagrams may not be converted."
 	@for doc in Documentation/*.adoc; do \
 		if [ -f "$$doc" ]; then \
-			echo "Processing $$doc..."; \
+			echo "  Processing $$(basename $$doc) to PDF..."; \
 			asciidoctor-pdf -a pdf-theme=Documentation/pdf-theme.yml -D $(DOCS_DIR) "$$doc" || echo "Warning: Failed to process $$doc"; \
 		fi \
 	done
-	@echo "Documentation generated in $(DOCS_DIR)/"
-	@echo ""
-	@echo "Note: Lists in table cells may not render perfectly due to Asciidoctor PDF limitations."
-	@echo "This is a known issue with the converter, not the source documentation."
+	@echo "PDF files generated in $(DOCS_DIR)/"
+	@echo "Note: PDFs may have list rendering limitations. Use DOCX for best formatting."
 
 # Linux platform targets
 linux:
