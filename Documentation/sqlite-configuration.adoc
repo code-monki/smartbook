@@ -753,92 +753,92 @@ bool LocalDBManager::backupDatabase(const QString& backupPath) {
 . Launch Reader application.
 . Check SQLite version in logs or About dialog.
 . Verify version is 3.51 or higher.
-| | | | *AC:** SQLite version is detected and logged. Version is 3.51 or higher. Error is displayed if version is insufficient.
+| | | | **AC: SQLite version is detected and logged. Version is 3.51 or higher. Error is displayed if version is insufficient.
 
 | **T-SQL-02** | FR-SQL-6.2 (Version Detection) | a|
 . Launch Reader application.
 . Check application logs for SQLite version information.
-| | | | *AC:** SQLite version is logged at application startup. Version information is available in logs. Version format is correct (e.g., "3.51.0").
+| | | | **AC: SQLite version is logged at application startup. Version information is available in logs. Version format is correct (e.g., "3.51.0").
 
 | **T-SQL-03** | FR-SQL-6.3 (WAL Mode - Local Database) | a|
 . Launch Reader application (first run, creates new database).
 . Check journal mode of local database.
 . Verify WAL mode is enabled.
-| | | | *AC:** Local database is created with WAL mode enabled. Journal mode is "wal". WAL file is created.
+| | | | **AC: Local database is created with WAL mode enabled. Journal mode is "wal". WAL file is created.
 
 | **T-SQL-04** | FR-SQL-6.3 (WAL Mode - Existing Database) | a|
 . Launch Reader application with existing local database (not in WAL mode).
 . Verify database is converted to WAL mode.
-| | | | *AC:** Existing database is automatically converted to WAL mode. Conversion is logged. Database functions correctly after conversion.
+| | | | **AC: Existing database is automatically converted to WAL mode. Conversion is logged. Database functions correctly after conversion.
 
 | **T-SQL-05** | FR-SQL-6.4 (WAL Mode - Cartridge Files) | a|
 . Create new cartridge in Creator Tool.
 . Check journal mode of cartridge file.
 . Verify WAL mode is enabled.
-| | | | *AC:** Cartridge file is created with WAL mode enabled. Journal mode is "wal". WAL file is created alongside cartridge.
+| | | | **AC: Cartridge file is created with WAL mode enabled. Journal mode is "wal". WAL file is created alongside cartridge.
 
 | **T-SQL-06** | FR-SQL-6.5 (WAL Checkpoint Configuration) | a|
 . Perform multiple write operations on local database.
 . Monitor WAL file size.
 . Verify checkpoint occurs when threshold is reached.
-| | | | *AC:** WAL checkpoint occurs when WAL file exceeds 10MB or 1000 pages written. Checkpoint truncates WAL file. Checkpoint is logged.
+| | | | **AC: WAL checkpoint occurs when WAL file exceeds 10MB or 1000 pages written. Checkpoint truncates WAL file. Checkpoint is logged.
 
 | **T-SQL-07** | FR-SQL-6.6 (WAL Mode Detection) | a|
 . Create database file not in WAL mode.
 . Open database in Reader (read-only).
 . Verify detection and logging.
-| | | | *AC:** WAL mode is detected. Warning is logged if database is not in WAL mode. Database can still be read (if read-only).
+| | | | **AC: WAL mode is detected. Warning is logged if database is not in WAL mode. Database can still be read (if read-only).
 
 | **T-SQL-08** | FR-SQL-6.7 (Page Size Configuration) | a|
 . Create new local database.
 . Check page size of database.
 . Verify page size is 4096 bytes.
-| | | | *AC:** Database is created with page size 4096 bytes. Page size is correctly set. Page size matches specification.
+| | | | **AC: Database is created with page size 4096 bytes. Page size is correctly set. Page size matches specification.
 
 | **T-SQL-09** | FR-SQL-6.8 (Cache Size Configuration) | a|
 . Open local database.
 . Check cache size setting.
 . Open cartridge file.
 . Check cache size setting.
-| | | | *AC:** Local database cache size is 2000 pages (8MB). Cartridge cache size is 1000 pages (4MB). Cache sizes are correctly configured.
+| | | | **AC: Local database cache size is 2000 pages (8MB). Cartridge cache size is 1000 pages (4MB). Cache sizes are correctly configured.
 
 | **T-SQL-10** | FR-SQL-6.9 (Synchronous Configuration) | a|
 . Open database in Reader.
 . Check synchronous mode setting.
 . Verify synchronous mode is NORMAL.
-| | | | *AC:** Synchronous mode is set to NORMAL. Setting is correctly configured. Mode is appropriate for WAL mode.
+| | | | **AC: Synchronous mode is set to NORMAL. Setting is correctly configured. Mode is appropriate for WAL mode.
 
 | **T-SQL-11** | FR-SQL-6.10 (Journal Mode Configuration) | a|
 . Create new database.
 . Check journal mode.
 . Verify journal mode is WAL.
-| | | | *AC:** Journal mode is set to WAL. Mode is correctly configured. WAL mode is enabled.
+| | | | **AC: Journal mode is set to WAL. Mode is correctly configured. WAL mode is enabled.
 
 | **T-SQL-12** | FR-SQL-6.11 (Foreign Key Constraints) | a|
 . Open database.
 . Enable foreign key constraints.
 . Attempt to insert record violating foreign key constraint.
 . Verify constraint is enforced.
-| | | | *AC:** Foreign key constraints are enabled. Constraint violations are rejected. Error is returned. Data integrity is maintained.
+| | | | **AC: Foreign key constraints are enabled. Constraint violations are rejected. Error is returned. Data integrity is maintained.
 
 | **T-SQL-13** | FR-SQL-6.12 (Query Optimizer) | a|
 . Perform bulk import operation.
 . Run ANALYZE command.
 . Execute query that benefits from statistics.
 . Measure query performance.
-| | | | *AC:** ANALYZE updates query optimizer statistics. Query performance is improved after ANALYZE. Statistics are used by optimizer.
+| | | | **AC: ANALYZE updates query optimizer statistics. Query performance is improved after ANALYZE. Statistics are used by optimizer.
 
 | **T-SQL-14** | FR-SQL-6.13 (Index Optimization) | a|
 . Verify indexes exist on frequently queried columns.
 . Execute queries using indexed columns.
 . Measure query performance.
-| | | | *AC:** All required indexes exist. Queries use indexes (verify with EXPLAIN QUERY PLAN). Query performance is optimal.
+| | | | **AC: All required indexes exist. Queries use indexes (verify with EXPLAIN QUERY PLAN). Query performance is optimal.
 
 | **T-SQL-15** | FR-SQL-6.14 (Vacuum and Optimization) | a|
 . Perform operations that fragment database (inserts, deletes).
 . Run VACUUM operation.
 . Check database file size before and after.
-| | | | *AC:** VACUUM operation completes successfully. Database file size is reduced. Database integrity is maintained. ANALYZE is run after VACUUM.
+| | | | **AC: VACUUM operation completes successfully. Database file size is reduced. Database integrity is maintained. ANALYZE is run after VACUUM.
 
 |===
 
@@ -852,38 +852,38 @@ bool LocalDBManager::backupDatabase(const QString& backupPath) {
 . Launch Reader application.
 . Open multiple cartridges simultaneously.
 . Verify connection management.
-| | | | *AC:** Local database uses single connection (Singleton). Each cartridge has separate connection (Per-Instance). Connections are managed correctly.
+| | | | **AC: Local database uses single connection (Singleton). Each cartridge has separate connection (Per-Instance). Connections are managed correctly.
 
 | **T-SQL-17** | FR-SQL-6.16 (Connection Timeout) | a|
 . Lock database file externally (simulate locked database).
 . Attempt to open database in Reader.
 . Monitor timeout behavior.
-| | | | *AC:** Connection timeout occurs after 30 seconds. Retry logic with exponential backoff is used. Maximum 3 retry attempts. Error is displayed after timeout.
+| | | | **AC: Connection timeout occurs after 30 seconds. Retry logic with exponential backoff is used. Maximum 3 retry attempts. Error is displayed after timeout.
 
 | **T-SQL-18** | FR-SQL-6.17 (Busy Handler) | a|
 . Open database in one Reader instance.
 . Attempt to write to same database from another instance.
 . Verify busy handler behavior.
-| | | | *AC:** Busy handler waits up to 5 seconds. Exponential backoff is used. SQLITE_BUSY error is returned if lock persists. Error is handled gracefully.
+| | | | **AC: Busy handler waits up to 5 seconds. Exponential backoff is used. SQLITE_BUSY error is returned if lock persists. Error is handled gracefully.
 
 | **T-SQL-19** | FR-SQL-6.18 (Transaction Usage) | a|
 . Perform form data save operation.
 . Verify transaction is used.
 . Simulate error during save.
 . Verify rollback occurs.
-| | | | *AC:** Transaction is used for form data save. All operations are atomic. Rollback occurs on error. Data integrity is maintained.
+| | | | **AC: Transaction is used for form data save. All operations are atomic. Rollback occurs on error. Data integrity is maintained.
 
 | **T-SQL-20** | FR-SQL-6.19 (Transaction Isolation) | a|
 . Open same cartridge in two Reader instances.
 . Perform writes from both instances.
 . Verify isolation behavior.
-| | | | *AC:** Transactions are properly isolated. WAL mode allows concurrent reads. Writes are serialized correctly. No data corruption occurs.
+| | | | **AC: Transactions are properly isolated. WAL mode allows concurrent reads. Writes are serialized correctly. No data corruption occurs.
 
 | **T-SQL-21** | FR-SQL-6.20 (Savepoint Support) | a|
 . Perform complex operation using savepoints.
 . Simulate error at intermediate step.
 . Verify rollback to savepoint.
-| | | | *AC:** Savepoints are created correctly. Rollback to savepoint works. Partial operations can be rolled back. Transaction integrity is maintained.
+| | | | **AC: Savepoints are created correctly. Rollback to savepoint works. Partial operations can be rolled back. Transaction integrity is maintained.
 
 |===
 
@@ -897,26 +897,26 @@ bool LocalDBManager::backupDatabase(const QString& backupPath) {
 . Open cartridge in Reader.
 . Perform quick integrity check.
 . Verify check completes.
-| | | | *AC:** Quick integrity check is performed on cartridge open. Check completes quickly (< 1 second for typical cartridge). Results are logged. "ok" result indicates integrity.
+| | | | **AC: Quick integrity check is performed on cartridge open. Check completes quickly (< 1 second for typical cartridge). Results are logged. "ok" result indicates integrity.
 
 | **T-SQL-23** | FR-SQL-6.21 (Integrity Checks - Full) | a|
 . Suspect database corruption.
 . Perform full integrity check.
 . Verify check completes.
-| | | | *AC:** Full integrity check is performed. Check is comprehensive. Results are logged. Errors are reported if corruption detected.
+| | | | **AC: Full integrity check is performed. Check is comprehensive. Results are logged. Errors are reported if corruption detected.
 
 | **T-SQL-24** | FR-SQL-6.22 (Corruption Recovery) | a|
 . Corrupt database file (manually alter bytes).
 . Attempt to open in Reader.
 . Verify recovery attempt.
-| | | | *AC:** Corruption is detected. Recovery is attempted using .dump/.read. Recovered data is logged. User is notified of recovery status. Maximum data is recovered.
+| | | | **AC: Corruption is detected. Recovery is attempted using .dump/.read. Recovered data is logged. User is notified of recovery status. Maximum data is recovered.
 
 | **T-SQL-25** | FR-SQL-6.23 (Backup and Restore) | a|
 . Perform schema migration operation.
 . Verify backup is created before migration.
 . Simulate migration failure.
 . Restore from backup.
-| | | | *AC:** Backup is created before major operations. Backup file is stored in backup directory. Backup can be restored. Database is restored to pre-operation state.
+| | | | **AC: Backup is created before major operations. Backup file is stored in backup directory. Backup can be restored. Database is restored to pre-operation state.
 
 |===
 
@@ -932,31 +932,31 @@ bool LocalDBManager::backupDatabase(const QString& backupPath) {
 . Enable WAL mode.
 . Perform same operations.
 . Compare performance.
-| | | | *AC:** WAL mode provides better performance for mixed workloads. Concurrent reads don't block writes. Performance improvement is measurable.
+| | | | **AC: WAL mode provides better performance for mixed workloads. Concurrent reads don't block writes. Performance improvement is measurable.
 
 | **T-SQL-27** | Cache Size Performance | a|
 . Configure different cache sizes.
 . Execute same queries.
 . Measure query performance.
-| | | | *AC:** Larger cache sizes improve query performance. Optimal cache size is identified. Performance improvement is measurable.
+| | | | **AC: Larger cache sizes improve query performance. Optimal cache size is identified. Performance improvement is measurable.
 
 | **T-SQL-28** | Index Performance | a|
 . Execute queries on indexed columns.
 . Execute queries on non-indexed columns.
 . Compare performance.
-| | | | *AC:** Indexed queries are significantly faster. Index usage is verified with EXPLAIN QUERY PLAN. Performance difference is measurable.
+| | | | **AC: Indexed queries are significantly faster. Index usage is verified with EXPLAIN QUERY PLAN. Performance difference is measurable.
 
 | **T-SQL-29** | Transaction Performance | a|
 . Perform operations with transactions.
 . Perform same operations without transactions.
 . Compare performance and data integrity.
-| | | | *AC:** Transactions maintain data integrity. Performance impact is minimal. Atomicity is guaranteed.
+| | | | **AC: Transactions maintain data integrity. Performance impact is minimal. Atomicity is guaranteed.
 
 | **T-SQL-30** | Large Database Performance | a|
 . Create database with 1000+ cartridges in manifest.
 . Perform queries on large dataset.
 . Measure query performance.
-| | | | *AC:** Queries complete within reasonable time (< 500ms for manifest queries). Indexes are used effectively. Performance is acceptable.
+| | | | **AC: Queries complete within reasonable time (< 500ms for manifest queries). Indexes are used effectively. Performance is acceptable.
 
 |===
 
@@ -970,25 +970,25 @@ bool LocalDBManager::backupDatabase(const QString& backupPath) {
 . Open same cartridge in multiple Reader instances.
 . Perform simultaneous reads and writes.
 . Verify data integrity.
-| | | | *AC:** Concurrent access works correctly with WAL mode. Reads don't block each other. Writes are serialized. No data corruption occurs.
+| | | | **AC: Concurrent access works correctly with WAL mode. Reads don't block each other. Writes are serialized. No data corruption occurs.
 
 | **T-SQL-32** | High Write Load | a|
 . Perform rapid write operations (100+ writes per second).
 . Monitor WAL file growth.
 . Verify checkpoint behavior.
-| | | | *AC:** WAL file grows during high write load. Checkpoint occurs when threshold reached. WAL file size is managed. Performance remains acceptable.
+| | | | **AC: WAL file grows during high write load. Checkpoint occurs when threshold reached. WAL file size is managed. Performance remains acceptable.
 
 | **T-SQL-33** | Large Transaction | a|
 . Perform transaction with 1000+ operations.
 . Verify transaction completes.
 . Verify atomicity.
-| | | | *AC:** Large transaction completes successfully. All operations are atomic. Rollback works if transaction fails. Performance is acceptable.
+| | | | **AC: Large transaction completes successfully. All operations are atomic. Rollback works if transaction fails. Performance is acceptable.
 
 | **T-SQL-34** | Database Size Limits | a|
 . Create database approaching SQLite size limits (140TB theoretical).
 . Perform operations on large database.
 . Verify performance.
-| | | | *AC:** Database handles large sizes correctly. Performance degrades gracefully. Operations complete successfully. No errors occur.
+| | | | **AC: Database handles large sizes correctly. Performance degrades gracefully. Operations complete successfully. No errors occur.
 
 |===
 
