@@ -37,7 +37,7 @@ def extract_test_cases_from_test_plan():
                             if len(req_parts) >= 3:
                                 req_text = req_parts[2].strip()  # Requirement is in column 2 (after label)
                                 # Extract requirement IDs from text
-                                req_matches = re.findall(r'((?:FR|NFR|FR-CT|FR-WE|FR-NAV|FR-SERIES|DDD)-[\d\.]+(?:/[0-9\.]+)?)', req_text)
+                                req_matches = re.findall(r'((?:FR|NFR|FR-CT|FR-WE|FR-NAV|FR-SERIES|FR-PLAT|FR-ERR|FR-SQL|FR-HELP|DDD)-[\d\.]+(?:/[0-9\.]+)?)', req_text)
                                 for req_match in req_matches:
                                     req_id = req_match
                                     # Handle combined requirements like FR-2.3.2/2.3.3

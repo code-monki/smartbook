@@ -197,40 +197,40 @@ This matrix maps all core requirements from the Software Requirements Specificat
 | **FR-CT-3.89** | Content Theme Storage | Sec 13 (Creator Tool) | T-CT-89
 | **FR-CT-3.9** | Chapter Organization | Sec 13 (Creator Tool) | T-CT-09
 | **FR-CT-3.90** | Content Theme Application | Sec 13 (Creator Tool) | T-CT-90
-| **FR-ERR-4.1** | Cartridge File Errors | Sec 4 (Error Handling) | 
-| **FR-ERR-4.10** | Signing Errors | Sec 4 (Error Handling) | 
-| **FR-ERR-4.11** | Export Errors | Sec 4 (Error Handling) | 
-| **FR-ERR-4.12** | Import Errors | Sec 4 (Error Handling) | 
-| **FR-ERR-4.13** | Resource Management Errors | Sec 4 (Error Handling) | 
+| **FR-ERR-4.1** | Cartridge File Errors | Sec 4 (Error Handling) | T-ERR-01, T-ERR-02, T-ERR-03, T-ERR-04
+| **FR-ERR-4.10** | Signing Errors | Sec 4 (Error Handling) | T-CT-37, T-ERR-33, T-ERR-34, T-ERR-35, T-ERR-36, T-ERR-37
+| **FR-ERR-4.11** | Export Errors | Sec 4 (Error Handling) | T-CT-38, T-ERR-38, T-ERR-39, T-ERR-40, T-ERR-41
+| **FR-ERR-4.12** | Import Errors | Sec 4 (Error Handling) | T-CT-39, T-ERR-42, T-ERR-43, T-ERR-44, T-ERR-45
+| **FR-ERR-4.13** | Resource Management Errors | Sec 4 (Error Handling) | T-ERR-46, T-ERR-47, T-ERR-48, T-ERR-49
 | **FR-ERR-4.14** | Minimal Logging | Sec 4 (Error Handling) | 
 | **FR-ERR-4.15** | Log Rotation | Sec 4 (Error Handling) | 
 | **FR-ERR-4.16** | Log Location | Sec 4 (Error Handling) | 
 | **FR-ERR-4.17** | Log Format | Sec 4 (Error Handling) | 
 | **FR-ERR-4.18** | Error Reporting | Sec 4 (Error Handling) | 
-| **FR-ERR-4.2** | Database Connection Errors | Sec 4 (Error Handling) | 
-| **FR-ERR-4.3** | Signature Verification Errors | Sec 4 (Error Handling) | 
-| **FR-ERR-4.4** | File System Errors | Sec 4 (Error Handling) | 
-| **FR-ERR-4.5** | Manifest Update Errors | Sec 4 (Error Handling) | 
-| **FR-ERR-4.6** | Sandbox Operation Errors | Sec 4 (Error Handling) | 
-| **FR-ERR-4.7** | WebEngine Errors | Sec 4 (Error Handling) | 
-| **FR-ERR-4.8** | Content Validation Errors | Sec 4 (Error Handling) | 
-| **FR-ERR-4.9** | Cartridge Creation Errors | Sec 4 (Error Handling) | 
-| **FR-HELP-8.1** | Help Menu Access | Sec 9 (Help System) | 
-| **FR-HELP-8.10** | PDF Manual Generation | Sec 9 (Help System) | 
-| **FR-HELP-8.11** | Context-Sensitive Help | Sec 9 (Help System) | 
-| **FR-HELP-8.12** | Help Viewer | Sec 9 (Help System) | 
-| **FR-HELP-8.13** | Help Content Updates | Sec 9 (Help System) | 
-| **FR-HELP-8.14** | macOS Help Book | Sec 9 (Help System) | 
-| **FR-HELP-8.15** | Windows Help | Sec 9 (Help System) | 
-| **FR-HELP-8.16** | Linux Help | Sec 9 (Help System) | 
-| **FR-HELP-8.2** | Help System Format | Sec 9 (Help System) | 
-| **FR-HELP-8.3** | Help Content Location | Sec 9 (Help System) | 
-| **FR-HELP-8.4** | User Manual Scope | Sec 9 (Help System) | 
-| **FR-HELP-8.5** | User Manual Structure | Sec 9 (Help System) | 
+| **FR-ERR-4.2** | Database Connection Errors | Sec 4 (Error Handling) | T-ERR-05, T-ERR-06, T-ERR-07, T-ERR-08
+| **FR-ERR-4.3** | Signature Verification Errors | Sec 4 (Error Handling) | T-ERR-09, T-ERR-10, T-ERR-11, T-ERR-12, T-ERR-13
+| **FR-ERR-4.4** | File System Errors | Sec 4 (Error Handling) | T-ERR-14, T-ERR-15, T-ERR-16, T-ERR-17
+| **FR-ERR-4.5** | Manifest Update Errors | Sec 4 (Error Handling) | T-ERR-18
+| **FR-ERR-4.6** | Sandbox Operation Errors | Sec 4 (Error Handling) | T-ERR-19, T-ERR-20, T-ERR-21, T-ERR-22
+| **FR-ERR-4.7** | WebEngine Errors | Sec 4 (Error Handling) | T-ERR-23, T-ERR-24
+| **FR-ERR-4.8** | Content Validation Errors | Sec 4 (Error Handling) | T-CT-35, T-ERR-25, T-ERR-26, T-ERR-27, T-ERR-28, T-ERR-29
+| **FR-ERR-4.9** | Cartridge Creation Errors | Sec 4 (Error Handling) | T-CT-36, T-ERR-30, T-ERR-31, T-ERR-32
+| **FR-HELP-8.1** | Help Menu Access | Sec 9 (Help System) | T-HELP-01
+| **FR-HELP-8.10** | PDF Manual Generation | Sec 9 (Help System) | T-HELP-09
+| **FR-HELP-8.11** | Context-Sensitive Help | Sec 9 (Help System) | T-HELP-10
+| **FR-HELP-8.12** | Help Viewer | Sec 9 (Help System) | T-HELP-11
+| **FR-HELP-8.13** | Help Content Updates | Sec 9 (Help System) | T-HELP-12
+| **FR-HELP-8.14** | macOS Help Book | Sec 9 (Help System) | T-HELP-13
+| **FR-HELP-8.15** | Windows Help | Sec 9 (Help System) | T-HELP-14
+| **FR-HELP-8.16** | Linux Help | Sec 9 (Help System) | T-HELP-15
+| **FR-HELP-8.2** | Help System Format | Sec 9 (Help System) | T-HELP-02
+| **FR-HELP-8.3** | Help Content Location | Sec 9 (Help System) | T-HELP-03
+| **FR-HELP-8.4** | User Manual Scope | Sec 9 (Help System) | T-HELP-04
+| **FR-HELP-8.5** | User Manual Structure | Sec 9 (Help System) | T-HELP-05
 | **FR-HELP-8.6** | User Manual Format | Sec 9 (Help System) | 
-| **FR-HELP-8.7** | PDF Manual Inclusion | Sec 9 (Help System) | 
-| **FR-HELP-8.8** | PDF Manual Access | Sec 9 (Help System) | 
-| **FR-HELP-8.9** | PDF Manual Naming | Sec 9 (Help System) | 
+| **FR-HELP-8.7** | PDF Manual Inclusion | Sec 9 (Help System) | T-HELP-06
+| **FR-HELP-8.8** | PDF Manual Access | Sec 9 (Help System) | T-HELP-07
+| **FR-HELP-8.9** | PDF Manual Naming | Sec 9 (Help System) | T-HELP-08
 | **FR-NAV-9.1** | Custom Navigation Bar Support | Sec 7.1 (Navigation Structure) | T-NAV-01
 | **FR-NAV-9.10** | Creator Tool Navigation Support | Sec 7.1 (Navigation Structure) | T-NAV-18, T-NAV-19
 | **FR-NAV-9.2** | Navigation Bar Definition | Sec 7.1 (Navigation Structure) | T-NAV-02
@@ -241,30 +241,30 @@ This matrix maps all core requirements from the Software Requirements Specificat
 | **FR-NAV-9.7** | Navigation Bar Visibility | Sec 7.1 (Navigation Structure) | T-NAV-03
 | **FR-NAV-9.8** | Navigation Target Resolution | Sec 7.1 (Navigation Structure) | T-NAV-12, T-NAV-13, T-NAV-14, T-NAV-15
 | **FR-NAV-9.9** | Navigation Structure Storage | Sec 7.1 (Navigation Structure) | 
-| **FR-PLAT-7.1** | Linux Distribution Support | Sec 15 (Platform-Specific Considerations) | 
-| **FR-PLAT-7.10** | Secure Storage | Sec 15 (Platform-Specific Considerations) | 
-| **FR-PLAT-7.11** | Certificate Validation | Sec 15 (Platform-Specific Considerations) | 
+| **FR-PLAT-7.1** | Linux Distribution Support | Sec 15 (Platform-Specific Considerations) | T-PLAT-01
+| **FR-PLAT-7.10** | Secure Storage | Sec 15 (Platform-Specific Considerations) | T-PLAT-09
+| **FR-PLAT-7.11** | Certificate Validation | Sec 15 (Platform-Specific Considerations) | T-PLAT-10
 | **FR-PLAT-7.12** | File System Permissions | Sec 15 (Platform-Specific Considerations) | 
-| **FR-PLAT-7.13** | Distribution Format | Sec 15 (Platform-Specific Considerations) | 
-| **FR-PLAT-7.14** | Universal Binary - macOS | Sec 15 (Platform-Specific Considerations) | 
-| **FR-PLAT-7.15** | Code Signing | Sec 15 (Platform-Specific Considerations) | 
+| **FR-PLAT-7.13** | Distribution Format | Sec 15 (Platform-Specific Considerations) | T-PLAT-11
+| **FR-PLAT-7.14** | Universal Binary - macOS | Sec 15 (Platform-Specific Considerations) | T-PLAT-12
+| **FR-PLAT-7.15** | Code Signing | Sec 15 (Platform-Specific Considerations) | T-PLAT-13
 | **FR-PLAT-7.16** | Installation Locations | Sec 15 (Platform-Specific Considerations) | 
 | **FR-PLAT-7.17** | Application Data Directory | Sec 15 (Platform-Specific Considerations) | 
 | **FR-PLAT-7.18** | Cache Directory | Sec 15 (Platform-Specific Considerations) | 
 | **FR-PLAT-7.19** | Log Directory | Sec 15 (Platform-Specific Considerations) | 
-| **FR-PLAT-7.2** | macOS Support | Sec 15 (Platform-Specific Considerations) | 
+| **FR-PLAT-7.2** | macOS Support | Sec 15 (Platform-Specific Considerations) | T-PLAT-02
 | **FR-PLAT-7.20** | Backup Directory | Sec 15 (Platform-Specific Considerations) | 
 | **FR-PLAT-7.21** | Menu Bar Integration | Sec 15 (Platform-Specific Considerations) | 
 | **FR-PLAT-7.22** | System Tray Integration | Sec 15 (Platform-Specific Considerations) | 
-| **FR-PLAT-7.23** | File Associations | Sec 15 (Platform-Specific Considerations) | 
-| **FR-PLAT-7.24** | URL Scheme Handling | Sec 15 (Platform-Specific Considerations) | 
-| **FR-PLAT-7.3** | Windows Support | Sec 15 (Platform-Specific Considerations) | 
-| **FR-PLAT-7.4** | Architecture Support | Sec 15 (Platform-Specific Considerations) | 
+| **FR-PLAT-7.23** | File Associations | Sec 15 (Platform-Specific Considerations) | T-PLAT-14
+| **FR-PLAT-7.24** | URL Scheme Handling | Sec 15 (Platform-Specific Considerations) | T-PLAT-15
+| **FR-PLAT-7.3** | Windows Support | Sec 15 (Platform-Specific Considerations) | T-PLAT-03
+| **FR-PLAT-7.4** | Architecture Support | Sec 15 (Platform-Specific Considerations) | T-PLAT-04
 | **FR-PLAT-7.5** | Cross-Platform Compatibility | Sec 15 (Platform-Specific Considerations) | 
-| **FR-PLAT-7.6** | Universal Binary Support | Sec 15 (Platform-Specific Considerations) | 
-| **FR-PLAT-7.7** | Qt Fusion Widget Set | Sec 15 (Platform-Specific Considerations) | 
-| **FR-PLAT-7.8** | UI Consistency | Sec 15 (Platform-Specific Considerations) | 
-| **FR-PLAT-7.9** | Platform Security Standards | Sec 15 (Platform-Specific Considerations) | 
+| **FR-PLAT-7.6** | Universal Binary Support | Sec 15 (Platform-Specific Considerations) | T-PLAT-05
+| **FR-PLAT-7.7** | Qt Fusion Widget Set | Sec 15 (Platform-Specific Considerations) | T-PLAT-06
+| **FR-PLAT-7.8** | UI Consistency | Sec 15 (Platform-Specific Considerations) | T-PLAT-07
+| **FR-PLAT-7.9** | Platform Security Standards | Sec 15 (Platform-Specific Considerations) | T-PLAT-08
 | **FR-SERIES-10.1** | Series Name Metadata | Sec 14 (Series and Edition Grouping) | T-SERIES-01
 | **FR-SERIES-10.10** | Grouping Display | Sec 14 (Series and Edition Grouping) | T-SERIES-11, T-SERIES-12
 | **FR-SERIES-10.11** | Grouping Persistence | Sec 14 (Series and Edition Grouping) | T-SERIES-13
@@ -277,29 +277,29 @@ This matrix maps all core requirements from the Software Requirements Specificat
 | **FR-SERIES-10.7** | Series Display Ordering | Sec 14 (Series and Edition Grouping) | T-SERIES-07
 | **FR-SERIES-10.8** | Custom Collections | Sec 14 (Series and Edition Grouping) | T-SERIES-08
 | **FR-SERIES-10.9** | Collection Management | Sec 14 (Series and Edition Grouping) | T-SERIES-09, T-SERIES-10
-| **FR-SQL-6.1** | Minimum SQLite Version | Sec 16 (SQLite Configuration) | 
-| **FR-SQL-6.10** | Journal Mode Configuration | Sec 16 (SQLite Configuration) | 
-| **FR-SQL-6.11** | Foreign Key Constraints | Sec 16 (SQLite Configuration) | 
-| **FR-SQL-6.12** | Query Optimizer | Sec 16 (SQLite Configuration) | 
-| **FR-SQL-6.13** | Index Optimization | Sec 16 (SQLite Configuration) | 
-| **FR-SQL-6.14** | Vacuum and Optimization | Sec 16 (SQLite Configuration) | 
-| **FR-SQL-6.15** | Connection Pooling | Sec 16 (SQLite Configuration) | 
-| **FR-SQL-6.16** | Connection Timeout | Sec 16 (SQLite Configuration) | 
-| **FR-SQL-6.17** | Busy Handler | Sec 16 (SQLite Configuration) | 
-| **FR-SQL-6.18** | Transaction Usage | Sec 16 (SQLite Configuration) | 
-| **FR-SQL-6.19** | Transaction Isolation | Sec 16 (SQLite Configuration) | 
-| **FR-SQL-6.2** | Version Detection | Sec 16 (SQLite Configuration) | 
-| **FR-SQL-6.20** | Savepoint Support | Sec 16 (SQLite Configuration) | 
-| **FR-SQL-6.21** | Integrity Checks | Sec 16 (SQLite Configuration) | 
-| **FR-SQL-6.22** | Corruption Recovery | Sec 16 (SQLite Configuration) | 
-| **FR-SQL-6.23** | Backup and Restore | Sec 16 (SQLite Configuration) | 
-| **FR-SQL-6.3** | WAL Mode for Local Database | Sec 16 (SQLite Configuration) | 
-| **FR-SQL-6.4** | WAL Mode for Cartridge Files | Sec 16 (SQLite Configuration) | 
-| **FR-SQL-6.5** | WAL Checkpoint Configuration | Sec 16 (SQLite Configuration) | 
-| **FR-SQL-6.6** | WAL Mode Detection | Sec 16 (SQLite Configuration) | 
-| **FR-SQL-6.7** | Page Size Configuration | Sec 16 (SQLite Configuration) | 
-| **FR-SQL-6.8** | Cache Size Configuration | Sec 16 (SQLite Configuration) | 
-| **FR-SQL-6.9** | Synchronous Configuration | Sec 16 (SQLite Configuration) | 
+| **FR-SQL-6.1** | Minimum SQLite Version | Sec 16 (SQLite Configuration) | T-SQL-01
+| **FR-SQL-6.10** | Journal Mode Configuration | Sec 16 (SQLite Configuration) | T-SQL-11
+| **FR-SQL-6.11** | Foreign Key Constraints | Sec 16 (SQLite Configuration) | T-SQL-12
+| **FR-SQL-6.12** | Query Optimizer | Sec 16 (SQLite Configuration) | T-SQL-13
+| **FR-SQL-6.13** | Index Optimization | Sec 16 (SQLite Configuration) | T-SQL-14
+| **FR-SQL-6.14** | Vacuum and Optimization | Sec 16 (SQLite Configuration) | T-SQL-15
+| **FR-SQL-6.15** | Connection Pooling | Sec 16 (SQLite Configuration) | T-SQL-16
+| **FR-SQL-6.16** | Connection Timeout | Sec 16 (SQLite Configuration) | T-SQL-17
+| **FR-SQL-6.17** | Busy Handler | Sec 16 (SQLite Configuration) | T-SQL-18
+| **FR-SQL-6.18** | Transaction Usage | Sec 16 (SQLite Configuration) | T-SQL-19
+| **FR-SQL-6.19** | Transaction Isolation | Sec 16 (SQLite Configuration) | T-SQL-20
+| **FR-SQL-6.2** | Version Detection | Sec 16 (SQLite Configuration) | T-SQL-02
+| **FR-SQL-6.20** | Savepoint Support | Sec 16 (SQLite Configuration) | T-SQL-21
+| **FR-SQL-6.21** | Integrity Checks | Sec 16 (SQLite Configuration) | T-SQL-22, T-SQL-23
+| **FR-SQL-6.22** | Corruption Recovery | Sec 16 (SQLite Configuration) | T-SQL-24
+| **FR-SQL-6.23** | Backup and Restore | Sec 16 (SQLite Configuration) | T-SQL-25
+| **FR-SQL-6.3** | WAL Mode for Local Database | Sec 16 (SQLite Configuration) | T-SQL-03, T-SQL-04
+| **FR-SQL-6.4** | WAL Mode for Cartridge Files | Sec 16 (SQLite Configuration) | T-SQL-05
+| **FR-SQL-6.5** | WAL Checkpoint Configuration | Sec 16 (SQLite Configuration) | T-SQL-06
+| **FR-SQL-6.6** | WAL Mode Detection | Sec 16 (SQLite Configuration) | T-SQL-07
+| **FR-SQL-6.7** | Page Size Configuration | Sec 16 (SQLite Configuration) | T-SQL-08
+| **FR-SQL-6.8** | Cache Size Configuration | Sec 16 (SQLite Configuration) | T-SQL-09
+| **FR-SQL-6.9** | Synchronous Configuration | Sec 16 (SQLite Configuration) | T-SQL-10
 | **FR-WE-5.1** | WebEngine Profile Configuration | Sec 5 (Qt WebEngine Configuration) | T-WE-01
 | **FR-WE-5.10** | Error Handling Configuration | Sec 5 (Qt WebEngine Configuration) | T-WE-10
 | **FR-WE-5.2** | JavaScript Engine Version | Sec 5 (Qt WebEngine Configuration) | T-WE-02
