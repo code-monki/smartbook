@@ -15,6 +15,7 @@ This document specifies the remote library integration system for Phase 2 of the
 === Multiple Remote Library Support
 
 Phase 2 supports **multiple remote libraries** simultaneously. Each remote library is:
+
 * **Independent:** Has its own server URL, authentication, and configuration
 * **Configurable:** User can add, remove, enable/disable remote libraries
 * **Identifiable:** Each library has a unique identifier and display name
@@ -91,26 +92,32 @@ The `location_status` field in `Local_Library_Manifest` tracks where cartridges 
 **Status Determination:**
 
 1. **On Import (Local):**
+
    * Set `location_status = 'local_only'`
    * No remote library association
 
 2. **On Remote Discovery:**
+
    * If cartridge exists locally: Set `location_status = 'both'`
    * If cartridge doesn't exist locally: Set `location_status = 'remote_only'`
 
 3. **On Download:**
+
    * If cartridge already exists locally: Set `location_status = 'both'`
    * If cartridge doesn't exist locally: Download and set `location_status = 'both'`
 
 4. **On Local Modification:**
+
    * If local copy modified: Set `location_status = 'local_modified'`
    * Track modification timestamp
 
 5. **On Remote Update Detection:**
+
    * If remote version newer: Set `location_status = 'remote_updated'`
    * Track remote update timestamp
 
 6. **On Local Deletion:**
+
    * If local copy deleted but remote exists: Set `location_status = 'remote_only'`
    * Keep manifest entry for remote access
 
@@ -119,6 +126,7 @@ The `location_status` field in `Local_Library_Manifest` tracks where cartridges 
 **Tracking Remote Sources:**
 
 Add `remote_library_id` field to `Local_Library_Manifest`:
+
 * **Type:** UUID (nullable)
 * **Purpose:** Links cartridge to specific remote library
 * **Multiple Sources:** A cartridge could theoretically exist on multiple remote libraries (future enhancement)
@@ -126,6 +134,7 @@ Add `remote_library_id` field to `Local_Library_Manifest`:
 **Remote Metadata:**
 
 Store additional remote-specific metadata:
+
 * `remote_cartridge_id` - ID used by remote library (may differ from cartridge_guid)
 * `remote_version` - Version number on remote server
 * `remote_updated_at` - Last update timestamp on remote server
@@ -216,11 +225,13 @@ Store additional remote-specific metadata:
 
 **List Available Libraries:**
 `GET /api/v1/libraries`
+
 * **Response:** List of available remote libraries (if server supports multiple libraries)
 * **Use Case:** Discover available libraries on a server
 
 **Get Library Information:**
 `GET /api/v1/library/info`
+
 * **Response:** Library metadata (name, description, cartridge count, etc.)
 * **Use Case:** Display library information in UI
 
@@ -228,6 +239,7 @@ Store additional remote-specific metadata:
 
 **List Cartridges:**
 `GET /api/v1/cartridges`
+
 * **Query Parameters:**
   * `page` - Page number (pagination)
   * `limit` - Items per page (default: 50, max: 100)
@@ -239,11 +251,13 @@ Store additional remote-specific metadata:
 
 **Get Cartridge Metadata:**
 `GET /api/v1/cartridges/{cartridge_id}`
+
 * **Response:** Detailed cartridge metadata (title, author, description, version, etc.)
 * **Use Case:** Display cartridge details before download
 
 **Search Cartridges:**
 `GET /api/v1/cartridges/search?q={query}`
+
 * **Query Parameters:**
   * `q` - Search query
   * `fields` - Fields to search (title, author, tags, description)
@@ -254,6 +268,7 @@ Store additional remote-specific metadata:
 
 **Download Cartridge:**
 `GET /api/v1/cartridges/{cartridge_id}/download`
+
 * **Response:** Cartridge file (binary SQLite file)
 * **Headers:**
   * `Content-Type: application/x-sqlite3`
@@ -262,6 +277,7 @@ Store additional remote-specific metadata:
 
 **Get Download URL:**
 `GET /api/v1/cartridges/{cartridge_id}/download-url`
+
 * **Response:** Temporary download URL (expires in 1 hour)
 * **Use Case:** Get direct download link for large files
 
@@ -269,16 +285,19 @@ Store additional remote-specific metadata:
 
 **Check for Updates:**
 `GET /api/v1/cartridges/{cartridge_id}/version`
+
 * **Response:** Version information (version number, updated_at, hash)
 * **Use Case:** Check if remote version is newer than local
 
 **Sync Status:**
 `GET /api/v1/sync/status`
+
 * **Response:** Sync status for all cartridges user has access to
 * **Use Case:** Bulk check for updates across library
 
 **Upload Cartridge (Future):**
 `POST /api/v1/cartridges/upload`
+
 * **Request:** Cartridge file (multipart/form-data)
 * **Response:** Uploaded cartridge metadata
 * **Use Case:** Upload local cartridge to remote library (requires permissions)
@@ -287,16 +306,19 @@ Store additional remote-specific metadata:
 
 **Get User's Libraries:**
 `GET /api/v1/user/libraries`
+
 * **Response:** List of remote libraries user has access to
 * **Use Case:** Discover available libraries for user
 
 **Subscribe to Library:**
 `POST /api/v1/user/libraries/{library_id}/subscribe`
+
 * **Response:** Subscription confirmation
 * **Use Case:** Add library to user's accessible libraries
 
 **Unsubscribe from Library:**
 `DELETE /api/v1/user/libraries/{library_id}/subscribe`
+
 * **Response:** Unsubscription confirmation
 * **Use Case:** Remove library from user's accessible libraries
 
@@ -325,28 +347,34 @@ Store additional remote-specific metadata:
 **Sync Algorithm:**
 
 1. **Connect to Remote Library:**
+
    * Authenticate using stored credentials
    * Verify library is accessible
 
 2. **Fetch Remote Catalog:**
+
    * Request list of available cartridges
    * Compare with local manifest
 
 3. **Identify Changes:**
+
    * New cartridges (exist only on remote)
    * Updated cartridges (remote version newer)
    * Deleted cartridges (exist locally but not on remote)
 
 4. **Update Local Manifest:**
+
    * Add entries for new remote cartridges (`location_status = 'remote_only'`)
    * Update entries for existing cartridges
    * Mark deleted cartridges (optional: remove or mark as unavailable)
 
 5. **Download Updates (if configured):**
+
    * Automatically download updated cartridges
    * Or prompt user to download updates
 
 6. **Update Sync Timestamp:**
+
    * Record `last_sync` timestamp
    * Store sync status (success/failure)
 
@@ -355,14 +383,17 @@ Store additional remote-specific metadata:
 **Conflict Scenarios:**
 
 1. **Local Modified, Remote Updated:**
+
    * Both local and remote versions have changes
    * User must choose: Keep local, Use remote, or Merge (future)
 
 2. **Local Deleted, Remote Updated:**
+
    * User deleted local copy, but remote has updates
    * Option to restore from remote
 
 3. **Remote Deleted:**
+
    * Cartridge removed from remote library
    * Update `location_status` to `local_only` if local copy exists
    * Or remove from manifest if no local copy

@@ -41,6 +41,7 @@ The documentation is generally well-structured and comprehensive for the Reader 
 
 . **Security Model Specified:** 
 +
+
 * Local operation only (no network access)
 * Sandboxed file system access (scoped to `{cartridge_guid}/{app_id}/sandbox/`)
 * Isolated execution context
@@ -60,12 +61,14 @@ The documentation is generally well-structured and comprehensive for the Reader 
 
 . **SRS Requirements Added:** 18 new error handling requirements (FR-ERR-4.1 through FR-ERR-4.18) covering:
 +
+
 * Reader application errors (cartridge file, database, signature, file system, manifest, WebEngine)
 * Creator Tool errors (content validation, cartridge creation, signing, export, import, resource management)
 * Logging requirements (minimal logging, automatic rotation, log format, error reporting)
 
 . **WebChannel API Error Handling:** Complete error handling added for all API methods:
 +
+
 * Standard callback pattern with error codes
 * Error code categories (validation, security, resource, permission, system)
 * Specific error handling for each method (`saveFormData`, `loadFormData`, `requestAppConsent`, sandbox file operations)
@@ -73,6 +76,7 @@ The documentation is generally well-structured and comprehensive for the Reader 
 
 . **DDD Error Handling Implementation:** Detailed error handling strategy documented:
 +
+
 * Cartridge file error detection and handling
 * Database connection error recovery
 * Signature verification error messages
@@ -84,6 +88,7 @@ The documentation is generally well-structured and comprehensive for the Reader 
 
 . **Logging Requirements:**
 +
+
 * Minimal logging (errors, warnings, critical security events only)
 * Automatic log rotation (10MB or daily, whichever comes first)
 * Maximum 5 rotated log files retained

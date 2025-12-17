@@ -890,6 +890,7 @@ These diagrams are written in Mermaid syntax. To render them:
 === Diagram Maintenance
 
 When updating diagrams:
+
 * Keep Mermaid syntax consistent
 * Test diagram rendering after changes
 * Update related documentation when diagram changes
@@ -899,6 +900,7 @@ When updating diagrams:
 === Mermaid Syntax Reference
 
 Key Mermaid diagram types used:
+
 * `graph` / `flowchart` - Flowcharts and architecture diagrams
 * `sequenceDiagram` - Sequence diagrams for process flows
 * `stateDiagram-v2` - State machine diagrams

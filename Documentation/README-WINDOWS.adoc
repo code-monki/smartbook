@@ -95,6 +95,7 @@ Windows builds use **PowerShell scripts** instead of GNU Make, since Make is not
 === Manual Installation
 
 After building, binaries are located in:
+
 * `build\windows-x86_64\common\lib\` - Common library (DLL)
 * `build\windows-x86_64\reader\` - Reader executable
 * `build\windows-x86_64\creator\` - Creator executable
@@ -169,6 +170,7 @@ Ensure CMake is in your PATH, or specify full path:
 === Missing Dependencies
 
 Ensure all Qt components are installed:
+
 * Qt6Core
 * Qt6Gui
 * Qt6Widgets

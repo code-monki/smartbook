@@ -168,6 +168,7 @@ Available targets:
 **Usage:** `make clean`
 
 Removes all build artifacts including:
+
 * Compiled binaries
 * Object files
 * Generated documentation PDFs
@@ -185,6 +186,7 @@ Removing build artifacts...
 **Usage:** `make docs`
 
 Generates PDF versions of all documentation from AsciiDoc sources:
+
 * Software Requirements Specification (SRS)
 * Detailed Design Document (DDD)
 * High-Level Design (HLD)
@@ -276,6 +278,7 @@ Executes complete build process:
 **Usage:** `make run`
 
 Detects current operating system and architecture, then runs the appropriate binary:
+
 * Linux: Runs `build/linux-[dist]-[arch]/bin/smartbook-reader`
 * macOS: Runs `build/macos-[arch]/bin/SmartBook.app/Contents/MacOS/SmartBook`
 * Windows: Runs `build/windows-x86_64/bin/smartbook-reader.exe`
@@ -560,6 +563,7 @@ make windows-x86_64 COMPILER=mingw
 
 **Distribution:**
 Windows builds create installer packages:
+
 * MSI installer (via WiX or similar)
 * EXE installer (via NSIS or similar)
 

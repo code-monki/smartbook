@@ -1,0 +1,2784 @@
+<div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_introduction">1. Introduction</a></li>
+<li><a href="#_functional_requirements_fr">2. Functional Requirements (FR)</a>
+<ul class="sectlevel2">
+<li><a href="#_content_display_and_navigation">2.1. Content Display and Navigation</a></li>
+<li><a href="#_print_functionality">2.2. Print Functionality</a></li>
+<li><a href="#_text_selection_and_copy_functionality">2.3. Text Selection and Copy Functionality</a></li>
+<li><a href="#_document_search_functionality">2.4. Document Search Functionality</a></li>
+<li><a href="#_in_page_search_functionality">2.5. In-Page Search Functionality</a></li>
+<li><a href="#_interactive_forms_and_persistence">2.6. Interactive Forms and Persistence</a></li>
+<li><a href="#_form_rendering_and_interaction">2.7. Form Rendering and Interaction</a></li>
+<li><a href="#_embedded_application_execution">2.8. Embedded Application Execution</a></li>
+<li><a href="#_trust_persistence_and_revocation">2.9. Trust Persistence and Revocation</a></li>
+<li><a href="#_library_and_manifest_management">2.10. Library and Manifest Management</a></li>
+<li><a href="#_cartridge_import_process">2.11. Cartridge Import Process</a></li>
+<li><a href="#_rendering_settings_and_preferences">2.12. Rendering Settings and Preferences</a></li>
+</ul>
+</li>
+<li><a href="#_creator_tool_functional_requirements_fr_ct">3. Creator Tool Functional Requirements (FR-CT)</a>
+<ul class="sectlevel2">
+<li><a href="#_content_authoring_and_editing">3.1. Content Authoring and Editing</a></li>
+<li><a href="#_page_management">3.2. Page Management</a></li>
+<li><a href="#_stylesheet_management">3.3. Stylesheet Management</a></li>
+<li><a href="#_rendering_settings_management">3.4. Rendering Settings Management</a></li>
+<li><a href="#_javascript_and_embedded_applications">3.5. JavaScript and Embedded Applications</a></li>
+<li><a href="#_form_definition_management">3.6. Form Definition Management</a></li>
+<li><a href="#_metadata_management">3.7. Metadata Management</a></li>
+<li><a href="#_resource_management">3.8. Resource Management</a></li>
+<li><a href="#_search_functionality">3.9. Search Functionality</a></li>
+<li><a href="#_cartridge_creation_and_export">3.10. Cartridge Creation and Export</a></li>
+<li><a href="#_auto_save_and_recovery">3.11. Auto-Save and Recovery</a></li>
+<li><a href="#_draft_and_publishing_states">3.12. Draft and Publishing States</a></li>
+<li><a href="#_content_templates">3.13. Content Templates</a></li>
+<li><a href="#_import_capabilities">3.14. Import Capabilities</a></li>
+<li><a href="#_version_history">3.15. Version History</a></li>
+<li><a href="#_error_recovery_and_data_integrity">3.16. Error Recovery and Data Integrity</a></li>
+<li><a href="#_reader_accessibility">3.17. Reader Accessibility</a></li>
+<li><a href="#_creator_tool_accessibility">3.18. Creator Tool Accessibility</a></li>
+<li><a href="#_multi_language_support">3.19. Multi-Language Support</a></li>
+<li><a href="#_ui_theming_support">3.20. UI Theming Support</a></li>
+<li><a href="#_content_theme_management">3.21. Content Theme Management</a></li>
+</ul>
+</li>
+<li><a href="#_error_handling_and_logging_requirements">4. Error Handling and Logging Requirements</a>
+<ul class="sectlevel2">
+<li><a href="#_reader_application_error_handling">4.1. Reader Application Error Handling</a></li>
+<li><a href="#_creator_tool_error_handling">4.2. Creator Tool Error Handling</a></li>
+<li><a href="#_logging_requirements">4.3. Logging Requirements</a></li>
+</ul>
+</li>
+<li><a href="#_non_functional_requirements_nfr">5. Non-Functional Requirements (NFR)</a>
+<ul class="sectlevel2">
+<li><a href="#_performance_nfr">5.1. Performance NFR</a></li>
+<li><a href="#_security_nfr">5.2. Security NFR</a></li>
+</ul>
+</li>
+<li><a href="#_qt_webengine_configuration_requirements_fr_we">6. Qt WebEngine Configuration Requirements (FR-WE)</a>
+<ul class="sectlevel2">
+<li><a href="#_webengine_configuration">6.1. WebEngine Configuration</a></li>
+</ul>
+</li>
+<li><a href="#_sqlite_configuration_requirements_fr_sql">7. SQLite Configuration Requirements (FR-SQL)</a>
+<ul class="sectlevel2">
+<li><a href="#_sqlite_version_and_compatibility">7.1. SQLite Version and Compatibility</a></li>
+<li><a href="#_wal_mode_configuration">7.2. WAL Mode Configuration</a></li>
+<li><a href="#_database_optimization">7.3. Database Optimization</a></li>
+<li><a href="#_connection_management">7.4. Connection Management</a></li>
+<li><a href="#_transaction_management">7.5. Transaction Management</a></li>
+<li><a href="#_error_handling_and_recovery">7.6. Error Handling and Recovery</a></li>
+</ul>
+</li>
+<li><a href="#_platform_specific_considerations_requirements_fr_plat">8. Platform-Specific Considerations Requirements (FR-PLAT)</a>
+<ul class="sectlevel2">
+<li><a href="#_supported_operating_systems">8.1. Supported Operating Systems</a></li>
+<li><a href="#_ui_framework_and_appearance">8.2. UI Framework and Appearance</a></li>
+<li><a href="#_security_best_practices">8.3. Security Best Practices</a></li>
+<li><a href="#_distribution_and_packaging">8.4. Distribution and Packaging</a></li>
+<li><a href="#_data_storage_locations">8.5. Data Storage Locations</a></li>
+<li><a href="#_platform_specific_features">8.6. Platform-Specific Features</a></li>
+</ul>
+</li>
+<li><a href="#_help_system_and_user_manual_requirements_fr_help">9. Help System and User Manual Requirements (FR-HELP)</a>
+<ul class="sectlevel2">
+<li><a href="#_help_system_access">9.1. Help System Access</a></li>
+<li><a href="#_user_manual_content">9.2. User Manual Content</a></li>
+<li><a href="#_pdf_user_manual_distribution">9.3. PDF User Manual Distribution</a></li>
+<li><a href="#_help_system_integration">9.4. Help System Integration</a></li>
+<li><a href="#_platform_specific_help_integration">9.5. Platform-Specific Help Integration</a></li>
+</ul>
+</li>
+<li><a href="#_content_navigation_structure_requirements_fr_nav">10. Content Navigation Structure Requirements (FR-NAV)</a>
+<ul class="sectlevel2">
+<li><a href="#_custom_navigation_bar">10.1. Custom Navigation Bar</a></li>
+</ul>
+</li>
+<li><a href="#_series_and_edition_grouping_requirements_fr_series">11. Series and Edition Grouping Requirements (FR-SERIES)</a>
+<ul class="sectlevel2">
+<li><a href="#_series_and_edition_metadata">11.1. Series and Edition Metadata</a></li>
+<li><a href="#_library_grouping_and_organization">11.2. Library Grouping and Organization</a></li>
+</ul>
+</li>
+<li><a href="#_data_structures_reference">12. Data Structures (Reference)</a></li>
+</ul>
+</div>
+<div class="sect1">
+<h2 id="_introduction">1. Introduction</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This document specifies the requirements for the Smartbook Reader and Creator Tool applications, focusing on security, data persistence, and core architectural components for Phase 1.</p>
+</div>
+<div class="paragraph">
+<p>Both applications are documented in a single SRS document as they are tightly coupled Phase 1 components that share the cartridge format specification, security model, and data structures. This unified approach ensures consistency and makes cross-referencing between components straightforward. If the document becomes unwieldy or if separate development teams require independent documentation, the requirements may be split into separate documents in the future.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_functional_requirements_fr">2. Functional Requirements (FR)</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_content_display_and_navigation">2.1. Content Display and Navigation</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-2.1.1 (Multi-Window Capability):</strong> The Reader application SHALL support opening and managing multiple independent cartridges simultaneously, with each cartridge residing in its own isolated Reader View Window.</p>
+</li>
+<li>
+<p><strong>FR-2.1.2 (Window Opening):</strong> The Reader SHALL allow users to open a cartridge in a new Reader View Window via:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p><strong>Double-click:</strong> Double-clicking the cartridge title in List View or the cartridge cover in Grid View</p>
+</li>
+<li>
+<p><strong>Context Menu:</strong> Right-clicking the cartridge title or cover to display a context menu with an "Open" option</p>
+</li>
+<li>
+<p>The opening behavior SHALL follow platform conventions similar to other e-book applications (e.g., Calibre, Apple Books)</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-2.1.3 (Window State Persistence):</strong> The Reader SHALL persist the following window state information for each cartridge when a Reader View Window is closed:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Window size (width and height in pixels)</p>
+</li>
+<li>
+<p>Window position (X and Y coordinates on screen)</p>
+</li>
+<li>
+<p>Window maximized state (whether window was maximized)</p>
+</li>
+<li>
+<p>Reading position (page_id, anchor_id, scroll_position) - as specified in FR-2.8.6</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-2.1.4 (Window State Restoration):</strong> When a cartridge is reopened, the Reader SHALL restore:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Window size and position from the last session</p>
+</li>
+<li>
+<p>Reading position from the last session (as specified in FR-2.8.6)</p>
+</li>
+<li>
+<p>If no previous window state exists, use default window size and position</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-2.1.5 (Window Minimize/Restore):</strong> The Reader SHALL follow standard operating system conventions for window minimize and restore behavior, consistent with other applications on the platform.</p>
+</li>
+<li>
+<p><strong>FR-2.8.1 (Forward/Backward Navigation):</strong> The Reader SHALL provide forward and backward navigation controls (arrow buttons or similar) that allow users to navigate sequentially through pages based on the <code>page_order</code> field in the <code>Content_Pages</code> table. Navigation SHALL wrap around (forward from last page goes to first page, backward from first page goes to last page) or disable buttons at boundaries, as configured.</p>
+</li>
+<li>
+<p><strong>FR-2.8.2 (Table of Contents Generation):</strong> The Reader SHALL generate a table of contents (TOC) from the cartridge&#8217;s content structure. The TOC SHALL be generated from:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p><code>chapter_title</code> field in <code>Content_Pages</code> table (primary structure)</p>
+</li>
+<li>
+<p>HTML heading elements (<code>&lt;h1&gt;</code>, <code>&lt;h2&gt;</code>, <code>&lt;h3&gt;</code>, etc.) within content pages (secondary structure)</p>
+</li>
+<li>
+<p>The TOC SHALL support configurable depth (1-3 heading levels) with a default of 2 levels</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-2.8.3 (Table of Contents Display):</strong> The Reader SHALL display the table of contents in a dedicated pane. The TOC pane SHALL be part of a tabbed interface, with tabs for "Table of Contents" and "Search Results". The TOC SHALL be collapsible/expandable to show/hide nested sections and SHALL allow users to click on TOC entries to navigate directly to the corresponding page or heading anchor.</p>
+</li>
+<li>
+<p><strong>FR-2.8.4 (Internal Link Navigation):</strong> The Reader SHALL honor internal links within content pages that reference other pages in the cartridge. Links SHALL support:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Page-to-page navigation using page IDs or page order references</p>
+</li>
+<li>
+<p>Anchor links to specific headings or elements within pages (e.g., <code>#section-id</code>)</p>
+</li>
+<li>
+<p>Links SHALL be processed and navigated within the Reader view, not opened in external browsers</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-2.8.5 (Bookmarking):</strong> The Reader SHALL provide bookmarking functionality that allows users to mark specific pages or positions within pages for quick navigation. Bookmarks SHALL:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Be stored in the Reader&#8217;s local database, scoped per cartridge (<code>cartridge_guid</code>)</p>
+</li>
+<li>
+<p>Include page ID, optional anchor/position identifier, and user-provided label/name</p>
+</li>
+<li>
+<p>Be accessible via a bookmarks menu or panel</p>
+</li>
+<li>
+<p>Allow users to add, remove, and navigate to bookmarks</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-2.8.6 (Last Reading Position Persistence):</strong> The Reader SHALL persist the last reading position for each cartridge, including:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>The current page ID (<code>page_id</code> from <code>Content_Pages</code> table)</p>
+</li>
+<li>
+<p>Optional scroll position or anchor identifier within the page</p>
+</li>
+<li>
+<p>Timestamp of last access</p>
+</li>
+<li>
+<p>When a cartridge is reopened, the Reader SHALL automatically navigate to the last reading position</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-2.8.7 (Navigation History):</strong> The Reader SHALL maintain a navigation history stack for each Reader View Window, allowing users to navigate backward and forward through their browsing history using browser-style back/forward controls or keyboard shortcuts.</p>
+</li>
+<li>
+<p><strong>FR-2.8.8 (Page Numbering - Deferred):</strong> Page numbering SHALL NOT be implemented in Phase 1. Page numbers are not essential for electronic publications and are challenging to implement correctly for print given variable paper sizes. This feature MAY be considered for future phases if user demand warrants it.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_print_functionality">2.2. Print Functionality</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-2.11.1 (Print Capabilities):</strong> The Reader SHALL provide functionality to print content via the system print dialog, supporting:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Print entire document (all pages)</p>
+</li>
+<li>
+<p>Print current page only</p>
+</li>
+<li>
+<p>Print selected text/content (if text is selected in the Reader view)</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-2.11.2 (System Print Dialog):</strong> The Reader SHALL use the native system print dialog (Qt <code>QPrintDialog</code>) to allow users to configure print settings including: printer selection, page range, number of copies, paper size, orientation, and other standard print options.</p>
+</li>
+<li>
+<p><strong>FR-2.11.3 (Print Media CSS):</strong> The Reader SHALL support custom CSS stylesheets for print media using <code>@media print</code> rules. The Reader SHALL provide built-in print stylesheets optimized for common paper sizes:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>US Letter (8.5" × 11")</p>
+</li>
+<li>
+<p>A4 (210mm × 297mm)</p>
+</li>
+<li>
+<p>Additional paper sizes MAY be supported based on system capabilities</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-2.11.4 (Print CSS Application):</strong> When printing, the Reader SHALL apply print-specific CSS rules that:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Optimize content layout for the selected paper size</p>
+</li>
+<li>
+<p>Remove or hide non-printable elements (navigation controls, interactive elements, etc.)</p>
+</li>
+<li>
+<p>Adjust margins, spacing, and font sizes for print readability</p>
+</li>
+<li>
+<p>Handle page breaks appropriately (avoid breaking content awkwardly)</p>
+</li>
+<li>
+<p>Preserve author-defined structural CSS while applying print optimizations</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-2.11.5 (Offscreen Rendering):</strong> The Reader SHALL render content offscreen for printing if required by Qt&#8217;s printing implementation. The Reader SHALL ensure that offscreen rendering accurately represents the on-screen content, including all formatting, images, and styling.</p>
+</li>
+<li>
+<p><strong>FR-2.11.6 (Print Preview):</strong> The Reader SHALL provide a print preview capability that shows how content will appear when printed, allowing users to verify layout, page breaks, and formatting before printing.</p>
+</li>
+<li>
+<p><strong>FR-2.11.7 (Print Quality):</strong> The Reader SHALL ensure that printed output maintains high quality, including:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Clear text rendering at appropriate resolutions</p>
+</li>
+<li>
+<p>Proper image scaling and quality</p>
+</li>
+<li>
+<p>Accurate color representation (when printing to color printers)</p>
+</li>
+<li>
+<p>Appropriate handling of backgrounds and transparency</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-2.11.8 (Print Keyboard Shortcut):</strong> The Reader SHALL provide a keyboard shortcut (Ctrl+P / Cmd+P) to open the print dialog, following platform conventions.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_text_selection_and_copy_functionality">2.3. Text Selection and Copy Functionality</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-2.12.1 (Text Selection):</strong> The Reader SHALL allow users to select text within content pages using standard text selection methods (mouse drag, keyboard selection, double-click for word, triple-click for paragraph). Text selection SHALL work with all rendered content including headings, paragraphs, lists, and table cells.</p>
+</li>
+<li>
+<p><strong>FR-2.12.1a (Select All):</strong> The Reader SHALL provide a "Select All" function that selects all text on the current page, accessible via standard keyboard shortcut (Ctrl+A / Cmd+A) or context menu option. When a form field is focused, Select All SHALL select all text within that form field only.</p>
+</li>
+<li>
+<p><strong>FR-2.12.2 (Copy to Clipboard):</strong> The Reader SHALL provide functionality to copy selected text to the system clipboard using standard keyboard shortcuts (Ctrl+C / Cmd+C) or context menu options. The copied text SHALL be plain text without formatting. Copy functionality SHALL be available when text is selected or when a form field has selected text.</p>
+</li>
+<li>
+<p><strong>FR-2.12.3 (Background Removal on Copy):</strong> When copying text to the clipboard, the Reader SHALL remove any background colors or styling from the copied text, ensuring that only the text content is copied without background formatting that could interfere with pasting into external documents or forms.</p>
+</li>
+<li>
+<p><strong>FR-2.12.4 (Paste into Forms):</strong> The Reader SHALL allow users to paste copied text (from within the Reader or from external sources) into form fields within the smartbook content. Paste functionality SHALL work with standard keyboard shortcuts (Ctrl+V / Cmd+V) or context menu options when a form field is focused.</p>
+</li>
+<li>
+<p><strong>FR-2.12.5 (Paste into External Documents):</strong> Text copied from the Reader SHALL be pasteable into external applications (word processors, text editors, email clients, etc.) as plain text without background formatting or styling.</p>
+</li>
+<li>
+<p><strong>FR-2.12.6 (Copy Context Menu):</strong> The Reader SHALL provide a context menu (right-click menu) when text is selected, offering "Copy", "Select All", and other relevant options. The context menu SHALL follow platform conventions and SHALL be non-intrusive.</p>
+</li>
+<li>
+<p><strong>FR-2.12.7 (Standard Keyboard Shortcuts):</strong> The Reader SHALL provide standard keyboard shortcuts for all text selection and copy operations:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p><strong>Select All:</strong> Ctrl+A / Cmd+A (selects all text on current page, or all text in focused form field)</p>
+</li>
+<li>
+<p><strong>Copy:</strong> Ctrl+C / Cmd+C (copies selected text to clipboard)</p>
+</li>
+<li>
+<p><strong>Paste:</strong> Ctrl+V / Cmd+V (pastes text into focused form field or external application)</p>
+</li>
+<li>
+<p><strong>Cut:</strong> Ctrl+X / Cmd+X (cuts selected text from form fields only, not from content pages)</p>
+</li>
+<li>
+<p>All keyboard shortcuts SHALL follow platform conventions and SHALL work consistently across all Reader View Windows.</p>
+</li>
+<li>
+<p>Keyboard shortcuts SHALL be provided to ensure WCAG 2.1 compliance, allowing users to perform all essential functions without requiring a mouse or pointing device.</p>
+</li>
+</ol>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_document_search_functionality">2.4. Document Search Functionality</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-2.9.1 (Document Search Modal):</strong> The Reader SHALL provide a document search modal dialog accessible via menu item or keyboard shortcut (Ctrl+F / Cmd+F). The search modal SHALL include:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>A search input field for entering search terms</p>
+</li>
+<li>
+<p>A case sensitivity toggle button ("Aa" button) to enable/disable case-sensitive matching</p>
+</li>
+<li>
+<p>A search type dropdown menu with options: "Normal", "Boolean", "Fuzzy", and "Regex"</p>
+</li>
+<li>
+<p>A "Search" button to execute the search</p>
+</li>
+<li>
+<p>A close button (X) to dismiss the modal</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-2.9.2 (Normal Search):</strong> The Reader SHALL support normal text search that finds exact matches of the search term within the cartridge content, with optional case sensitivity.</p>
+</li>
+<li>
+<p><strong>FR-2.9.3 (Boolean Search):</strong> The Reader SHALL support boolean search operators (AND, OR, NOT) to allow users to construct complex search queries (e.g., "character AND sheet", "weapon OR armor", "magic NOT spell").</p>
+</li>
+<li>
+<p><strong>FR-2.9.4 (Fuzzy Search):</strong> The Reader SHALL support fuzzy search that finds approximate matches, accounting for typos, misspellings, and variations in the search term.</p>
+</li>
+<li>
+<p><strong>FR-2.9.5 (Regex Search):</strong> The Reader SHALL support regular expression (regex) search for advanced users, allowing pattern-based searching. The Reader SHALL provide clear indication that this is an advanced feature and SHALL handle invalid regex patterns gracefully with error messages.</p>
+</li>
+<li>
+<p><strong>FR-2.9.6 (Search Results Display):</strong> The Reader SHALL display search results in the "Search Results" tab of the tabbed pane (shared with Table of Contents). Search results SHALL be presented in a format similar to Adobe Reader, including:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Page/chapter title for each result</p>
+</li>
+<li>
+<p>Context snippet showing surrounding text with search terms highlighted</p>
+</li>
+<li>
+<p>Result count (e.g., "Found 15 matches")</p>
+</li>
+<li>
+<p>Clickable results that navigate to the matching location</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-2.9.7 (Search Scope):</strong> Document search SHALL search across all pages in the cartridge, including HTML content from the <code>Content_Pages</code> table. Search SHALL exclude metadata and structural data (form definitions, embedded app code, etc.) unless explicitly included.</p>
+</li>
+<li>
+<p><strong>FR-2.9.8 (Search Performance):</strong> Document search SHALL complete within reasonable time limits (target: &lt; 2 seconds for cartridges with 100+ pages). The Reader MAY implement search indexing or caching to improve performance.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_in_page_search_functionality">2.5. In-Page Search Functionality</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-2.10.1 (Find-in-Page Dialog):</strong> The Reader SHALL provide a find-in-page search dialog similar to Google Chrome&#8217;s find functionality, accessible via keyboard shortcut (Ctrl+F / Cmd+F when no document search modal is open, or F3). The find dialog SHALL:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Be displayed as a compact bar or overlay within the Reader view (not a modal)</p>
+</li>
+<li>
+<p>Include a search input field</p>
+</li>
+<li>
+<p>Provide navigation buttons (Previous/Next) to move between matches</p>
+</li>
+<li>
+<p>Display a result count (e.g., "1 of 15")</p>
+</li>
+<li>
+<p>Include a close button</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-2.10.2 (Term Highlighting):</strong> The Reader SHALL highlight all instances of the search term within the current page using visual highlighting (e.g., yellow background). Highlighting SHALL update dynamically as the user types in the search field.</p>
+</li>
+<li>
+<p><strong>FR-2.10.3 (Match Navigation):</strong> The Reader SHALL allow users to navigate between highlighted matches using:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Previous/Next buttons in the find dialog</p>
+</li>
+<li>
+<p>Keyboard shortcuts (F3 for next, Shift+F3 for previous, or Enter/Shift+Enter)</p>
+</li>
+<li>
+<p>The currently active match SHALL be highlighted differently (e.g., different color or border) to distinguish it from other matches</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-2.10.4 (Result Count):</strong> The Reader SHALL display the total number of matches found on the current page and the current match position (e.g., "3 of 12 matches").</p>
+</li>
+<li>
+<p><strong>FR-2.10.5 (Case Sensitivity):</strong> The find-in-page search SHALL support case-sensitive matching, toggled via a checkbox or button in the find dialog.</p>
+</li>
+<li>
+<p><strong>FR-2.10.6 (Auto-Scroll to Match):</strong> When navigating between matches, the Reader SHALL automatically scroll the page to bring the active match into view, ensuring the match is visible to the user.</p>
+</li>
+<li>
+<p><strong>FR-2.10.7 (Search Persistence):</strong> The find-in-page search term SHALL persist when navigating between pages, allowing users to continue searching across multiple pages using the same search term.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_interactive_forms_and_persistence">2.6. Interactive Forms and Persistence</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-2.1.2 (Form Data Persistence):</strong> The Reader SHALL provide an API to allow embedded applications (JS) to save and retrieve structured user data securely within the cartridge file.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_form_rendering_and_interaction">2.7. Form Rendering and Interaction</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-2.7.1 (HTML Form Rendering):</strong> The Reader SHALL render forms using standard HTML form elements (<code>&lt;form&gt;</code>, <code>&lt;input&gt;</code>, <code>&lt;textarea&gt;</code>, <code>&lt;select&gt;</code>, etc.) based on the form definition JSON schema stored in the <code>Form_Definitions</code> table. Forms SHALL be seamlessly integrated into content pages as part of the document flow, not as separate overlays or popups.</p>
+</li>
+<li>
+<p><strong>FR-2.7.2 (Form Embedding in Content):</strong> Forms SHALL be embedded within content pages using a special HTML element or data attribute (e.g., <code>&lt;div data-form-id="form_id"&gt;</code> or <code>&lt;smartbook-form form-id="form_id"&gt;</code>). The Reader SHALL detect these markers and render the corresponding form definition as an HTML form within the content flow.</p>
+</li>
+<li>
+<p><strong>FR-2.7.3 (Form Validation):</strong> The Reader SHALL perform client-side validation of form inputs according to the validation rules defined in the form schema JSON. Validation errors SHALL be displayed inline with the form fields using standard HTML5 validation patterns and custom error messages.</p>
+</li>
+<li>
+<p><strong>FR-2.7.4 (Form Data Persistence to Cartridge):</strong> The Reader SHALL allow users to save form data to the cartridge&#8217;s <code>User_Data</code> table using the WebChannel API <code>saveFormData</code> method. Saved form data SHALL persist across sessions and SHALL be associated with the specific form ID.</p>
+</li>
+<li>
+<p><strong>FR-2.7.5 (Form Data Persistence to Sandbox):</strong> The Reader SHALL allow users to save form data to the embedded app&#8217;s sandbox file system using the WebChannel API <code>saveSandboxFile</code> method, enabling embedded applications to access and process form data.</p>
+</li>
+<li>
+<p><strong>FR-2.7.5a (Sandbox File Picker):</strong> The Reader SHALL provide a file picker dialog limited to the sandbox directory when users need to select a file for loading form data from the sandbox or when choosing a filename for saving form data to the sandbox. The file picker SHALL only display files within the sandbox directory and SHALL prevent navigation outside the sandbox.</p>
+</li>
+<li>
+<p><strong>FR-2.7.6 (Form Data Loading):</strong> The Reader SHALL automatically load previously saved form data when a form is rendered, populating form fields with the most recent saved values from either the <code>User_Data</code> table or the sandbox file system, as appropriate. When loading from sandbox, the Reader SHALL provide the option to use the sandbox file picker to select a specific file.</p>
+</li>
+<li>
+<p><strong>FR-2.7.7 (Form Printing):</strong> The Reader SHALL provide functionality to print the current form, including all visible form fields and their current values. The print output SHALL exclude form input controls and SHALL display field labels and values in a print-friendly format.</p>
+</li>
+<li>
+<p><strong>FR-2.7.8 (Form Auto-Save):</strong> The Reader SHALL optionally auto-save form data at configurable intervals (default: every 30 seconds) or when form fields lose focus, preventing data loss during form completion.</p>
+</li>
+<li>
+<p><strong>FR-2.7.9 (Form Reset):</strong> The Reader SHALL provide functionality to reset a form to its default values (as defined in the form schema) or to clear all form fields, discarding unsaved changes.</p>
+</li>
+<li>
+<p><strong>FR-2.7.10 (Multiple Form Instances):</strong> The Reader SHALL support multiple instances of the same form on different pages, with each instance maintaining its own independent data state.</p>
+</li>
+<li>
+<p><strong>FR-2.7.11 (Form Field Undo/Redo):</strong> The Reader SHALL support undo and redo operations for form field inputs, allowing users to undo/redo text entry and edits within form fields using standard keyboard shortcuts (Ctrl+Z / Cmd+Z for undo, Ctrl+Y or Ctrl+Shift+Z / Cmd+Shift+Z for redo). Undo/redo history SHALL be maintained per form field and SHALL be cleared when the form field loses focus or when form data is saved.</p>
+</li>
+<li>
+<p><strong>FR-2.2.1 (HTML/CSS Rendering):</strong> The Reader SHALL render the primary content of the cartridge using a standards-compliant web view, utilizing the internal HTML and CSS.</p>
+</li>
+<li>
+<p><strong>FR-2.2.2 (Embedded Application Support):</strong> The Reader SHALL be able to load and execute embedded JavaScript applications (Single Page Applications or similar interactive components) defined in the <code>Embedded_Apps</code> table within the web view, subject to the security policy. Embedded applications SHALL operate <strong>locally only</strong> with <strong>no network access</strong> and SHALL have access only to a sandboxed local file system.</p>
+</li>
+<li>
+<p><strong>FR-2.2.3 (Cartridge Settings Support):</strong> The Reader SHALL read rendering settings from the <code>Settings</code> table in the cartridge and apply them as initial display preferences. The Reader SHALL allow users to override these settings, but SHALL preserve the original cartridge defaults to enable resetting to the author&#8217;s intended appearance.</p>
+</li>
+<li>
+<p><strong>FR-2.2.4 (Settings Reset):</strong> The Reader SHALL provide functionality to reset rendering settings to the cartridge&#8217;s original defaults, restoring the author-defined initial values.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_embedded_application_execution">2.8. Embedded Application Execution</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-2.3.1 (Level 1: Commercial Trust):</strong> Cartridges signed by a publicly-trusted Certificate Authority (CA) with a valid, non-expired certificate SHALL be loaded with default trust, permitting the execution of embedded applications without user consent. Certificate validation SHALL be performed against the system&#8217;s trusted root CA store (see DDD Certificate Validation Implementation).</p>
+</li>
+<li>
+<p><strong>FR-2.3.1a (Expired CA Certificate Handling):</strong> Cartridges signed by an expired CA-signed certificate SHALL be downgraded to Level 2 (Self-Signed Trust) and SHALL require user consent for embedded application execution. The Reader SHALL display an integrity warning indicating that the certificate has expired.</p>
+</li>
+<li>
+<p><strong>FR-2.3.2 (Level 2: Self-Signed Trust):</strong> Cartridges signed by a self-signed certificate SHALL be loaded only after displaying an integrity warning to the user. Embedded applications SHALL require explicit user consent via a native opt-in dialog triggered by the <code>requestAppConsent</code> API call.</p>
+</li>
+<li>
+<p><strong>FR-2.3.3 (Level 3: No Signature):</strong> Unsigned cartridges SHALL be loaded with a persistent, visible integrity warning. Embedded applications SHALL require explicit user consent via a native opt-in dialog triggered by the <code>requestAppConsent</code> API call.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_trust_persistence_and_revocation">2.9. Trust Persistence and Revocation</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-2.4.1 (Persistent Trust Management):</strong> The Reader SHALL provide a mechanism for users to persistently authorize the execution of embedded applications for a specific cartridge, bypassing future consent prompts for that content.</p>
+</li>
+<li>
+<p><strong>FR-2.4.2 (Trust Options):</strong> The consent dialog SHALL offer the user the option to: 1) Trust for the current session, 2) Always trust this cartridge, or 3) Block execution.</p>
+</li>
+<li>
+<p><strong>FR-2.4.3 (Trust Revocation):</strong> The Reader UI SHALL provide a function to manually revoke a persistent trust decision for any cartridge, reverting the status to the default security policy.</p>
+</li>
+<li>
+<p><strong>FR-2.4.4 (Tampering Detection):</strong> Upon loading a persistently trusted cartridge, the Reader SHALL recalculate the content hash (H2) and compare it against the hash stored in the Local Trust Registry. A mismatch SHALL trigger an unresolvable error and block execution, regardless of the prior trust decision.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_library_and_manifest_management">2.10. Library and Manifest Management</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-2.5.1 (Manifest Creation):</strong> The Reader SHALL maintain a separate local database (<code>Local_Library_Manifest</code>) to store browsing metadata for all imported cartridges. This manifest SHALL be populated upon the cartridge&#8217;s initial import.</p>
+</li>
+<li>
+<p><strong>FR-2.5.2 (Mandatory Metadata):</strong> The manifest SHALL store, at a minimum: <code>cartridge_guid</code>, <code>title</code>, <code>author</code>, <code>local_path</code>, and the compressed binary data of the <code>cover_image_data</code>. The manifest SHALL also store <code>publisher</code> if present in the cartridge metadata.</p>
+</li>
+<li>
+<p><strong>FR-2.5.3 (Manifest Update):</strong> The Reader SHALL update the manifest entry if a cartridge with a known <code>cartridge_guid</code> is detected at a new <code>local_path</code>, or if the content has changed (new hash).</p>
+</li>
+<li>
+<p><strong>FR-2.5.4 (Registry Storage):</strong> The Reader SHALL maintain a separate local database (<code>Local_Trust_Registry</code>) to persist user trust decisions, linking the decision to the unique <code>cartridge_guid</code>.</p>
+</li>
+<li>
+<p><strong>FR-2.5.5 (Cartridge Deletion):</strong> The Reader SHALL provide a mechanism, accessible via the UI, to delete a cartridge&#8217;s local file, and simultaneously remove its records from the <code>Local_Library_Manifest</code> and <code>Local_Trust_Registry</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_cartridge_import_process">2.11. Cartridge Import Process</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-2.5.6 (Import Mechanisms):</strong> The Reader SHALL support importing cartridges via:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p><strong>Drag-and-Drop:</strong> Users can drag cartridge files (<code>.sqlite</code> files) from the file system and drop them onto the Library Manager window</p>
+</li>
+<li>
+<p><strong>File Picker Dialog:</strong> Users can select "Import" from the menu or toolbar, which opens a native file picker dialog to select one or more cartridge files</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-2.5.7 (Import Storage Location):</strong> The Reader SHALL store imported cartridges in a user-configurable library directory. The default location SHALL follow operating system standards:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p><strong>Windows:</strong> <code>%USERPROFILE%\Documents\SmartBook\Library\</code></p>
+</li>
+<li>
+<p><strong>macOS:</strong> <code>~/Documents/SmartBook/Library/</code></p>
+</li>
+<li>
+<p><strong>Linux:</strong> <code>~/Documents/SmartBook/Library/</code></p>
+</li>
+<li>
+<p>Users SHALL be able to configure a custom library directory via application settings</p>
+</li>
+<li>
+<p>The library directory preference SHALL persist across application sessions</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-2.5.8 (Import Progress Indication):</strong> The Reader SHALL display a progress dialog during cartridge import operations, showing:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Current operation (e.g., "Copying file&#8230;&#8203;", "Validating cartridge&#8230;&#8203;", "Updating manifest&#8230;&#8203;")</p>
+</li>
+<li>
+<p>Progress percentage or file count (e.g., "1 of 3 files")</p>
+</li>
+<li>
+<p>Current file being processed</p>
+</li>
+<li>
+<p>Cancel button to abort the import operation</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-2.5.9 (Duplicate Detection):</strong> The Reader SHALL detect duplicate cartridges by comparing <code>cartridge_guid</code> values. If a cartridge with the same <code>cartridge_guid</code> already exists in the library:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>The Reader SHALL display a confirmation dialog asking the user whether to replace the existing cartridge (delete old file, import new file), skip the duplicate (abort import for this cartridge), or keep both (rename new file to avoid conflict)</p>
+</li>
+<li>
+<p>The dialog SHALL display information about both cartridges (title, author, publisher, file paths, file sizes, modification dates)</p>
+</li>
+<li>
+<p>The dialog SHALL allow the user to make a choice for each duplicate cartridge when importing multiple files</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-2.5.10 (Import Validation):</strong> The Reader SHALL validate imported cartridges before adding them to the library:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Verify file is a valid SQLite database</p>
+</li>
+<li>
+<p>Verify required tables exist (<code>Metadata</code>, <code>Content_Pages</code>, etc.)</p>
+</li>
+<li>
+<p>Verify <code>cartridge_guid</code> is present and valid (UUID v4 format)</p>
+</li>
+<li>
+<p>Verify <code>schema_version</code> is supported by the Reader</p>
+</li>
+<li>
+<p>If validation fails, display error dialog and skip the cartridge</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-2.5.11 (Import Completion):</strong> Upon successful import, the Reader SHALL:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Copy the cartridge file to the library directory (if not already there)</p>
+</li>
+<li>
+<p>Extract metadata (title, author, publisher, publication_year, cover_image_data)</p>
+</li>
+<li>
+<p>Calculate content hash (H2)</p>
+</li>
+<li>
+<p>Create manifest entry in <code>Local_Library_Manifest</code> table</p>
+</li>
+<li>
+<p>Refresh the library view to display the newly imported cartridge</p>
+</li>
+<li>
+<p>Display success notification (optional, can be dismissed)</p>
+</li>
+</ol>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_rendering_settings_and_preferences">2.12. Rendering Settings and Preferences</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-2.6.1 (Author-Defined Settings):</strong> The Reader SHALL read and apply author-defined rendering settings from the <code>Settings</code> table in the cartridge. These settings SHALL provide initial default values for rendering preferences such as font size, font family, theme, margins, and line spacing.</p>
+</li>
+<li>
+<p><strong>FR-2.6.2 (User Preference Override):</strong> The Reader SHALL allow users to override author-defined settings with their own preferences. User preferences SHALL be stored in the Reader&#8217;s local database and SHALL apply to the specific cartridge.</p>
+</li>
+<li>
+<p><strong>FR-2.6.3 (Settings Reset):</strong> The Reader SHALL provide functionality to reset cartridge rendering settings to the original author-defined defaults, discarding user overrides.</p>
+</li>
+<li>
+<p><strong>FR-2.6.4 (Settings Persistence):</strong> User preference overrides SHALL persist across application sessions and SHALL be scoped per cartridge (identified by <code>cartridge_guid</code>).</p>
+</li>
+<li>
+<p><strong>FR-2.6.5 (Settings Application):</strong> When loading a cartridge, the Reader SHALL apply settings in the following priority: 1) User preference override (if exists), 2) Author-defined default (from <code>Settings</code> table), 3) Application default.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_creator_tool_functional_requirements_fr_ct">3. Creator Tool Functional Requirements (FR-CT)</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_content_authoring_and_editing">3.1. Content Authoring and Editing</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-CT-3.1 (HTML Content Authoring):</strong> The Creator Tool SHALL provide a WYSIWYG editing interface utilizing Qt WebEngineView for authoring HTML content. Content SHALL be stored in the cartridge database as HTML documents (either full HTML pages or fragments, as determined during design).</p>
+</li>
+<li>
+<p><strong>FR-CT-3.2 (Rich Text Editing):</strong> The Creator Tool SHALL provide a rich set of content editing tools including, but not limited to: text formatting (bold, italic, underline), paragraph styling, lists, links, and standard text manipulation operations.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.3 (Direct HTML Editing):</strong> The Creator Tool SHALL allow users to insert and edit raw HTML directly into the document to achieve complex formatting or functionality not available through the WYSIWYG interface.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.4 (Standard Edit Operations):</strong> The Creator Tool SHALL support standard edit functionality including cut, copy, paste, undo, redo, and select all operations. All operations SHALL be accessible via standard keyboard shortcuts (Ctrl+X/Cmd+X for cut, Ctrl+C/Cmd+C for copy, Ctrl+V/Cmd+V for paste, Ctrl+Z/Cmd+Z for undo, Ctrl+Y or Ctrl+Shift+Z/Cmd+Shift+Z for redo, Ctrl+A/Cmd+A for select all).</p>
+</li>
+<li>
+<p><strong>FR-CT-3.5 (Preview Functionality):</strong> The Creator Tool SHALL provide preview capabilities to display content as it will appear in the Reader. The tool SHALL support either a live preview pane (updated in real-time as content is edited) or a manual refresh preview, with the implementation approach determined during design based on performance and practicality considerations.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_page_management">3.2. Page Management</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-CT-3.6 (Page Selection):</strong> The Creator Tool UI SHALL provide a mechanism for users to select a specific page in the document for editing.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.7 (Page CRUD Operations):</strong> The Creator Tool SHALL provide Create, Read, Update, and Delete (CRUD) functionality for managing pages within the smartbook document.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.8 (Page Ordering):</strong> The Creator Tool SHALL allow users to reorder pages within the document, maintaining the <code>page_order</code> field in the <code>Content_Pages</code> table.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.9 (Chapter Organization):</strong> The Creator Tool SHALL allow users to assign chapter titles and organize pages into chapters/sections, updating the <code>chapter_title</code> field in the <code>Content_Pages</code> table.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_stylesheet_management">3.3. Stylesheet Management</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-CT-3.10 (CSS Stylesheet Attachment):</strong> The Creator Tool SHALL allow users to attach a custom CSS stylesheet to the smartbook document. This stylesheet SHALL be stored within the cartridge and SHALL be responsible for controlling the <strong>structure</strong> of rendered content (layout, positioning, spacing, margins, borders, etc.). The CSS stylesheet SHALL be separate from and complementary to content themes, which control colors and fonts. This separation allows authors to maintain control over page structure while enabling users to customize visual appearance (colors, fonts) to their preferences, providing a balanced middle ground between author intent and user customization.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.11 (Stylesheet Editing):</strong> The Creator Tool SHALL provide an interface for editing the attached CSS stylesheet, either through a dedicated CSS editor or by importing an external CSS file. The CSS editor SHALL focus on structural styling (layout, positioning, spacing) rather than color/font styling, which is managed through the Content Theme Manager.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_rendering_settings_management">3.4. Rendering Settings Management</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-CT-3.12a (Settings Definition):</strong> The Creator Tool SHALL provide functionality for authors to define rendering settings in the <code>Settings</code> table, including: default font size, default font family, default theme, page margins, line spacing, and text alignment.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.12b (Settings Editor):</strong> The Creator Tool SHALL provide a settings editor interface that allows authors to configure rendering defaults with appropriate input controls (number inputs for sizes, dropdowns for themes, etc.).</p>
+</li>
+<li>
+<p><strong>FR-CT-3.12c (Settings Validation):</strong> The Creator Tool SHALL validate setting values according to their <code>setting_type</code> (string, integer, float, boolean, json) before saving to the cartridge.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.12d (Settings Preview):</strong> The Creator Tool SHALL allow authors to preview how settings will affect content rendering in the preview pane.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_javascript_and_embedded_applications">3.5. JavaScript and Embedded Applications</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-CT-3.13 (Custom JavaScript Storage):</strong> The Creator Tool SHALL allow users to store custom JavaScript code as part of the document to enable specific functionality required by embedded applications.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.14 (Embedded Application Definition):</strong> The Creator Tool SHALL provide functionality for defining embedded applications, including specification of entry points, required scripts, required stylesheets, and application metadata (name, description, appId) as defined in the <code>Embedded_App_Manifest</code> structure.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.15 (JavaScript Management):</strong> The Creator Tool SHALL provide an interface for managing JavaScript code, including editing, validation, and organization of script resources.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_form_definition_management">3.6. Form Definition Management</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-CT-3.16 (Form Creation):</strong> The Creator Tool SHALL provide functionality for creating and editing form definitions using the Form Definition JSON Schema (see DDD Section 2.1).</p>
+</li>
+<li>
+<p><strong>FR-CT-3.17 (Form Builder Interface):</strong> The Creator Tool SHALL provide a visual form builder interface that allows users to create forms by adding fields, configuring validation rules, and organizing fields into groups without requiring direct JSON editing.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.18 (Form Schema Validation):</strong> The Creator Tool SHALL validate form definitions against the Form Definition JSON Schema before allowing them to be saved to the cartridge.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.19 (Form Integration):</strong> The Creator Tool SHALL allow users to insert form references into content pages, linking the form definition to the page content.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_metadata_management">3.7. Metadata Management</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-CT-3.20 (Document Metadata):</strong> The Creator Tool SHALL provide an interface for managing document-level metadata including: title, author, publisher (optional), publication year, version, tags, and cover image.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.21 (Cover Image Management):</strong> The Creator Tool SHALL allow users to select, import, and manage the cover image for the smartbook, storing it both in the <code>Metadata</code> table (<code>cover_image_path</code>) and ensuring it is available for the manifest.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.22 (GUID Generation):</strong> The Creator Tool SHALL automatically generate a UUID Version 4 <code>cartridge_guid</code> when creating a new smartbook cartridge (NFR-3.2). The GUID SHALL be immutable once generated.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.23 (Schema Version Management):</strong> The Creator Tool SHALL maintain and set the <code>schema_version</code> field in the Metadata table to indicate the Smartbook Format Specification version.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_resource_management">3.8. Resource Management</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-CT-3.24 (Asset Management):</strong> The Creator Tool SHALL provide functionality for managing embedded resources such as images, fonts, and other media assets referenced by the content.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.25 (Resource Storage):</strong> The Creator Tool SHALL store all resources within the cartridge database or maintain references to external resources, ensuring portability of the cartridge file.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_search_functionality">3.9. Search Functionality</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-CT-3.26 (Content Search):</strong> The Creator Tool SHALL provide search functionality that can search across the entire smartbook document or limit search to the current page being edited.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.27 (Search Results):</strong> The Creator Tool SHALL display search results and allow users to navigate to matching content locations within the document.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_cartridge_creation_and_export">3.10. Cartridge Creation and Export</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-CT-3.27 (New Cartridge Creation):</strong> The Creator Tool SHALL provide functionality to create a new empty cartridge, initializing a new SQLite database with all required table schemas.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.28 (Cartridge Opening):</strong> The Creator Tool SHALL allow users to open existing cartridge files for editing, loading all content, metadata, and resources into the editing interface.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.29 (Cartridge Saving):</strong> The Creator Tool SHALL provide functionality to save the current cartridge, persisting all changes to the SQLite database file.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.30 (Content Validation):</strong> Before finalizing a cartridge, the Creator Tool SHALL validate that all required metadata fields are present, all referenced resources exist, and the content structure is valid.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.31 (Hash Calculation):</strong> During cartridge finalization, the Creator Tool SHALL calculate the content hash (H1) of critical content tables as specified in DDD Section 7 (Creator Tool&#8217;s Cartridge Packaging Algorithm).</p>
+</li>
+<li>
+<p><strong>FR-CT-3.32 (Cartridge Signing):</strong> The Creator Tool SHALL provide functionality for signing cartridges at three trust levels:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Level 1: CA-signed certificate (requires valid CA certificate)</p>
+</li>
+<li>
+<p>Level 2: Self-signed certificate (requires user-provided certificate/key pair)</p>
+</li>
+<li>
+<p>Level 3: No signature (unsigned cartridge)</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>FR-CT-3.33 (Certificate Management):</strong> The Creator Tool SHALL provide an interface for managing certificates and keys used for signing cartridges, including importing certificates, generating self-signed certificates, and selecting certificates for signing.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.34 (Export Process):</strong> The Creator Tool SHALL execute the complete cartridge packaging algorithm (DDD Section 7) when exporting a finalized cartridge, including content assembly, hash calculation, signature application (if applicable), and database finalization.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.35 (Export Validation):</strong> The Creator Tool SHALL validate the exported cartridge file to ensure it can be successfully opened by the Reader application.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_auto_save_and_recovery">3.11. Auto-Save and Recovery</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-CT-3.37 (Auto-Save Functionality):</strong> The Creator Tool SHALL automatically save the current cartridge at configurable intervals (default: every 5 minutes) to prevent data loss.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.38 (Auto-Save Configuration):</strong> The Creator Tool SHALL allow users to configure the auto-save interval or disable auto-save functionality.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.39 (Auto-Save Indication):</strong> The Creator Tool SHALL provide visual indication when auto-save is in progress and when the last auto-save completed successfully.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.40 (Recovery on Startup):</strong> The Creator Tool SHALL detect and offer to recover unsaved changes if the application was closed unexpectedly or crashed, restoring the most recent auto-saved state.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_draft_and_publishing_states">3.12. Draft and Publishing States</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-CT-3.41 (Draft Mode):</strong> The Creator Tool SHALL support a draft mode where cartridges can be saved and edited without being finalized or signed.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.42 (Publishing State):</strong> The Creator Tool SHALL distinguish between draft cartridges and published cartridges. Published cartridges SHALL be finalized, validated, and optionally signed.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.43 (State Management):</strong> The Creator Tool SHALL track and display the current state (draft/published) of a cartridge and prevent certain operations (e.g., signing) on draft cartridges until they are ready for publication.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.44 (Publish Workflow):</strong> The Creator Tool SHALL provide a publish workflow that guides users through validation, signing (if applicable), and finalization before marking a cartridge as published.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_content_templates">3.13. Content Templates</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-CT-3.45 (Template Creation):</strong> The Creator Tool SHALL allow users to create and save content templates that include page structure, styling, form definitions, and embedded application configurations.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.46 (Template Library):</strong> The Creator Tool SHALL maintain a library of templates that users can browse, preview, and apply when creating new cartridges or pages.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.47 (Template Application):</strong> The Creator Tool SHALL allow users to apply templates to new cartridges or individual pages, populating content structure and styles while allowing customization.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.48 (Template Management):</strong> The Creator Tool SHALL provide functionality to manage templates including creating, editing, deleting, importing, and exporting templates.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_import_capabilities">3.14. Import Capabilities</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-CT-3.49 (Markdown Import):</strong> The Creator Tool SHALL support importing content from Markdown files, converting Markdown syntax to HTML and creating appropriate page structures.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.50 (DOCX Import):</strong> The Creator Tool SHALL support importing content from Microsoft Word DOCX files, preserving formatting and structure where possible.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.51 (HTML Import):</strong> The Creator Tool SHALL support importing HTML files or HTML fragments, allowing users to bring in existing web content.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.52 (Import Validation):</strong> The Creator Tool SHALL validate imported content and provide feedback on any formatting or structure issues that may require manual adjustment.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.53 (Import Options):</strong> The Creator Tool SHALL allow users to configure import options such as how to handle images, stylesheets, and other resources during import.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_version_history">3.15. Version History</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-CT-3.54 (Version Tracking):</strong> The Creator Tool SHALL maintain a version history for each cartridge, tracking changes to content, metadata, and structure over time.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.55 (Version Snapshots):</strong> The Creator Tool SHALL create version snapshots at significant milestones (e.g., manual save points, before major edits, before publishing) and allow users to create manual version snapshots.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.56 (Version Comparison):</strong> The Creator Tool SHALL provide functionality to compare different versions of a cartridge, highlighting changes in content, metadata, and structure.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.57 (Version Restoration):</strong> The Creator Tool SHALL allow users to restore a cartridge to a previous version, with the option to create a new version from the restored state or replace the current version.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.58 (Version Metadata):</strong> Each version snapshot SHALL store metadata including timestamp, version number or identifier, and optional user-provided notes describing the changes.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_error_recovery_and_data_integrity">3.16. Error Recovery and Data Integrity</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-CT-3.59 (Corruption Detection):</strong> The Creator Tool SHALL detect cartridge file corruption when opening files and provide recovery options when possible.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.60 (Incomplete Save Recovery):</strong> The Creator Tool SHALL detect and handle incomplete save operations, attempting to recover as much data as possible and alerting the user to any data loss.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.61 (Backup Creation):</strong> The Creator Tool SHALL automatically create backup copies of cartridges before performing potentially destructive operations (e.g., major structural changes, version restoration).</p>
+</li>
+<li>
+<p><strong>FR-CT-3.62 (Data Validation):</strong> The Creator Tool SHALL continuously validate data integrity during editing operations, preventing invalid states and providing immediate feedback on errors.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.63 (Transaction Safety):</strong> The Creator Tool SHALL use database transactions to ensure atomic operations, preventing partial updates that could corrupt the cartridge structure.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_reader_accessibility">3.17. Reader Accessibility</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-2.13.1 (Keyboard Navigation):</strong> The Reader SHALL support full keyboard navigation for all essential functions, allowing users to operate the application without requiring a mouse or pointing device. Keyboard navigation SHALL include: page navigation (arrow keys, Page Up/Down, Home/End), form field navigation (Tab/Shift+Tab), menu navigation, and all text selection/copy operations.</p>
+</li>
+<li>
+<p><strong>FR-2.13.2 (Keyboard Shortcuts):</strong> The Reader SHALL provide keyboard shortcuts for all essential functions to ensure WCAG 2.1 Level AA compliance. Keyboard shortcuts SHALL include: text selection (Ctrl+A/Cmd+A), copy (Ctrl+C/Cmd+C), paste (Ctrl+V/Cmd+V), cut (Ctrl+X/Cmd+X), undo/redo (Ctrl+Z/Cmd+Z, Ctrl+Y/Cmd+Shift+Z), search (Ctrl+F/Cmd+F), print (Ctrl+P/Cmd+P), and navigation (arrow keys, Page Up/Down, Home/End, Alt+Left/Right for history).</p>
+</li>
+<li>
+<p><strong>FR-2.13.3 (Screen Reader Support):</strong> The Reader SHALL be compatible with screen readers, providing appropriate ARIA labels and semantic markup for all UI elements, form fields, and content structure.</p>
+</li>
+<li>
+<p><strong>FR-2.13.4 (High Contrast Support):</strong> The Reader SHALL support high contrast display modes for users with visual impairments, either through system high contrast settings or through content theme selection (high contrast themes).</p>
+</li>
+<li>
+<p><strong>FR-2.13.5 (Font Scaling):</strong> The Reader SHALL allow users to scale font sizes for improved readability, either through user settings or through system accessibility settings.</p>
+</li>
+<li>
+<p><strong>FR-2.13.6 (Accessibility Standards):</strong> The Reader SHALL comply with WCAG 2.1 Level AA accessibility standards, ensuring that all essential functions are accessible via keyboard, that content is readable by screen readers, and that visual elements meet contrast requirements.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_creator_tool_accessibility">3.18. Creator Tool Accessibility</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-CT-3.64 (Keyboard Navigation):</strong> The Creator Tool SHALL support full keyboard navigation and shortcuts for all editing and navigation functions, allowing operation without a mouse.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.65 (Screen Reader Support):</strong> The Creator Tool SHALL be compatible with screen readers, providing appropriate ARIA labels and semantic markup for all UI elements.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.66 (High Contrast Mode):</strong> The Creator Tool SHALL support high contrast display modes for users with visual impairments.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.67 (Font Scaling):</strong> The Creator Tool SHALL allow users to scale the UI font size and provide zoom functionality for the editing interface.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.68 (Accessibility Standards):</strong> The Creator Tool SHALL comply with WCAG 2.1 Level AA accessibility standards for the editing interface.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.69 (Keyboard Shortcuts Documentation):</strong> The Creator Tool SHALL provide accessible documentation of all keyboard shortcuts and make this documentation available within the application.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_multi_language_support">3.19. Multi-Language Support</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-CT-3.70 (UI Localization):</strong> The Creator Tool SHALL support localization of the user interface using Qt i18n mechanisms, allowing the UI to be displayed in multiple languages.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.71 (Language Selection):</strong> The Creator Tool SHALL allow users to select their preferred UI language, with the selection persisting across application sessions.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.72 (Content Language Support):</strong> The Creator Tool SHALL support authoring content in multiple languages, including right-to-left (RTL) languages, with appropriate text direction and formatting support.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.73 (Language Pack Management):</strong> The Creator Tool SHALL support loading and managing language packs for UI translation, allowing users or third parties to provide translations.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.74 (Metadata Localization):</strong> The Creator Tool SHALL allow users to provide localized versions of metadata fields (title, author, publisher, tags) for multi-language smartbook distribution.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_ui_theming_support">3.20. UI Theming Support</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-CT-3.75 (Built-in UI Themes):</strong> The Creator Tool SHALL provide three immutable, built-in themes for the application interface:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Light theme (default)</p>
+</li>
+<li>
+<p>Dark theme</p>
+</li>
+<li>
+<p>Sepia theme</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>FR-CT-3.76 (UI Theme Selection):</strong> The Creator Tool SHALL allow users to select and switch between built-in UI themes, with the selection persisting across application sessions.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.77 (Custom UI Theme Creation):</strong> The Creator Tool SHALL provide functionality for users to create and save custom UI themes, allowing modification of UI colors, fonts, and styling.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.78 (Custom UI Theme Management):</strong> The Creator Tool SHALL allow users to save, load, edit, and delete custom UI themes. Custom UI themes SHALL be stored locally and persist across sessions.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.79 (UI Theme Application):</strong> UI theme changes SHALL apply immediately to the entire Creator Tool interface, including menu bars, toolbars, sidebars, and editing areas.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.80 (UI Theme Preview):</strong> The Creator Tool SHALL provide a preview of UI themes before applying them, allowing users to see how the interface will look with the selected theme.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.81 (UI Theme Export/Import):</strong> The Creator Tool SHALL support exporting custom UI themes to shareable files and importing UI themes created by other users.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_content_theme_management">3.21. Content Theme Management</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-CT-3.82 (Content Theme Manager Dialog):</strong> The Creator Tool SHALL provide a Content Theme Manager dialog that allows authors to create, manage, and apply themes for smartbook content (not the application UI). The dialog SHALL include:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>A left panel displaying available content themes with Apply buttons</p>
+</li>
+<li>
+<p>A right panel showing theme configuration and live preview</p>
+</li>
+<li>
+<p>Theme management actions (Add, Delete, Copy, Rename)</p>
+</li>
+<li>
+<p>A "Persist on add" checkbox option</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-CT-3.83 (Content Theme List):</strong> The Content Theme Manager SHALL display a list of available content themes (e.g., "Light Content", "Dark Content", "Warm Content") in the left panel. Each theme SHALL have an "Apply" button to apply the theme to the current cartridge. Built-in themes SHALL be immutable and clearly distinguished from custom themes.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.84 (Content Theme Actions):</strong> The Content Theme Manager SHALL provide the following theme management actions:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Add (+) button: Create a new content theme</p>
+</li>
+<li>
+<p>Delete (-) button: Delete the selected custom theme (built-in themes cannot be deleted)</p>
+</li>
+<li>
+<p>Copy button: Duplicate the selected theme to create a new custom theme</p>
+</li>
+<li>
+<p>Rename button: Rename the selected custom theme (built-in themes cannot be renamed)</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-CT-3.85 (Persist on Add):</strong> The Content Theme Manager SHALL provide a "Persist on add" checkbox that, when enabled, automatically saves the theme to the cartridge&#8217;s theme library when a new theme is created or modified.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.86 (Content Theme Configuration):</strong> The Content Theme Manager SHALL provide a theme configuration panel that allows authors to:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Set the theme name via a text input field</p>
+</li>
+<li>
+<p>Configure core colors (Primary, On Primary, Surface, On Surface, Background) using color pickers/swatches</p>
+</li>
+<li>
+<p>Select color presets from a dropdown menu (e.g., "Default")</p>
+</li>
+<li>
+<p>Reset colors to default values</p>
+</li>
+<li>
+<p>Toggle color swatch display ("Show swatches" checkbox)</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-CT-3.87 (Content Theme Live Preview):</strong> The Content Theme Manager SHALL provide a live preview panel that displays sample content (headings, body text, links, emphasis, inline code, quoted text, tables) rendered with the current theme configuration, allowing authors to see how the theme will appear before applying it.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.88 (Content Theme Actions):</strong> The Content Theme Manager SHALL provide action buttons for the selected theme:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Apply: Apply the theme configuration to the current cartridge</p>
+</li>
+<li>
+<p>Save: Save the theme configuration (enabled when theme is modified)</p>
+</li>
+<li>
+<p>Cancel: Discard changes and close the dialog</p>
+</li>
+<li>
+<p>Revert: Revert the theme to its last saved state</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-CT-3.89 (Content Theme Storage):</strong> Content themes SHALL be stored within the cartridge file, allowing each smartbook to have its own set of content themes. Themes SHALL be accessible when editing the cartridge and SHALL be applied to content rendering in the Reader.</p>
+</li>
+<li>
+<p><strong>FR-CT-3.90 (Content Theme Application):</strong> When a content theme is applied, the Creator Tool SHALL update the cartridge&#8217;s theme settings to use the selected theme for content rendering. The theme SHALL control <strong>colors and fonts</strong> (visual appearance and typography) while the CSS stylesheet controls <strong>structure</strong> (layout, positioning, spacing). The theme SHALL affect how content appears in both the Creator Tool preview and the Reader application, working in conjunction with the CSS stylesheet.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_error_handling_and_logging_requirements">4. Error Handling and Logging Requirements</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_reader_application_error_handling">4.1. Reader Application Error Handling</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-ERR-4.1 (Cartridge File Errors):</strong> The Reader SHALL detect and handle cartridge file errors including: file not found, file corruption, invalid SQLite format, and file permission errors. The Reader SHALL display user-friendly error messages and SHALL log detailed error information.</p>
+</li>
+<li>
+<p><strong>FR-ERR-4.2 (Database Connection Errors):</strong> The Reader SHALL handle database connection failures gracefully, including: database locked errors, disk full errors, and SQLite corruption. The Reader SHALL attempt recovery where possible and SHALL inform the user of the error condition.</p>
+</li>
+<li>
+<p><strong>FR-ERR-4.3 (Signature Verification Errors):</strong> The Reader SHALL handle signature verification failures with specific error messages distinguishing between: invalid signature, expired certificate, untrusted CA, corrupted security data, and hash mismatch (tampering detected).</p>
+</li>
+<li>
+<p><strong>FR-ERR-4.4 (File System Errors):</strong> The Reader SHALL handle file system errors including: disk full, permission denied, path too long, and invalid characters. The Reader SHALL provide actionable error messages to the user.</p>
+</li>
+<li>
+<p><strong>FR-ERR-4.5 (Manifest Update Errors):</strong> The Reader SHALL handle manifest update failures gracefully. If manifest update fails, the Reader SHALL continue operation but SHALL log the error and SHALL retry the update on next application launch.</p>
+</li>
+<li>
+<p><strong>FR-ERR-4.6 (Sandbox Operation Errors):</strong> The Reader SHALL handle sandbox file system errors including: path traversal attempts, invalid filenames, file size limits exceeded, and disk space exhaustion. The Reader SHALL block invalid operations and SHALL return appropriate error codes via the WebChannel API.</p>
+</li>
+<li>
+<p><strong>FR-ERR-4.7 (WebEngine Errors):</strong> The Reader SHALL handle WebEngine crashes and JavaScript errors gracefully. The Reader SHALL log errors and SHALL provide recovery options (reload page, close app) without crashing the entire application.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_creator_tool_error_handling">4.2. Creator Tool Error Handling</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-ERR-4.8 (Content Validation Errors):</strong> The Creator Tool SHALL validate content before saving and SHALL provide specific error messages for: invalid HTML, malformed JSON schemas, missing required metadata, invalid form definitions, and resource reference errors.</p>
+</li>
+<li>
+<p><strong>FR-ERR-4.9 (Cartridge Creation Errors):</strong> The Creator Tool SHALL handle cartridge creation failures including: database initialization errors, GUID generation failures, and schema creation errors. The Creator Tool SHALL roll back partial changes and SHALL inform the user of the failure.</p>
+</li>
+<li>
+<p><strong>FR-ERR-4.10 (Signing Errors):</strong> The Creator Tool SHALL handle certificate and signing errors including: invalid certificate format, expired certificates, missing private keys, signing failures, and certificate import errors. The Creator Tool SHALL provide clear error messages and SHALL suggest corrective actions.</p>
+</li>
+<li>
+<p><strong>FR-ERR-4.11 (Export Errors):</strong> The Creator Tool SHALL handle export failures including: file write errors, disk full conditions, permission errors, and hash calculation failures. The Creator Tool SHALL preserve the working cartridge state and SHALL allow retry of the export operation.</p>
+</li>
+<li>
+<p><strong>FR-ERR-4.12 (Import Errors):</strong> The Creator Tool SHALL handle import failures including: unsupported file formats, corrupted source files, missing resources, and validation errors. The Creator Tool SHALL provide detailed error messages indicating what failed and why.</p>
+</li>
+<li>
+<p><strong>FR-ERR-4.13 (Resource Management Errors):</strong> The Creator Tool SHALL handle resource management errors including: file not found, invalid image formats, file size limits exceeded, and resource path errors. The Creator Tool SHALL validate resources before adding them to the cartridge.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_logging_requirements">4.3. Logging Requirements</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-ERR-4.14 (Minimal Logging):</strong> The application SHALL implement minimal logging that captures only essential information: errors, warnings, and critical security events. Debug and informational messages SHALL be excluded from production logs unless explicitly enabled.</p>
+</li>
+<li>
+<p><strong>FR-ERR-4.15 (Log Rotation):</strong> The application SHALL automatically rotate log files without user intervention. Log rotation SHALL occur when: a log file reaches a maximum size (default: 10MB), or daily (whichever comes first). The application SHALL retain a maximum of 5 rotated log files before deleting the oldest.</p>
+</li>
+<li>
+<p><strong>FR-ERR-4.16 (Log Location):</strong> Log files SHALL be stored in platform-appropriate application data directories:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Windows: <code>%APPDATA%\SmartBook\logs\</code></p>
+</li>
+<li>
+<p>macOS: <code>~/Library/Application Support/SmartBook/logs/</code></p>
+</li>
+<li>
+<p>Linux: <code>~/.local/share/SmartBook/logs/</code></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>FR-ERR-4.17 (Log Format):</strong> Log entries SHALL include: timestamp, log level (ERROR/WARN/INFO), component name, and message. Log format SHALL be human-readable and machine-parseable.</p>
+</li>
+<li>
+<p><strong>FR-ERR-4.18 (Error Reporting):</strong> The application SHALL log sufficient error context to enable debugging without exposing sensitive user data. Error logs SHALL include: error code, error message, component, operation context, and stack trace (where available).</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_non_functional_requirements_nfr">5. Non-Functional Requirements (NFR)</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_performance_nfr">5.1. Performance NFR</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-center valign-middle">ID</th>
+<th class="tableblock halign-center valign-middle">Requirement Type</th>
+<th class="tableblock halign-center valign-middle">Detail</th>
+<th class="tableblock halign-center valign-middle">Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>NFR-3.1</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Performance: Library Load</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The Reader&#8217;s primary library browsing interface SHALL load cartridge metadata and cover images exclusively from the local manifest database, avoiding the opening and parsing of individual cartridge files. The Library Manager (Bookshelf and List-View) <strong>MUST</strong> fully load and display all metadata for 100+ cartridges within <strong>500 milliseconds</strong> of initialization.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ensures a responsive, professional user experience, requiring the use of the cached <code>Local_Library_Manifest</code> rather than runtime file parsing.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_security_nfr">5.2. Security NFR</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 14.2857%;">
+<col style="width: 28.5714%;">
+<col style="width: 28.5714%;">
+<col style="width: 28.5715%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-center valign-middle">ID</th>
+<th class="tableblock halign-center valign-middle">Requirement Type</th>
+<th class="tableblock halign-center valign-middle">Detail</th>
+<th class="tableblock halign-center valign-middle">Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>NFR-3.2</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Global Uniqueness (UUID v4)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Every cartridge edition SHALL contain an immutable UUID Version 4 identifier (<code>cartridge_guid</code>) to ensure global uniqueness for security and persistence tracking.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Essential for persistent trust registry mapping.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>NFR-3.3</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Integrity Hash (H2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A second, verifiable content hash (H2) SHALL be calculated and stored locally to verify content integrity against potential tampering upon subsequent loads.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Essential for Tampering Detection (FR-2.4.4).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_qt_webengine_configuration_requirements_fr_we">6. Qt WebEngine Configuration Requirements (FR-WE)</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_webengine_configuration">6.1. WebEngine Configuration</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-WE-5.1 (WebEngine Profile Configuration):</strong> The Reader and Creator Tool SHALL configure Qt WebEngine profiles with appropriate settings for security, performance, and functionality. Each <code>QWebEngineView</code> instance SHALL use a properly configured <code>QWebEngineProfile</code>.</p>
+</li>
+<li>
+<p><strong>FR-WE-5.2 (JavaScript Engine Version):</strong> The Reader and Creator Tool SHALL use the JavaScript engine version provided by Qt WebEngine (V8 engine, version determined by Qt WebEngine version). The application SHALL document the minimum Qt WebEngine version required and the corresponding V8 engine version.</p>
+</li>
+<li>
+<p><strong>FR-WE-5.3 (HTML/CSS Standards Compliance):</strong> The Reader and Creator Tool SHALL support HTML5 and CSS3 standards as implemented by the Chromium engine version used by Qt WebEngine. The application SHALL document the Chromium version and corresponding HTML/CSS standards support level.</p>
+</li>
+<li>
+<p><strong>FR-WE-5.4 (Security Settings):</strong> The Reader and Creator Tool SHALL configure WebEngine security settings to:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Disable JavaScript access to local file system (except via WebChannel API)</p>
+</li>
+<li>
+<p>Block network requests for embedded applications (via interceptor)</p>
+</li>
+<li>
+<p>Enforce Content Security Policy (CSP) headers</p>
+</li>
+<li>
+<p>Disable service workers</p>
+</li>
+<li>
+<p>Disable plugins (Flash, etc.)</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-WE-5.5 (Performance Settings):</strong> The Reader and Creator Tool SHALL configure WebEngine performance settings to:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Enable hardware acceleration (if available)</p>
+</li>
+<li>
+<p>Configure appropriate cache settings</p>
+</li>
+<li>
+<p>Set memory limits for embedded applications</p>
+</li>
+<li>
+<p>Optimize rendering performance</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-WE-5.6 (Profile Isolation):</strong> The Reader SHALL use separate <code>QWebEngineProfile</code> instances for:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Content rendering (Reader View)</p>
+</li>
+<li>
+<p>Embedded applications (each app gets its own profile or isolated profile)</p>
+</li>
+<li>
+<p>Creator Tool editing interface</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-WE-5.7 (Network Interceptor Configuration):</strong> The Reader SHALL configure <code>QWebEngineUrlRequestInterceptor</code> for embedded applications to block all HTTP/HTTPS requests while allowing local resource loading (data:, blob:, file: URLs).</p>
+</li>
+<li>
+<p><strong>FR-WE-5.8 (CSP Header Configuration):</strong> The Reader SHALL set Content Security Policy headers for embedded applications with the following policy:</p>
+</li>
+<li>
+<p><code>default-src 'self' 'unsafe-inline' 'unsafe-eval'</code></p>
+</li>
+<li>
+<p><code>script-src 'self' 'unsafe-inline' 'unsafe-eval'</code></p>
+</li>
+<li>
+<p><code>style-src 'self' 'unsafe-inline'</code></p>
+</li>
+<li>
+<p><code>connect-src 'none'</code></p>
+</li>
+<li>
+<p><code>img-src 'self' data: blob:</code></p>
+</li>
+<li>
+<p><code>font-src 'self' data:</code></p>
+</li>
+<li>
+<p><strong>FR-WE-5.9 (WebChannel Configuration):</strong> The Reader SHALL configure Qt WebChannel for secure communication between JavaScript and C++ code, registering the <code>SmartbookBridge</code> object for each <code>QWebEngineView</code> instance.</p>
+</li>
+<li>
+<p><strong>FR-WE-5.10 (Error Handling Configuration):</strong> The Reader and Creator Tool SHALL configure WebEngine error handling to:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Catch and log JavaScript console errors</p>
+</li>
+<li>
+<p>Handle WebEngine process crashes gracefully</p>
+</li>
+<li>
+<p>Provide recovery options (reload, close) without crashing the application</p>
+</li>
+</ol>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_sqlite_configuration_requirements_fr_sql">7. SQLite Configuration Requirements (FR-SQL)</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_sqlite_version_and_compatibility">7.1. SQLite Version and Compatibility</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-SQL-6.1 (Minimum SQLite Version):</strong> The Reader and Creator Tool SHALL require SQLite version 3.51 or higher. The application SHALL detect the SQLite version at runtime and SHALL display an error if the version is insufficient.</p>
+</li>
+<li>
+<p><strong>FR-SQL-6.2 (Version Detection):</strong> The Reader and Creator Tool SHALL detect and log the SQLite version at application startup. The version information SHALL be available in application logs and optionally in the About dialog.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_wal_mode_configuration">7.2. WAL Mode Configuration</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-SQL-6.3 (WAL Mode for Local Database):</strong> The Reader SHALL configure the local reader database (<code>local_reader.sqlite</code>) to use Write-Ahead Logging (WAL) mode. WAL mode SHALL be enabled immediately after database creation or on first connection to existing databases.</p>
+</li>
+<li>
+<p><strong>FR-SQL-6.4 (WAL Mode for Cartridge Files):</strong> The Creator Tool SHALL configure cartridge files to use WAL mode during creation and editing. Cartridge files exported for distribution MAY use WAL mode or rollback journal mode (design decision: WAL for better performance, rollback journal for maximum compatibility).</p>
+</li>
+<li>
+<p><strong>FR-SQL-6.5 (WAL Checkpoint Configuration):</strong> The Reader and Creator Tool SHALL configure automatic WAL checkpointing with appropriate thresholds. WAL checkpoint SHALL occur when WAL file size exceeds 10MB or when 1000 pages are written, whichever comes first.</p>
+</li>
+<li>
+<p><strong>FR-SQL-6.6 (WAL Mode Detection):</strong> The Reader SHALL detect if an existing database is not in WAL mode and SHALL automatically convert it to WAL mode on first access (if writable) or SHALL log a warning (if read-only).</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_database_optimization">7.3. Database Optimization</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-SQL-6.7 (Page Size Configuration):</strong> The Reader and Creator Tool SHALL configure SQLite page size to 4096 bytes (4KB) for optimal performance on modern systems. Page size SHALL be set at database creation time and SHALL NOT be changed for existing databases.</p>
+</li>
+<li>
+<p><strong>FR-SQL-6.8 (Cache Size Configuration):</strong> The Reader and Creator Tool SHALL configure SQLite cache size to appropriate values:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Local reader database: 2000 pages (8MB with 4KB pages)</p>
+</li>
+<li>
+<p>Cartridge files: 1000 pages (4MB with 4KB pages)</p>
+</li>
+<li>
+<p>Cache size SHALL be set per connection</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-SQL-6.9 (Synchronous Configuration):</strong> The Reader and Creator Tool SHALL configure synchronous mode to <code>NORMAL</code> for databases using WAL mode. Synchronous mode SHALL NOT be set to <code>OFF</code> (data integrity risk).</p>
+</li>
+<li>
+<p><strong>FR-SQL-6.10 (Journal Mode Configuration):</strong> The Reader and Creator Tool SHALL configure journal mode to <code>WAL</code> for all databases. For read-only cartridge files, journal mode detection SHALL be performed but conversion SHALL NOT be attempted.</p>
+</li>
+<li>
+<p><strong>FR-SQL-6.11 (Foreign Key Constraints):</strong> The Reader and Creator Tool SHALL enable foreign key constraints for all databases. Foreign key enforcement SHALL be enabled per connection using <code>PRAGMA foreign_keys = ON</code>.</p>
+</li>
+<li>
+<p><strong>FR-SQL-6.12 (Query Optimizer):</strong> The Reader and Creator Tool SHALL enable the SQLite query optimizer statistics. Statistics SHALL be updated using <code>ANALYZE</code> after significant data changes (e.g., after import, after bulk operations).</p>
+</li>
+<li>
+<p><strong>FR-SQL-6.13 (Index Optimization):</strong> The Reader and Creator Tool SHALL ensure all frequently queried columns have appropriate indexes. Indexes SHALL be created as specified in the database schema (DDD Section 3 and 4).</p>
+</li>
+<li>
+<p><strong>FR-SQL-6.14 (Vacuum and Optimization):</strong> The Reader SHALL provide functionality to optimize the local reader database. Optimization SHALL include <code>VACUUM</code> and <code>ANALYZE</code> operations. Optimization MAY be performed automatically during idle time or manually via user action.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_connection_management">7.4. Connection Management</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-SQL-6.15 (Connection Pooling):</strong> The Reader SHALL manage database connections efficiently:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Local database: Single connection (Singleton pattern via <code>LocalDBManager</code>)</p>
+</li>
+<li>
+<p>Cartridge files: One connection per open cartridge (Per-Instance pattern via <code>CartridgeDBConnector</code>)</p>
+</li>
+<li>
+<p>Connections SHALL be opened on-demand and closed when no longer needed</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-SQL-6.16 (Connection Timeout):</strong> The Reader and Creator Tool SHALL configure connection timeouts appropriately:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Default timeout: 30 seconds</p>
+</li>
+<li>
+<p>Retry logic with exponential backoff for locked databases</p>
+</li>
+<li>
+<p>Maximum 3 retry attempts</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-SQL-6.17 (Busy Handler):</strong> The Reader and Creator Tool SHALL configure SQLite busy handler to handle database lock contention gracefully. Busy handler SHALL wait up to 5 seconds with exponential backoff before returning SQLITE_BUSY error.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_transaction_management">7.5. Transaction Management</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-SQL-6.18 (Transaction Usage):</strong> The Reader and Creator Tool SHALL use transactions for all multi-step database operations to ensure atomicity and data integrity. Transactions SHALL be used for:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Form data saves</p>
+</li>
+<li>
+<p>Manifest updates</p>
+</li>
+<li>
+<p>Trust registry updates</p>
+</li>
+<li>
+<p>Cartridge deletions</p>
+</li>
+<li>
+<p>Bulk imports</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-SQL-6.19 (Transaction Isolation):</strong> The Reader and Creator Tool SHALL use appropriate transaction isolation levels. SQLite&#8217;s default isolation (SERIALIZABLE) SHALL be used. Explicit locking SHALL be avoided unless necessary.</p>
+</li>
+<li>
+<p><strong>FR-SQL-6.20 (Savepoint Support):</strong> The Creator Tool SHALL use savepoints for complex operations that may need partial rollback (e.g., form version migration, multi-step imports).</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_error_handling_and_recovery">7.6. Error Handling and Recovery</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-SQL-6.21 (Integrity Checks):</strong> The Reader SHALL perform periodic integrity checks on databases:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>On cartridge open: Quick integrity check (<code>PRAGMA quick_check</code>)</p>
+</li>
+<li>
+<p>On corruption suspicion: Full integrity check (<code>PRAGMA integrity_check</code>)</p>
+</li>
+<li>
+<p>Integrity check results SHALL be logged</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-SQL-6.22 (Corruption Recovery):</strong> The Reader and Creator Tool SHALL attempt recovery from database corruption when possible:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Use <code>.dump</code> and <code>.read</code> for recovery</p>
+</li>
+<li>
+<p>Recover as much data as possible</p>
+</li>
+<li>
+<p>Log recovery attempts and results</p>
+</li>
+<li>
+<p>Notify user of corruption and recovery status</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-SQL-6.23 (Backup and Restore):</strong> The Reader SHALL create automatic backups of the local reader database before major operations (e.g., schema migrations). Backups SHALL be stored in a backup directory and SHALL be retained for 7 days.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_platform_specific_considerations_requirements_fr_plat">8. Platform-Specific Considerations Requirements (FR-PLAT)</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_supported_operating_systems">8.1. Supported Operating Systems</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-PLAT-7.1 (Linux Distribution Support):</strong> The Reader and Creator Tool SHALL support the following Linux distributions:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Arch Linux 2025.09.01 or later</p>
+</li>
+<li>
+<p>Debian 13 or later</p>
+</li>
+<li>
+<p>Fedora Linux 43 or later</p>
+</li>
+<li>
+<p>Ubuntu Linux 24.04 LTS or later</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-PLAT-7.2 (macOS Support):</strong> The Reader and Creator Tool SHALL support macOS 26.1 or later.</p>
+</li>
+<li>
+<p><strong>FR-PLAT-7.3 (Windows Support):</strong> The Reader and Creator Tool SHALL support Windows 11 or later.</p>
+</li>
+<li>
+<p><strong>FR-PLAT-7.4 (Architecture Support):</strong> The Reader and Creator Tool SHALL support the following architectures where feasible:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>ARM64 (Apple Silicon, ARM-based Linux)</p>
+</li>
+<li>
+<p>X86_64 (Intel/AMD 64-bit)</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-PLAT-7.5 (Cross-Platform Compatibility):</strong> The client and server applications SHALL be capable of running on different platforms. Client-server communication SHALL use platform-agnostic protocols (HTTP REST API, JSON).</p>
+</li>
+<li>
+<p><strong>FR-PLAT-7.6 (Universal Binary Support):</strong> For platforms that support universal binaries (macOS), the application SHALL be distributed as a universal binary when feasible. Universal binaries SHALL support both ARM64 and X86_64 architectures.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_ui_framework_and_appearance">8.2. UI Framework and Appearance</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-PLAT-7.7 (Qt Fusion Widget Set):</strong> The Reader and Creator Tool SHALL use the Qt Fusion widget set to provide a uniform appearance across all supported operating systems. The Fusion style SHALL be applied to all UI components.</p>
+</li>
+<li>
+<p><strong>FR-PLAT-7.8 (UI Consistency):</strong> The application UI SHALL maintain consistent appearance and behavior across all platforms, with platform-specific adaptations only where necessary for platform integration (e.g., menu bar on macOS, system tray icons).</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_security_best_practices">8.3. Security Best Practices</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-PLAT-7.9 (Platform Security Standards):</strong> The Reader and Creator Tool SHALL utilize standard security best practices for each operating system:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Windows: Windows Credential Manager for secure credential storage, Windows Certificate Store for certificate validation</p>
+</li>
+<li>
+<p>macOS: Keychain Services for secure credential storage, Keychain for certificate validation</p>
+</li>
+<li>
+<p>Linux: libsecret or similar for secure credential storage, system CA bundle for certificate validation</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-PLAT-7.10 (Secure Storage):</strong> Application credentials, tokens, and sensitive data SHALL be stored using platform-specific secure storage mechanisms:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Windows: Windows Credential Manager API</p>
+</li>
+<li>
+<p>macOS: Keychain Services API</p>
+</li>
+<li>
+<p>Linux: libsecret API or equivalent</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-PLAT-7.11 (Certificate Validation):</strong> Certificate validation SHALL use platform-specific certificate stores:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Windows: Windows Certificate Store</p>
+</li>
+<li>
+<p>macOS: Keychain (System Roots)</p>
+</li>
+<li>
+<p>Linux: System CA bundle (typically <code>/etc/ssl/certs/ca-certificates.crt</code> or distribution-specific location)</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-PLAT-7.12 (File System Permissions):</strong> The application SHALL respect and utilize platform-specific file system permissions:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Windows: NTFS permissions, user profile isolation</p>
+</li>
+<li>
+<p>macOS: File system permissions, sandboxing (if applicable)</p>
+</li>
+<li>
+<p>Linux: POSIX permissions, user home directory isolation</p>
+</li>
+</ol>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_distribution_and_packaging">8.4. Distribution and Packaging</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-PLAT-7.13 (Distribution Format):</strong> The Reader and Creator Tool SHALL be distributed in platform-appropriate formats:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Windows: Installer (MSI or EXE installer)</p>
+</li>
+<li>
+<p>macOS: Application bundle (.app) or DMG</p>
+</li>
+<li>
+<p>Linux: Distribution-specific packages (DEB for Debian/Ubuntu, RPM for Fedora, PKG for Arch)</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-PLAT-7.14 (Universal Binary - macOS):</strong> For macOS, the application SHALL be distributed as a universal binary (fat binary) supporting both ARM64 and X86_64 architectures when feasible. The universal binary SHALL be the preferred distribution format for macOS.</p>
+</li>
+<li>
+<p><strong>FR-PLAT-7.15 (Code Signing):</strong> The application SHALL be code-signed on platforms that support it:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Windows: Code signing certificate (optional but recommended)</p>
+</li>
+<li>
+<p>macOS: Code signing and notarization (required for distribution outside App Store)</p>
+</li>
+<li>
+<p>Linux: GPG signing for packages (optional but recommended)</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-PLAT-7.16 (Installation Locations):</strong> The application SHALL install to platform-appropriate locations:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Windows: <code>%ProgramFiles%\SmartBook\</code> or <code>%LocalAppData%\Programs\SmartBook\</code></p>
+</li>
+<li>
+<p>macOS: <code>/Applications/SmartBook.app</code></p>
+</li>
+<li>
+<p>Linux: <code>/usr/bin/</code> (executables), <code>/usr/share/smartbook/</code> (data files)</p>
+</li>
+</ol>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_data_storage_locations">8.5. Data Storage Locations</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-PLAT-7.17 (Application Data Directory):</strong> The application SHALL store user data in platform-appropriate directories:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Windows: <code>%APPDATA%\SmartBook\</code></p>
+</li>
+<li>
+<p>macOS: <code>~/Library/Application Support/SmartBook/</code></p>
+</li>
+<li>
+<p>Linux: <code>~/.local/share/SmartBook/</code></p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-PLAT-7.18 (Cache Directory):</strong> The application SHALL store cache data in platform-appropriate directories:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Windows: <code>%LOCALAPPDATA%\SmartBook\cache\</code></p>
+</li>
+<li>
+<p>macOS: <code>~/Library/Caches/SmartBook/</code></p>
+</li>
+<li>
+<p>Linux: <code>~/.cache/SmartBook/</code></p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-PLAT-7.19 (Log Directory):</strong> The application SHALL store log files in platform-appropriate directories:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Windows: <code>%APPDATA%\SmartBook\logs\</code></p>
+</li>
+<li>
+<p>macOS: <code>~/Library/Application Support/SmartBook/logs/</code></p>
+</li>
+<li>
+<p>Linux: <code>~/.local/share/SmartBook/logs/</code></p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-PLAT-7.20 (Backup Directory):</strong> The application SHALL store backup files in platform-appropriate directories:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Windows: <code>%APPDATA%\SmartBook\backups\</code></p>
+</li>
+<li>
+<p>macOS: <code>~/Library/Application Support/SmartBook/backups/</code></p>
+</li>
+<li>
+<p>Linux: <code>~/.local/share/SmartBook/backups/</code></p>
+</li>
+</ol>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_platform_specific_features">8.6. Platform-Specific Features</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-PLAT-7.21 (Menu Bar Integration):</strong> On macOS, the application SHALL integrate with the macOS menu bar. Menu items SHALL follow macOS Human Interface Guidelines.</p>
+</li>
+<li>
+<p><strong>FR-PLAT-7.22 (System Tray Integration):</strong> On Windows and Linux, the application MAY provide system tray integration for background operations. System tray icons SHALL follow platform-specific design guidelines.</p>
+</li>
+<li>
+<p><strong>FR-PLAT-7.23 (File Associations):</strong> The application SHALL register file associations for <code>.sqlite</code> cartridge files on all platforms:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Windows: Registry entries for file association</p>
+</li>
+<li>
+<p>macOS: Launch Services registration</p>
+</li>
+<li>
+<p>Linux: Desktop entry file associations</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-PLAT-7.24 (URL Scheme Handling):</strong> The application SHALL support URL scheme handling (e.g., <code>smartbook://</code>) on platforms that support it:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Windows: Protocol handler registration</p>
+</li>
+<li>
+<p>macOS: URL scheme registration in Info.plist</p>
+</li>
+<li>
+<p>Linux: Desktop entry MIME type and protocol handling</p>
+</li>
+</ol>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_help_system_and_user_manual_requirements_fr_help">9. Help System and User Manual Requirements (FR-HELP)</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_help_system_access">9.1. Help System Access</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-HELP-8.1 (Help Menu Access):</strong> The Reader and Creator Tool SHALL provide access to the help system via:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Menu bar: "Help" menu with "User Manual" option</p>
+</li>
+<li>
+<p>Keyboard shortcut: F1 (standard help key) or platform-appropriate shortcut</p>
+</li>
+<li>
+<p>About dialog: Link to user manual from About dialog</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-HELP-8.2 (Help System Format):</strong> The help system SHALL be provided as:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Integrated help viewer (HTML-based, rendered in application window or external browser)</p>
+</li>
+<li>
+<p>Platform-native help system integration where available (e.g., macOS Help Book, Windows Help)</p>
+</li>
+<li>
+<p>PDF user manual included with application distribution</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-HELP-8.3 (Help Content Location):</strong> The help content SHALL be stored in:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Application installation directory: <code>{install_dir}/help/</code> or <code>{install_dir}/Resources/help/</code> (macOS)</p>
+</li>
+<li>
+<p>Help content SHALL be accessible offline (no network connection required)</p>
+</li>
+<li>
+<p>Help content SHALL be included in application distribution package</p>
+</li>
+</ol>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_user_manual_content">9.2. User Manual Content</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-HELP-8.4 (User Manual Scope):</strong> The user manual SHALL provide comprehensive documentation covering:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Getting started guide (installation, first launch, basic operations)</p>
+</li>
+<li>
+<p>Reader application features (library management, reading, navigation, search, forms, embedded apps)</p>
+</li>
+<li>
+<p>Creator Tool features (content authoring, form building, cartridge creation, signing, export)</p>
+</li>
+<li>
+<p>Security model explanation (trust levels, consent dialogs, certificate management)</p>
+</li>
+<li>
+<p>Keyboard shortcuts reference</p>
+</li>
+<li>
+<p>Troubleshooting guide (common issues and solutions)</p>
+</li>
+<li>
+<p>FAQ (frequently asked questions)</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-HELP-8.5 (User Manual Structure):</strong> The user manual SHALL be organized with:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Table of contents with navigation links</p>
+</li>
+<li>
+<p>Chapter/section organization for logical flow</p>
+</li>
+<li>
+<p>Index for quick topic lookup</p>
+</li>
+<li>
+<p>Cross-references between related topics</p>
+</li>
+<li>
+<p>Search functionality (if integrated help viewer supports it)</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-HELP-8.6 (User Manual Format):</strong> The user manual SHALL be provided in:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>HTML format for integrated help viewer (with CSS styling)</p>
+</li>
+<li>
+<p>PDF format for distribution and offline reading</p>
+</li>
+<li>
+<p>Both formats SHALL contain identical content</p>
+</li>
+</ol>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_pdf_user_manual_distribution">9.3. PDF User Manual Distribution</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-HELP-8.7 (PDF Manual Inclusion):</strong> The Reader and Creator Tool distributions SHALL include a PDF version of the user manual:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Windows: PDF included in installer package and installed to <code>{install_dir}/docs/SmartBook_User_Manual.pdf</code></p>
+</li>
+<li>
+<p>macOS: PDF included in application bundle at <code>SmartBook.app/Contents/Resources/SmartBook_User_Manual.pdf</code> or DMG package</p>
+</li>
+<li>
+<p>Linux: PDF included in package and installed to <code>/usr/share/doc/smartbook/SmartBook_User_Manual.pdf</code> or user-accessible location</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-HELP-8.8 (PDF Manual Access):</strong> The PDF user manual SHALL be accessible via:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Help menu: "Open User Manual (PDF)" option that opens the PDF in the system&#8217;s default PDF viewer</p>
+</li>
+<li>
+<p>Installation directory: Users can manually open the PDF file</p>
+</li>
+<li>
+<p>About dialog: Link to open PDF manual</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-HELP-8.9 (PDF Manual Naming):</strong> The PDF user manual SHALL be named consistently across platforms:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Base name: <code>SmartBook_User_Manual.pdf</code></p>
+</li>
+<li>
+<p>Version information MAY be included in filename (e.g., <code>SmartBook_User_Manual_v1.0.pdf</code>)</p>
+</li>
+<li>
+<p>Filename SHALL be documented in installation instructions</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-HELP-8.10 (PDF Manual Generation):</strong> The PDF user manual SHALL be generated from the same source as the HTML help content:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Single source of truth (e.g., AsciiDoc source document)</p>
+</li>
+<li>
+<p>Automated PDF generation as part of build/distribution process</p>
+</li>
+<li>
+<p>PDF SHALL maintain formatting, images, tables, and cross-references from HTML version</p>
+</li>
+</ol>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_help_system_integration">9.4. Help System Integration</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-HELP-8.11 (Context-Sensitive Help):</strong> The Reader and Creator Tool SHALL support context-sensitive help where feasible:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Help button or "?" icon in dialogs linking to relevant manual sections</p>
+</li>
+<li>
+<p>Tooltips with brief help text for UI elements</p>
+</li>
+<li>
+<p>"What&#8217;s This?" mode (Qt feature) for detailed help on UI elements</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-HELP-8.12 (Help Viewer):</strong> If using an integrated help viewer, the application SHALL:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Display help content in a dedicated help window or tab</p>
+</li>
+<li>
+<p>Provide navigation controls (back, forward, home, search)</p>
+</li>
+<li>
+<p>Support printing help content</p>
+</li>
+<li>
+<p>Maintain help window state (size, position) across sessions</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-HELP-8.13 (Help Content Updates):</strong> The help system SHALL support content updates:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Help content MAY be updated independently of application updates</p>
+</li>
+<li>
+<p>Help content version SHALL be displayed in help viewer or About dialog</p>
+</li>
+<li>
+<p>Users SHALL be notified if help content is outdated compared to application version</p>
+</li>
+</ol>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_platform_specific_help_integration">9.5. Platform-Specific Help Integration</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-HELP-8.14 (macOS Help Book):</strong> On macOS, the application SHALL integrate with macOS Help system:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Help content SHALL be provided as a Help Book bundle</p>
+</li>
+<li>
+<p>Help menu SHALL integrate with macOS Help Viewer</p>
+</li>
+<li>
+<p>Spotlight search SHALL index help content</p>
+</li>
+<li>
+<p>PDF manual SHALL be accessible via Help menu</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-HELP-8.15 (Windows Help):</strong> On Windows, the application SHALL:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Provide HTML help content accessible via F1 key</p>
+</li>
+<li>
+<p>Integrate with Windows Help system where feasible</p>
+</li>
+<li>
+<p>PDF manual SHALL be accessible via Help menu and installation directory</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-HELP-8.16 (Linux Help):</strong> On Linux, the application SHALL:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Provide HTML help content accessible via F1 key or Help menu</p>
+</li>
+<li>
+<p>Integrate with desktop environment help system where feasible (e.g., KDE Help Center, GNOME Help)</p>
+</li>
+<li>
+<p>PDF manual SHALL be accessible via Help menu and standard documentation directory</p>
+</li>
+</ol>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_content_navigation_structure_requirements_fr_nav">10. Content Navigation Structure Requirements (FR-NAV)</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_custom_navigation_bar">10.1. Custom Navigation Bar</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-NAV-9.1 (Custom Navigation Bar Support):</strong> The Reader SHALL support custom navigation bars defined within cartridges that are separate from the application menu. Custom navigation bars SHALL be displayed within the Reader View Window, above or integrated with the content area.</p>
+</li>
+<li>
+<p><strong>FR-NAV-9.2 (Navigation Bar Definition):</strong> Custom navigation bars SHALL be defined in the cartridge using a navigation structure specification (see DDD Section 3 for schema). The navigation structure SHALL support:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Multiple dropdown menu groups (e.g., "Browse", "Departments", "Bibliographies")</p>
+</li>
+<li>
+<p>Menu items within each group</p>
+</li>
+<li>
+<p>Navigation targets (page_id, anchor_id, or custom navigation handlers)</p>
+</li>
+<li>
+<p>Optional icons or labels for menu items</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-NAV-9.3 (Browse Navigation):</strong> The Reader SHALL support "Browse" navigation groups that allow users to filter or navigate content by:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Creator/Author</p>
+</li>
+<li>
+<p>Issue/Publication</p>
+</li>
+<li>
+<p>Title</p>
+</li>
+<li>
+<p>Other metadata-based categories as defined in the navigation structure</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-NAV-9.4 (Department Navigation):</strong> The Reader SHALL support "Department" navigation groups that organize content into departmental groupings (e.g., "Department 1", "Department 2"). Department navigation SHALL:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Display all departments defined in the navigation structure</p>
+</li>
+<li>
+<p>Allow users to navigate to department-specific content sections</p>
+</li>
+<li>
+<p>Support hierarchical department structures (departments with sub-departments) if defined</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-NAV-9.5 (Bibliography Navigation):</strong> The Reader SHALL support "Bibliography" navigation groups that provide access to citation formats (e.g., "APA Format", "CMS Format"). Bibliography navigation SHALL:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Display all bibliography formats defined in the navigation structure</p>
+</li>
+<li>
+<p>Navigate to bibliography reference pages or sections</p>
+</li>
+<li>
+<p>Support multiple citation format standards</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-NAV-9.6 (Navigation Bar Rendering):</strong> The custom navigation bar SHALL be rendered:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>As a horizontal menu bar with dropdown menus</p>
+</li>
+<li>
+<p>Using standard HTML/CSS for styling (consistent with cartridge styling)</p>
+</li>
+<li>
+<p>Above or integrated with the main content area</p>
+</li>
+<li>
+<p>Responsive to window resizing</p>
+</li>
+<li>
+<p>Accessible via keyboard navigation (Tab, Arrow keys, Enter)</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-NAV-9.7 (Navigation Bar Visibility):</strong> The Reader SHALL:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Display the custom navigation bar if defined in the cartridge</p>
+</li>
+<li>
+<p>Hide the custom navigation bar if not defined (standard behavior)</p>
+</li>
+<li>
+<p>Allow users to toggle navigation bar visibility (show/hide) if supported by the cartridge</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-NAV-9.8 (Navigation Target Resolution):</strong> When a user selects a navigation menu item, the Reader SHALL:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Resolve the navigation target (page_id, anchor_id, or custom handler)</p>
+</li>
+<li>
+<p>Navigate to the target page or anchor</p>
+</li>
+<li>
+<p>Update the reading position (as specified in FR-2.8.6)</p>
+</li>
+<li>
+<p>Add the navigation to the navigation history (as specified in FR-2.8.7)</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-NAV-9.9 (Navigation Structure Storage):</strong> The navigation structure SHALL be stored in the cartridge database (see DDD Section 3 for schema). The navigation structure SHALL be:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Defined at cartridge creation time by the Creator Tool</p>
+</li>
+<li>
+<p>Immutable after cartridge creation (changes require cartridge re-export)</p>
+</li>
+<li>
+<p>Versioned with the cartridge schema version</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-NAV-9.10 (Creator Tool Navigation Support):</strong> The Creator Tool SHALL provide functionality to:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Define custom navigation bar structures</p>
+</li>
+<li>
+<p>Create navigation groups (Browse, Departments, Bibliographies, custom groups)</p>
+</li>
+<li>
+<p>Add menu items to navigation groups</p>
+</li>
+<li>
+<p>Link menu items to pages, anchors, or custom navigation targets</p>
+</li>
+<li>
+<p>Preview navigation bar appearance</p>
+</li>
+<li>
+<p>Export navigation structure as part of cartridge creation</p>
+</li>
+</ol>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_series_and_edition_grouping_requirements_fr_series">11. Series and Edition Grouping Requirements (FR-SERIES)</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_series_and_edition_metadata">11.1. Series and Edition Metadata</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-SERIES-10.1 (Series Name Metadata):</strong> The cartridge <code>Metadata</code> table SHALL support an optional <code>series_name</code> field that identifies the series to which a cartridge belongs (e.g., "Lensman Series", "Harry Potter", "Foundation Series").</p>
+</li>
+<li>
+<p><strong>FR-SERIES-10.2 (Edition Name Metadata):</strong> The cartridge <code>Metadata</code> table SHALL support an optional <code>edition_name</code> field that identifies the edition or variant to which a cartridge belongs (e.g., "Classic Traveller", "Mongoose Traveller", "D&amp;D 5th Edition").</p>
+</li>
+<li>
+<p><strong>FR-SERIES-10.3 (Series Order Metadata):</strong> The cartridge <code>Metadata</code> table SHALL support an optional <code>series_order</code> field (INTEGER) that specifies the position of a cartridge within a series, enabling proper ordering when displaying series collections.</p>
+</li>
+<li>
+<p><strong>FR-SERIES-10.4 (Creator Tool Series Support):</strong> The Creator Tool SHALL provide functionality to:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Set <code>series_name</code> when creating or editing cartridge metadata</p>
+</li>
+<li>
+<p>Set <code>edition_name</code> when creating or editing cartridge metadata</p>
+</li>
+<li>
+<p>Set <code>series_order</code> when creating or editing cartridge metadata</p>
+</li>
+<li>
+<p>Display series and edition information in cartridge metadata editor</p>
+</li>
+</ol>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_library_grouping_and_organization">11.2. Library Grouping and Organization</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>FR-SERIES-10.5 (Auto-Grouping by Series):</strong> The Library Manager SHALL automatically group cartridges by <code>series_name</code> when multiple cartridges share the same series name. The Library Manager SHALL provide a "Browse by Series" view or filter that displays all series and allows users to view all cartridges within a selected series.</p>
+</li>
+<li>
+<p><strong>FR-SERIES-10.6 (Auto-Grouping by Edition):</strong> The Library Manager SHALL automatically group cartridges by <code>edition_name</code> when multiple cartridges share the same edition name. The Library Manager SHALL provide a "Browse by Edition" view or filter that displays all editions and allows users to view all cartridges within a selected edition.</p>
+</li>
+<li>
+<p><strong>FR-SERIES-10.7 (Series Display Ordering):</strong> When displaying cartridges within a series, the Library Manager SHALL order cartridges by <code>series_order</code> (ascending) if available, falling back to alphabetical by title if <code>series_order</code> is not specified.</p>
+</li>
+<li>
+<p><strong>FR-SERIES-10.8 (Custom Collections):</strong> The Library Manager SHALL allow users to create custom collections (user-defined groups) that can contain any combination of cartridges, independent of series or edition metadata. Custom collections SHALL be stored in the local reader database.</p>
+</li>
+<li>
+<p><strong>FR-SERIES-10.9 (Collection Management):</strong> The Library Manager SHALL provide functionality to:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Create new custom collections with user-defined names</p>
+</li>
+<li>
+<p>Add cartridges to custom collections</p>
+</li>
+<li>
+<p>Remove cartridges from custom collections</p>
+</li>
+<li>
+<p>Rename custom collections</p>
+</li>
+<li>
+<p>Delete custom collections</p>
+</li>
+<li>
+<p>View all cartridges in a custom collection</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-SERIES-10.10 (Grouping Display):</strong> The Library Manager SHALL provide UI elements (filters, views, or navigation) that allow users to:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha">
+<li>
+<p>Browse all series (grouped by series_name)</p>
+</li>
+<li>
+<p>Browse all editions (grouped by edition_name)</p>
+</li>
+<li>
+<p>Browse custom collections</p>
+</li>
+<li>
+<p>View cartridges within a selected series, edition, or collection</p>
+</li>
+<li>
+<p>Search or filter cartridges by series name or edition name</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p><strong>FR-SERIES-10.11 (Grouping Persistence):</strong> Custom collections SHALL be persisted in the local reader database and SHALL persist across application sessions. Series and edition groupings based on metadata SHALL be automatically maintained as cartridges are imported or removed.</p>
+</li>
+<li>
+<p><strong>FR-SERIES-10.12 (Grouping Performance):</strong> Series, edition, and custom collection views SHALL load and display within performance requirements (NFR-3.1: &lt; 500ms for library display). Grouping operations SHALL rely on manifest data and local grouping tables, not cartridge file parsing.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_data_structures_reference">12. Data Structures (Reference)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section references the detailed definition of the project&#8217;s data structures, which are fully defined in the Detailed Design Document (DDD).</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Cartridge Data Structure:</strong> See <strong>DDD Section 3</strong> (<code>Initial Smartbook Cartridge SQLite Schema</code>).</p>
+</li>
+<li>
+<p><strong>Reader Local Persistence Structure:</strong> See <strong>DDD Section 4</strong> (<code>Reader Local Persistence Schema</code>).</p>
+</li>
+<li>
+<p><strong>Form Definition Structure:</strong> See <strong>DDD Section 2.1</strong> (<code>Form Definition JSON Schema</code>).</p>
+</li>
+</ul>
+</div>
+</div>
+</div>

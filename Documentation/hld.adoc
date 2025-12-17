@@ -76,6 +76,7 @@ The following sequence diagram illustrates the 4-Phase Verification Algorithm:
 === Embedded Application Execution
 
 When embedded JavaScript calls `requestAppConsent()`, the **WebChannel Bridge** checks the **Effective Trust Policy**:
+
 * If `WHITELISTED` (L1 or Persistent Trust, and H1=H2): The native dialog is skipped.
 * If `CONSENT_REQUIRED` (L2 or L3): The native consent dialog is displayed (FR-2.3.2/2.3.3).
 

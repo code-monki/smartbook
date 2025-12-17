@@ -255,6 +255,7 @@ The following items require design decisions during detailed design phase:
 1. **HTML Form Rendering:** Forms SHALL be rendered using standard HTML form elements (`<form>`, `<input>`, `<textarea>`, `<select>`, etc.) based on the form definition JSON schema. Forms are seamlessly integrated into content pages as part of the document flow.
 2. **Form Embedding:** Forms are embedded in content pages using HTML markers (`<div data-smartbook-form="form_id">` or `<smartbook-form>`). Reader detects markers and dynamically renders forms.
 3. **Dual Persistence:** Forms support two persistence mechanisms:
+
    * **Cartridge Persistence:** Save to `User_Data` table via `saveFormData` API (persists across sessions)
    * **Sandbox Persistence:** Save to sandbox file system via `saveSandboxFile` API (enables embedded app access)
 4. **Form Printing:** Forms can be printed, displaying field values instead of input controls in print-friendly format.
@@ -335,6 +336,7 @@ The following items require design decisions during detailed design phase:
 **Decision:**
 1. **Document Search:** Modal dialog with search input, case sensitivity toggle, search type dropdown (Normal, Boolean, Fuzzy, Regex), and Search button. Results displayed in Search Results tab (shared with TOC) in Adobe Reader-style format.
 2. **Search Types:**
+
    * Normal: Exact text matching with optional case sensitivity
    * Boolean: AND, OR, NOT operators for complex queries
    * Fuzzy: Approximate matching using edit distance for typos/misspellings
@@ -407,6 +409,7 @@ The following items require design decisions during detailed design phase:
 
 **Design Rationale - CSS vs Theme Separation:**
 By separating structural concerns (CSS) from visual appearance concerns (themes), the system achieves a balanced approach:
+
 * **Author Control:** Authors maintain control over page structure, layout, and organization through CSS, ensuring content is presented as intended
 * **User Customization:** Users can customize visual appearance (colors, fonts) through theme selection and user settings, accommodating personal preferences and accessibility needs
 * **Middle Ground:** This separation provides a reasonable middle ground between strict author control (no customization) and complete user control (which could break author intent), allowing both parties to achieve their goals without conflict
@@ -502,6 +505,7 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
 2. **Certificate Storage:** Add `certificate_data` column (BLOB) to `Cartridge_Security` table to store the X.509 certificate (DER or PEM format) used for signing.
 
 3. **Certificate Validation Algorithm:**
+
    * Extract certificate from `certificate_data`
    * Use `QSslCertificate::verify()` to determine if certificate is CA-signed or self-signed
    * Check certificate expiration dates (`effectiveDate()` and `expiryDate()`)
@@ -577,6 +581,7 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
 1. **Hash Algorithm:** SHA-256 (256-bit Secure Hash Algorithm) - specified as the exact algorithm for Phase 1. Rationale: Strong security (256-bit output), efficient performance, widely supported, future-proof.
 
 2. **Tables Included in Hash:**
+
    * **Content_Pages** - Primary content (HTML pages)
    * **Embedded_Apps** - Embedded JavaScript applications (critical attack surface)
    * **Form_Definitions** - Form schemas and validation rules
@@ -585,15 +590,18 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
    * **Metadata** (partial) - Author metadata fields (excludes `cartridge_guid`)
 
 3. **Tables Excluded:**
+
    * **User_Data** - User input (not part of author content)
    * **Cartridge_Security** - Circular dependency (contains the hash itself)
 
 4. **Hash Calculation Method:** Option A - Concatenate table hashes:
+
    * Hash each table independently (rows ordered by primary key, columns in alphabetical order)
    * Concatenate table hashes with table name prefixes (first 4 bytes of SHA-256 of table name)
    * Hash the concatenated result to produce final H1/H2
 
 5. **Deterministic Serialization:**
+
    * Fixed table order: Content_Pages, Content_Themes, Embedded_Apps, Form_Definitions, Metadata, Settings
    * Fixed row order: By primary key (ascending) within each table
    * Fixed column order: Alphabetical by column name
@@ -745,20 +753,24 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
 
 **Decision:**
 1. **Two Types of Manifests Clarified:**
+
    * **Embedded App Manifest** (`Embedded_App_Manifest` JSON): Created/updated when cartridge is created/updated by Creator Tool, stored in `Embedded_Apps.manifest_json` column within cartridge database
    * **Local Library Manifest** (`Local_Library_Manifest` table): Updated when cartridge is added/updated/removed from library, stored in Reader's local database (`local_reader.sqlite`)
 
 2. **Local Library Manifest Update Triggers:**
+
    * On cartridge import (new cartridge added to library)
    * On cartridge open (content hash H2 recalculated, manifest updated)
    * On cartridge update (cartridge detected at new path or with changed content)
    * On cartridge deletion (manifest entry removed)
 
 3. **Error Handling Strategy:**
+
    * **Embedded App Manifest Errors:** Display error dialog in Creator Tool with operation type, app ID, error message, context, and suggested resolution. Include "Copy Error Details" button for debugging. Allow retry or cancel.
    * **Local Library Manifest Errors:** Display error dialog in Reader with operation type, cartridge info, error message, context (database path, SQLite error code), and suggested resolution. Include "Copy Error Details" button for debugging. Operations continue (non-blocking), retry on next launch.
 
 4. **Error Dialog Requirements:** Both error dialogs must include sufficient information to reproduce and debug failures:
+
    * Operation type (create/update/delete)
    * Affected resource (app ID or cartridge GUID)
    * Error type (brief description)
@@ -768,6 +780,7 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
    * "Copy Error Details" button for debugging
 
 5. **Common Error Scenarios:**
+
    * **Embedded App Manifest:** JSON validation errors, schema validation errors, database write errors
    * **Local Library Manifest:** Disk space exhaustion, file permissions, database locked, database corruption, path issues
 
@@ -796,6 +809,7 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
 
 **Decision:**
 1. **Cartridge Format Version Migration:**
+
    * Version stored in `Metadata.schema_version` field (e.g., "1.0")
    * Reader detects version on cartridge open and compares with supported versions
    * Backward compatibility: Reader supports all previous format versions, migration performed in-memory (cartridge files remain read-only)
@@ -806,6 +820,7 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
    * Migration error handling: Error dialogs with details, logging, partial migration warnings, validation
 
 2. **Reader Local Database Schema Migration:**
+
    * Version tracking via `_schema_version` table in local database
    * Migration on startup: Version detection, migration path determination, backup creation, sequential transformations, version update, validation
    * Migration transformations: Add/remove columns (using table recreation for SQLite limitations), add/remove tables, modify constraints
@@ -814,6 +829,7 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
    * Schema version history: Version 1.0 (Phase 1) documented, future versions to be documented as introduced
 
 3. **Handling Older Format Cartridges:**
+
    * Detection via `schema_version` field
    * Loading strategy: Supported older versions (migrate and load), unsupported older versions (error message), newer versions (error requiring app update)
    * User experience: Transparent automatic migration, notification only on failure or unsupported format
@@ -843,27 +859,32 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
 
 **Decision:**
 1. **Import Mechanisms:**
+
    * **Drag-and-Drop:** Support dragging `.sqlite` files onto Library Manager window, visual feedback for drop target, accepts `.sqlite` files, rejects non-cartridge files
    * **File Picker Dialog:** Menu item (File → Import) or toolbar button, native file picker (Qt QFileDialog), supports single or multiple file selection, file filter for SmartBook cartridges
 
 2. **Import Storage Location:**
+
    * **Default Directory:** Follow OS standards (Windows: `%USERPROFILE%\Documents\SmartBook\Library\`, macOS/Linux: `~/Documents/SmartBook/Library/`)
    * **User Configuration:** Users can configure custom library directory via settings, preference persists across sessions, fallback to default if custom directory inaccessible
    * **Storage Strategy:** Imported cartridges copied to library directory, flat directory structure (no subdirectories), original filename preserved (or renamed if duplicate)
 
 3. **Import Progress Dialog:**
+
    * Progress bar showing overall progress (percentage or file count)
    * Status text for current operation
    * File list with status indicators (pending, in progress, completed, failed)
    * Cancel button to abort import
 
 4. **Duplicate Detection and Handling:**
+
    * Detect duplicates by comparing `cartridge_guid` from `Metadata` table
    * Display confirmation dialog with existing and new cartridge information (title, author, file path, size, modification date)
    * User options: Replace (delete old, import new, update manifest, preserve trust/settings/bookmarks), Skip (abort import), Keep Both (rename new file, import as separate entry)
    * Checkbox for batch handling ("Apply this choice to all duplicates")
 
 5. **Import Validation:**
+
    * File format validation (SQLite database, required tables)
    * Schema validation (Metadata table, cartridge_guid, schema_version)
    * Version compatibility check (supported format versions)
@@ -871,9 +892,11 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
    * Error dialogs for validation failures
 
 6. **Import Workflow Algorithm:**
+
    * Complete step-by-step algorithm: file selection, progress dialog display, process each file (validate, check duplicate, copy file, extract metadata, create manifest entry), completion, error summary
 
 7. **Import Error Handling:**
+
    * File access errors (not found, permission denied, disk full)
    * Database errors (invalid format, locked, corruption)
    * Manifest update errors (non-blocking, retry later)
@@ -912,18 +935,21 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
 
 **Decision:**
 1. **Window Opening Mechanisms:**
+
    * **Double-Click:** Double-clicking cartridge title (List View) or cover (Grid View) opens cartridge in new Reader View Window
    * **Context Menu:** Right-clicking cartridge title or cover displays context menu with "Open" option
    * **Platform Conventions:** Follow established e-book application patterns (Calibre, Apple Books, Adobe Digital Editions)
    * Visual feedback on double-click, immediate window opening (no confirmation dialog)
 
 2. **Window State Persistence:**
+
    * **New Table:** `Local_Window_State` table stores window geometry (width, height, x, y), maximized state, and last updated timestamp per cartridge
    * **Save Trigger:** Window state saved when Reader View Window is closed (user closes window or application quits)
    * **Components Saved:** Window size, window position, maximized state, reading position (in `Local_Reading_Position` table)
    * **Atomic Save:** Window state and reading position saved in same transaction
 
 3. **Window State Restoration:**
+
    * **Restore Trigger:** When cartridge is opened, query `Local_Window_State` and `Local_Reading_Position` tables
    * **Restore Components:** Window size, window position, maximized state, reading position (page, anchor, scroll)
    * **Validation:** Validate saved geometry (screen bounds, reasonable size), fallback to defaults if invalid
@@ -931,12 +957,14 @@ By separating structural concerns (CSS) from visual appearance concerns (themes)
    * **Multi-Monitor Handling:** If saved position on non-existent monitor, move to primary monitor and center
 
 4. **Window Minimize/Restore:**
+
    * Follow standard OS conventions (Windows taskbar, macOS Dock, Linux taskbar/panel)
    * Use Qt standard window management (`showMinimized()`, `showNormal()`, `showMaximized()`)
    * Minimized state NOT persisted (transient), normal/maximized state IS persisted
    * Window state transitions: Normal ↔ Minimized, Normal ↔ Maximized, Maximized ↔ Minimized
 
 5. **Window Closing Behavior:**
+
    * User-initiated close (close button, File → Close, keyboard shortcut): Save window state and reading position, then close
    * Application quit: Save state for all open windows, then close all windows
    * No confirmation dialog by default (follows platform conventions)

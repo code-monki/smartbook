@@ -19,6 +19,7 @@ The interface is divided into three main vertical sections:
 [3] Right Sidebar (200px width) - Properties/Resources Panel
 
 Plus horizontal sections:
+
 * Menu Bar (30px height)
 * Toolbar (40px height)
 * Status Bar (at bottom, if needed)
@@ -89,6 +90,7 @@ Located below menu bar (40px height), contains frequently used editing tools:
 
 **Tab Bar (30px):**
 Multiple tabs for different editing modes:
+
 * **Editor** (active) - WYSIWYG editing
 * **Preview** - Live/manual preview of rendered content
 * **HTML Source** - Direct HTML editing
@@ -138,6 +140,7 @@ Multiple tabs for different editing modes:
 
 **Tab Bar (30px):**
 Three tabs for different property categories:
+
 * **Metadata** (active) - Document metadata
 * **Resources** - Asset management
 * **Forms** - Form definitions

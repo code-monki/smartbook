@@ -25,6 +25,7 @@ Before building, verify all required dependencies are installed:
 ----
 
 This will check for:
+
 * CMake 3.20+
 * C++ compiler (clang/g++ on Unix, MSVC/MinGW on Windows)
 * Qt 6.2+ with required components

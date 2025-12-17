@@ -1337,6 +1337,7 @@ This section defines how content navigation, table of contents, bookmarking, and
    b. Capture current `anchor_id` (if on a heading/anchor)
    c. Capture current `scroll_position` (optional)
    d. Update or insert into `Local_Reading_Position` table:
+
       * `cartridge_guid` = current cartridge GUID
       * `page_id` = current page ID
       * `anchor_id` = current anchor (if any)
@@ -1347,6 +1348,7 @@ This section defines how content navigation, table of contents, bookmarking, and
 . On cartridge open:
    a. Query `Local_Reading_Position` table: `SELECT * FROM Local_Reading_Position WHERE cartridge_guid = ?`
    b. If record exists:
+
       * Load page: `SELECT html_content FROM Content_Pages WHERE page_id = ?`
       * If `anchor_id` present, scroll to element after page loads
       * If `scroll_position` present, restore scroll position
@@ -1831,6 +1833,7 @@ This section defines how the Content Theme Manager dialog is implemented in the 
 
 **Design Rationale:**
 By separating structural concerns (CSS) from visual appearance concerns (themes), the system achieves a balanced approach:
+
 * **Author Control:** Authors maintain control over page structure, layout, and organization through CSS, ensuring content is presented as intended
 * **User Customization:** Users can customize visual appearance (colors, fonts) through theme selection and user settings, accommodating personal preferences and accessibility needs
 * **Middle Ground:** This separation provides a reasonable middle ground between strict author control (no customization) and complete user control (which could break author intent), allowing both parties to achieve their goals without conflict
@@ -2496,6 +2499,7 @@ The content hash includes the following tables, which represent author-controlle
 
 **Metadata Fields Included:**
 From the `Metadata` table, include the following fields in the hash:
+
 * `title`
 * `author`
 * `version`
@@ -2577,6 +2581,7 @@ Each row is serialized to a deterministic byte representation using the followin
 
 **Example Serialization:**
 For a row in `Content_Pages` with:
+
 * `page_id` = 1 (INTEGER)
 * `page_order` = 1 (INTEGER)
 * `chapter_title` = "Introduction" (TEXT)
@@ -3192,20 +3197,24 @@ The Smartbook Reader SHALL implement a Multi-Window Architecture: a single **Lib
    a. Create new `ReaderViewInstance` window
    b. Query `Local_Window_State` for `cartridge_guid`
    c. If entry found:
+
       * Validate saved geometry (see "Window State Validation" above)
       * If valid: Set window geometry using `QMainWindow::setGeometry()` or `QMainWindow::resize()` and `QMainWindow::move()`
       * If was maximized: Call `QMainWindow::showMaximized()`
       * If invalid: Use default geometry
    d. If entry not found:
+
       * Use default window size (e.g., 1024x768) and center on screen
    e. Show window
    f. Load cartridge content
    g. Query `Local_Reading_Position` for `cartridge_guid`
    h. If entry found:
+
       * Navigate to saved `page_id`
       * If `anchor_id` present, scroll to anchor
       * If `scroll_position` present, scroll to position
    i. If entry not found:
+
       * Navigate to first page
 
 **Default Window Geometry:**
@@ -3319,6 +3328,7 @@ The Smartbook Reader SHALL implement a Multi-Window Architecture: a single **Lib
 [NOTE]
 ====
 See `diagrams.adoc` for visual representations including:
+
 * Component Interaction Diagram - Shows how components interact during cartridge loading
 * Data Flow Diagrams - Illustrate cartridge data flow and form data persistence flow
 * Sequence Diagrams - Cartridge loading, embedded app execution, form data save, import, and trust revocation processes
@@ -6753,6 +6763,7 @@ The Reader's local database (`local_reader.sqlite`) contains the `Local_Library_
 ==== Error Context Logging
 
 When logging errors, the following context SHALL be included:
+
 * Error code (if applicable)
 * Component name
 * Operation being performed

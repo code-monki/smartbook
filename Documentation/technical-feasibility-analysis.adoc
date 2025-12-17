@@ -243,16 +243,19 @@ public slots:
 === Phase 1: Core Functionality (MVP)
 
 1. **Basic App Loading:**
+
    * Single `QWebEngineView` per embedded app
    * Load HTML/JS/CSS from database
    * Basic WebChannel bridge
 
 2. **Network Blocking:**
+
    * Implement `QWebEngineUrlRequestInterceptor`
    * Block all network requests
    * Test thoroughly
 
 3. **Sandbox API:**
+
    * Implement basic file operations
    * Path validation
    * Basic error handling
@@ -262,16 +265,19 @@ public slots:
 === Phase 2: Security Hardening
 
 1. **Enhanced Path Validation:**
+
    * Comprehensive path traversal tests
    * Filename sanitization
    * File size limits
 
 2. **CSP Implementation:**
+
    * Set CSP headers
    * Test CSP effectiveness
    * Document limitations
 
 3. **Error Handling:**
+
    * App crash handling
    * Sandbox error recovery
    * User feedback
@@ -281,11 +287,13 @@ public slots:
 === Phase 3: Polish and Optimization
 
 1. **Performance Optimization:**
+
    * Lazy loading
    * Memory management
    * Resource limits
 
 2. **User Experience:**
+
    * Loading indicators
    * Error messages
    * Sandbox management UI

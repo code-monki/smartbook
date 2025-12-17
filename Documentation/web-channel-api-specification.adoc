@@ -352,6 +352,7 @@ callback(defaultValue, false, "ERROR_CODE", "Optional error message");
 === Error Logging
 
 All errors SHALL be logged to the application log file with:
+
 * Timestamp
 * Error code
 * Component name (e.g., "SmartbookBridge")
