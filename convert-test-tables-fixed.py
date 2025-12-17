@@ -114,29 +114,25 @@ def convert_test_case_table(content):
                 result.append(f'| **Test Case ID** | {tc["id"]}')
                 result.append(f'| **Requirement Covered** | {tc["requirement"]}')
                 
-                # Test Steps - label on one line, a| and content on next
-                result.append('| **Test Steps** |')
+                # Test Steps - a| on same line as label, in right cell position
+                result.append('| **Test Steps** | a|')
                 if tc['steps'] and tc['steps'].strip():
                     steps_lines = [s for s in tc['steps'].split('\n') if s.strip()]
-                    if steps_lines:
-                        # a| format specifier on same line as first content
-                        first_step = steps_lines[0].lstrip()
-                        result.append(f'a|{first_step}')
-                        # Remaining steps continue in same cell
-                        for step in steps_lines[1:]:
-                            result.append(step)
-                    else:
-                        result.append('a|')
+                    # Content follows on subsequent lines (no leading |)
+                    for step in steps_lines:
+                        result.append(step)
                 else:
-                    result.append('a|')
+                    # Empty cell
+                    pass
                 
-                # Expected Result - label on one line, a| and content on next
-                result.append('| **Expected Result (Acceptance Criteria)** |')
+                # Expected Result - a| on same line as label, in right cell position
+                result.append('| **Expected Result (Acceptance Criteria)** | a|')
                 if tc['expected']:
-                    # a| format specifier on same line as content
-                    result.append(f'a|{tc["expected"]}')
+                    # Content on next line (no leading |)
+                    result.append(tc['expected'])
                 else:
-                    result.append('a|')
+                    # Empty cell
+                    pass
                 
                 result.append('|===')
                 result.append('')
