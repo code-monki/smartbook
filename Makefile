@@ -125,7 +125,7 @@ docs:
 		echo "  - weasyprint: pip install weasyprint"; \
 		echo ""; \
 		echo "Falling back to asciidoctor-pdf (may have list rendering issues)..."; \
-		@which asciidoctor-pdf > /dev/null 2>&1 || (echo "Error: asciidoctor-pdf not found. Install with: gem install asciidoctor-pdf" && exit 1); \
+		which asciidoctor-pdf > /dev/null 2>&1 || (echo "Error: asciidoctor-pdf not found. Install with: gem install asciidoctor-pdf" && exit 1); \
 		for doc in Documentation/*.adoc; do \
 			if [ -f "$$doc" ]; then \
 				echo "Processing $$doc..."; \
