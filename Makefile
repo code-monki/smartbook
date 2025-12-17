@@ -110,9 +110,11 @@ docs-mmd:
 	done
 	@echo "MultiMarkdown files generated in $(DOCS_DIR)/mmd/"
 	@echo ""
-	@echo "To generate PDFs from MultiMarkdown:"
-	@echo "  cd $(DOCS_DIR)/mmd && mmd <filename>.mmd"
-	@echo "Or use Pandoc: pandoc <filename>.mmd -o <filename>.pdf"
+	@echo "To generate PDFs from MultiMarkdown using Pandoc:"
+	@echo "  cd $(DOCS_DIR)/mmd && pandoc --from=markdown_mmd --to=pdf <filename>.mmd -o <filename>.pdf"
+	@echo ""
+	@echo "Note: Pandoc converts complex tables to HTML in MultiMarkdown output."
+	@echo "      This preserves table structure but uses HTML syntax."
 
 docs-html:
 	@echo "Generating documentation as HTML (recommended format)..."
