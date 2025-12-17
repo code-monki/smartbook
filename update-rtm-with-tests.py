@@ -34,8 +34,8 @@ def extract_test_cases_from_test_plan():
                         req_line = lines[i+1]
                         if '**Requirement Covered**' in req_line and '|' in req_line:
                             req_parts = req_line.split('|')
-                            if len(req_parts) >= 2:
-                                req_text = req_parts[1].strip()
+                            if len(req_parts) >= 3:
+                                req_text = req_parts[2].strip()  # Requirement is in column 2 (after label)
                                 # Extract requirement IDs from text
                                 req_matches = re.findall(r'((?:FR|NFR|FR-CT|FR-WE|FR-NAV|FR-SERIES|DDD)-[\d\.]+(?:/[0-9\.]+)?)', req_text)
                                 for req_match in req_matches:
