@@ -62,6 +62,14 @@ list_item:
   text_align: left
   word_spacing: normal
   letter_spacing: 0
+list_item_content:
+  font_family: Noto Serif
+  font_size: 11
+  font_color: #333333
+  line_height: 1.4
+  text_align: left
+  word_spacing: normal
+  letter_spacing: 0
 paragraph:
   font_family: Noto Serif
   font_size: 11
