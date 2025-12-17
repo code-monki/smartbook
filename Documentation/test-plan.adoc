@@ -17,9 +17,13 @@ This Test Plan defines the scope, approach, and specific test cases required to 
 == Test Cases: Security and Trust Validation
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-SEC-01**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SEC-01**
+| Test Steps |
+a|
 | Requirement Covered | FR-2.3.1 (L1 Commercial Trust)
 | Test Steps |
 a|
@@ -29,12 +33,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** The call returns `TRUE` immediately. [cite_start]No native modal dialog is displayed[cite: 6].
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SEC-02**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SEC-02**
+| Test Steps |
+a|
 | Requirement Covered | FR-2.3.2/2.3.3 (Initial Consent)
 | Test Steps |
 a|
@@ -44,12 +55,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 [cite_start]**AC:** The native security dialog (DDD 11.2.1) is displayed, clearly showing the App Name and the three consent options[cite: 8].
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SEC-03**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SEC-03**
+| Test Steps |
+a|
 | Requirement Covered | FR-2.4.1 (Persistent Trust)
 | Test Steps |
 a|
@@ -59,12 +77,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 [cite_start]**AC:** A `PERSISTENT` record is written to `Local_Trust_Registry`[cite: 10]. [cite_start]The second load skips the dialog, and the consent call returns `TRUE`[cite: 11].
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SEC-04**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SEC-04**
+| Test Steps |
+a|
 | Requirement Covered | FR-2.4.4, NFR-3.3 (Tampering Detection)
 | Test Steps |
 a|
@@ -74,12 +99,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** The `SignatureVerifier` blocks the load. [cite_start]An "Rejected (Tampered)" error is displayed[cite: 13]. [cite_start]Content is **not rendered** and the `requestAppConsent()` returns `FALSE`[cite: 14].
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SEC-05**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SEC-05**
+| Test Steps |
+a|
 | Requirement Covered | FR-2.4.3 (Trust Revocation)
 | Test Steps |
 a|
@@ -89,15 +121,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 [cite_start]**AC:** The `Local_Trust_Registry` record is set to `app_trust_policy: REVOKED`[cite: 16]. [cite_start]The next load forces the user to re-consent (T-SEC-02)[cite: 17].
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 == Test Cases: Architectural and Persistence Validation
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-PERS-01**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-PERS-01**
+| Test Steps |
+a|
 | Requirement Covered | FR-2.5.1 (Manifest Creation)
 | Test Steps |
 a|
@@ -106,12 +145,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 [cite_start]**AC:** A new entry exists containing the correct `cartridge_guid`, `cartridge_hash` (H2), `local_path`, and the required `publication_year`[cite: 20].
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-PERS-02**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-PERS-02**
+| Test Steps |
+a|
 | Requirement Covered | FR-2.1.1 (Multi-Window Isolation)
 | Test Steps |
 a|
@@ -121,12 +167,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Both windows remain responsive. [cite_start]Data saved in B is isolated to B's `User_Data` table, confirming the per-instance nature of `CartridgeDBConnector`[cite: 23, 24].
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-PERS-03**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-PERS-03**
+| Test Steps |
+a|
 | Requirement Covered | FR-2.5.5 (Atomic Deletion)
 | Test Steps |
 a|
@@ -135,12 +188,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 [cite_start]**AC:** The cartridge file is deleted[cite: 25]. [cite_start]The corresponding rows are removed atomically from **both** `Local_Library_Manifest` and `Local_Trust_Registry`[cite: 26].
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-UI-01**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-UI-01**
+| Test Steps |
+a|
 | Requirement Covered | NFR-3.1 (Library Performance)
 | Test Steps |
 a|
@@ -149,12 +209,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 [cite_start]**AC:** The Library View loads and displays all required metadata fields (Title, Author, Year, etc.) within **500 milliseconds**[cite: 28].
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-UI-02**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-UI-02**
+| Test Steps |
+a|
 | Requirement Covered | DDD 11.1 (UI Dual View)
 | Test Steps |
 a|
@@ -163,7 +230,10 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 [cite_start]**AC:** Both views load instantly[cite: 30]. [cite_start]The List-View displays the required columns (Title, Author, Edition/Version, Year of Publication) sourced from the manifest[cite: 31].
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 == Test Cases: Creator Tool Functional Validation
@@ -171,9 +241,13 @@ a|
 === Content Authoring and Editing
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-01**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-01**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.1 (HTML Content Authoring)
 | Test Steps |
 a|
@@ -184,12 +258,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Content is stored in the `Content_Pages` table as HTML. The WYSIWYG interface displays and allows editing of HTML content using Qt WebEngineView.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-02**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-02**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.2 (Rich Text Editing)
 | Test Steps |
 a|
@@ -202,12 +283,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** All formatting operations complete successfully. Formatted text displays correctly in the editor. HTML markup is correctly generated and stored.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-03**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-03**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.3 (Direct HTML Editing)
 | Test Steps |
 a|
@@ -218,12 +306,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Raw HTML is accepted and stored. HTML displays correctly in WYSIWYG view. Custom HTML elements are preserved.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-04**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-04**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.4 (Standard Edit Operations)
 | Test Steps |
 a|
@@ -237,12 +332,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** All keyboard shortcuts function correctly. Cut, copy, paste, undo, redo, and select all operations work as expected. Operations are accessible via standard keyboard shortcuts.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-05**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-05**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.5 (Preview Functionality)
 | Test Steps |
 a|
@@ -252,15 +354,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Preview displays content as it will appear in the Reader. Preview updates correctly (either live or via manual refresh, per design decision). Preview matches Reader rendering.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Page Management
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-06**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-06**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.6 (Page Selection)
 | Test Steps |
 a|
@@ -269,12 +378,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Selected page loads in the editor. Page selection mechanism functions correctly. Editor displays the correct page content.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-07**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-07**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.7 (Page CRUD Operations)
 | Test Steps |
 a|
@@ -286,12 +402,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** New page is created and added to `Content_Pages` table. Page can be edited and saved. Deleted page is removed from `Content_Pages` table. All CRUD operations complete successfully.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-08**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-08**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.8 (Page Ordering)
 | Test Steps |
 a|
@@ -301,12 +424,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** `page_order` field in `Content_Pages` table is updated correctly. Pages display in the new order. Order persists after save and reload.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-09**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-09**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.9 (Chapter Organization)
 | Test Steps |
 a|
@@ -317,15 +447,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** `chapter_title` field in `Content_Pages` table is updated. Chapter organization is preserved. Chapter titles display correctly in the UI.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Cartridge Creation and Export
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-10**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-10**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.27 (New Cartridge Creation)
 | Test Steps |
 a|
@@ -335,12 +472,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** New SQLite database file is created. All required table schemas are initialized. Cartridge is ready for content authoring.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-11**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-11**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.22 (GUID Generation)
 | Test Steps |
 a|
@@ -349,12 +493,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** A UUID Version 4 `cartridge_guid` is automatically generated. GUID is stored in `Metadata` table. GUID is immutable (cannot be changed after creation).
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-12**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-12**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.28 (Cartridge Opening)
 | Test Steps |
 a|
@@ -365,12 +516,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Cartridge opens successfully. All content, metadata, and resources load into the editing interface. Editor displays all pages and content correctly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-13**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-13**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.29 (Cartridge Saving)
 | Test Steps |
 a|
@@ -381,12 +539,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Changes are persisted to the SQLite database file. All modifications are saved correctly. Cartridge state is preserved after save and reload.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-14**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-14**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.30 (Content Validation)
 | Test Steps |
 a|
@@ -395,12 +560,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Validation errors are displayed. Specific error messages indicate missing required fields. Cartridge cannot be finalized until validation passes.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-15**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-15**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.31 (Hash Calculation)
 | Test Steps |
 a|
@@ -410,12 +582,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Content hash (H1) is calculated according to DDD Section 7 algorithm. Hash is stored in `Cartridge_Security` table. Hash includes all critical content tables as specified.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-16**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-16**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.32 (Cartridge Signing - Level 1)
 | Test Steps |
 a|
@@ -426,12 +605,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Cartridge is signed with CA certificate. Signature is stored in `Cartridge_Security` table. Certificate data is stored correctly. Exported cartridge is recognized as Level 1 by Reader.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-17**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-17**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.32 (Cartridge Signing - Level 2)
 | Test Steps |
 a|
@@ -442,12 +628,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Cartridge is signed with self-signed certificate. Signature is stored in `Cartridge_Security` table. Exported cartridge is recognized as Level 2 by Reader.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-18**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-18**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.32 (Cartridge Signing - Level 3)
 | Test Steps |
 a|
@@ -456,12 +649,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Cartridge is exported without signature. `Cartridge_Security` table indicates no signature. Exported cartridge is recognized as Level 3 by Reader.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-19**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-19**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.33 (Certificate Management)
 | Test Steps |
 a|
@@ -473,12 +673,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Certificates can be imported successfully. Self-signed certificates can be generated. Certificate selection interface functions correctly. Certificates are stored and managed properly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-20**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-20**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.34 (Export Process)
 | Test Steps |
 a|
@@ -488,12 +695,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Export process follows DDD Section 7 algorithm. Content is assembled correctly. Hash is calculated. Signature is applied (if applicable). Database is finalized. Exported file is a valid SQLite database.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-21**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-21**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.35 (Export Validation)
 | Test Steps |
 a|
@@ -502,15 +716,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Exported cartridge opens successfully in Reader. All content displays correctly. Reader can access all cartridge features. No errors occur during Reader load.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Metadata and Resource Management
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-22**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-22**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.20 (Document Metadata)
 | Test Steps |
 a|
@@ -521,12 +742,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** All metadata fields are saved to `Metadata` table. Metadata displays correctly in the interface. Metadata persists after save and reload.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-23**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-23**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.21 (Cover Image Management)
 | Test Steps |
 a|
@@ -536,12 +764,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Cover image is stored correctly. `cover_image_path` in `Metadata` table is updated. Cover image is available for manifest. Image displays in preview.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-24**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-24**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.23 (Schema Version Management)
 | Test Steps |
 a|
@@ -550,12 +785,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** `schema_version` field is set to current Smartbook Format Specification version. Version is stored correctly. Version indicates format compatibility.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-25**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-25**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.24 (Asset Management)
 | Test Steps |
 a|
@@ -566,12 +808,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Resource is stored within the cartridge. Resource can be referenced in content. Resource persists after save. Resource is accessible when cartridge is opened in Reader.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-26**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-26**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.25 (Resource Storage)
 | Test Steps |
 a|
@@ -581,15 +830,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** All resources are stored within the cartridge database or properly referenced. Cartridge file is portable (all resources included). Resources are accessible in exported cartridge.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Form Definition Management
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-27**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-27**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.16 (Form Creation)
 | Test Steps |
 a|
@@ -600,12 +856,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Form definition is created using the JSON Schema. Form is stored in `Form_Definitions` table. Form definition is valid JSON conforming to the schema.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-28**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-28**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.17 (Form Builder Interface)
 | Test Steps |
 a|
@@ -617,12 +880,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Visual form builder allows creating forms without direct JSON editing. Fields can be added and configured. Validation rules can be set. Field organization works correctly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-29**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-29**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.18 (Form Schema Validation)
 | Test Steps |
 a|
@@ -632,12 +902,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Validation errors are displayed. Form cannot be saved until it conforms to Form Definition JSON Schema. Specific validation errors are shown.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-30**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-30**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.19 (Form Integration)
 | Test Steps |
 a|
@@ -647,15 +924,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Form reference is inserted into content page. Form is linked correctly. Form displays when page is viewed in Reader.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Auto-Save and Recovery
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-31**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-31**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.37 (Auto-Save Functionality)
 | Test Steps |
 a|
@@ -665,12 +949,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Cartridge is automatically saved at the configured interval. Auto-save occurs without user intervention. Changes are persisted.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-32**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-32**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.38 (Auto-Save Configuration)
 | Test Steps |
 a|
@@ -682,12 +973,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Auto-save interval can be configured. Auto-save can be disabled and re-enabled. Configuration persists across sessions.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-33**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-33**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.39 (Auto-Save Indication)
 | Test Steps |
 a|
@@ -697,12 +995,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Visual indication shows when auto-save is in progress. Visual indication shows when last auto-save completed successfully. Indicators are clear and non-intrusive.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-34**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-34**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.40 (Recovery on Startup)
 | Test Steps |
 a|
@@ -713,15 +1018,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Creator Tool detects unsaved changes on startup. Recovery option is offered. Most recent auto-saved state can be restored. User can choose to recover or discard changes.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Error Handling
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-35**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-35**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.8 (Content Validation Errors)
 | Test Steps |
 a|
@@ -731,12 +1043,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Validation errors are displayed. Specific error messages indicate invalid HTML. User is informed of validation failures. Cartridge cannot be saved until errors are corrected.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-36**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-36**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.9 (Cartridge Creation Errors)
 | Test Steps |
 a|
@@ -744,12 +1063,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Error is detected and displayed. Partial changes are rolled back. User is informed of the failure. Clear error message suggests corrective action.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-37**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-37**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.10 (Signing Errors)
 | Test Steps |
 a|
@@ -758,12 +1084,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Signing errors are detected. Clear error messages distinguish between error types (expired certificate, missing key, etc.). Corrective actions are suggested. Signing operation fails gracefully.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-38**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-38**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.11 (Export Errors)
 | Test Steps |
 a|
@@ -772,12 +1105,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Export error is detected. Working cartridge state is preserved. Export operation can be retried. User is informed of the error condition.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-39**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-39**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.12 (Import Errors)
 | Test Steps |
 a|
@@ -786,12 +1126,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Import errors are detected. Detailed error messages indicate what failed and why. User is informed of the failure. Import operation fails gracefully.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-40**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-40**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.59 (Corruption Detection)
 | Test Steps |
 a|
@@ -801,15 +1148,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Corruption is detected when opening the file. Recovery options are offered when possible. User is informed of corruption. Clear error message is displayed.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Stylesheet and Settings Management
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-41**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-41**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.10 (CSS Stylesheet Attachment)
 | Test Steps |
 a|
@@ -819,12 +1173,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** CSS stylesheet is stored within the cartridge. Stylesheet controls structure (layout, positioning, spacing) as specified. Stylesheet is separate from content themes.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-42**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-42**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.11 (Stylesheet Editing)
 | Test Steps |
 a|
@@ -834,12 +1195,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Stylesheet can be edited through the interface. CSS editor focuses on structural styling. Changes are saved and applied to content rendering.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-43**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-43**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.12a (Settings Definition)
 | Test Steps |
 a|
@@ -850,12 +1218,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Settings are saved to `Settings` table. All specified setting types can be defined. Settings are stored with correct `setting_type`.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-44**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-44**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.12b (Settings Editor)
 | Test Steps |
 a|
@@ -865,12 +1240,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Settings editor provides appropriate input controls (number inputs for sizes, dropdowns for themes, etc.). Interface is intuitive and functional.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-45**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-45**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.12c (Settings Validation)
 | Test Steps |
 a|
@@ -879,12 +1261,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Settings are validated according to `setting_type` before saving. Invalid values are rejected. Validation errors are displayed.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-46**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-46**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.12d (Settings Preview)
 | Test Steps |
 a|
@@ -894,15 +1283,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Preview pane shows how settings affect content rendering. Settings changes are reflected in preview. Preview matches Reader rendering behavior.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === JavaScript and Embedded Applications
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-47**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-47**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.13 (Custom JavaScript Storage)
 | Test Steps |
 a|
@@ -912,12 +1308,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** JavaScript code is stored as part of the document. JavaScript is accessible for embedded applications. Code persists after save.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-48**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-48**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.14 (Embedded Application Definition)
 | Test Steps |
 a|
@@ -928,12 +1331,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Embedded application is defined using `Embedded_App_Manifest` structure. Definition is stored in `Embedded_Apps` table. All required fields are specified correctly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-49**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-49**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.15 (JavaScript Management)
 | Test Steps |
 a|
@@ -945,15 +1355,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** JavaScript code can be edited through the interface. JavaScript validation is performed. Script resources can be organized. Management interface functions correctly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Search and Import Capabilities
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-50**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-50**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.26 (Content Search)
 | Test Steps |
 a|
@@ -963,12 +1380,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Search functionality works across entire document. Search can be limited to current page. Search results are displayed correctly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-51**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-51**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.27 (Search Results)
 | Test Steps |
 a|
@@ -978,12 +1402,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Search results are displayed. Users can navigate to matching content locations. Navigation functions correctly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-52**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-52**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.49 (Markdown Import)
 | Test Steps |
 a|
@@ -993,12 +1424,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Markdown syntax is converted to HTML. Appropriate page structures are created. Content is imported successfully.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-53**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-53**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.50 (DOCX Import)
 | Test Steps |
 a|
@@ -1008,12 +1446,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** DOCX content is imported. Formatting and structure are preserved where possible. Content is converted to HTML format.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-54**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-54**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.51 (HTML Import)
 | Test Steps |
 a|
@@ -1023,12 +1468,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** HTML content is imported successfully. HTML structure is preserved. Content can be edited in Creator Tool.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-55**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-55**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.52 (Import Validation)
 | Test Steps |
 a|
@@ -1037,15 +1489,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Imported content is validated. Feedback is provided on formatting or structure issues. Issues requiring manual adjustment are identified.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Draft and Publishing States
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-56**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-56**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.41 (Draft Mode)
 | Test Steps |
 a|
@@ -1055,12 +1514,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Cartridge can be saved in draft mode. Draft state is tracked. Cartridge can be edited without finalization.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-57**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-57**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.42 (Publishing State)
 | Test Steps |
 a|
@@ -1070,12 +1536,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Cartridge state distinguishes between draft and published. Published cartridges are finalized and optionally signed. State is tracked correctly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-58**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-58**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.43 (State Management)
 | Test Steps |
 a|
@@ -1086,12 +1559,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Certain operations (e.g., signing) are prevented on draft cartridges. State management prevents invalid operations. State transitions work correctly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-59**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-59**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.44 (Publish Workflow)
 | Test Steps |
 a|
@@ -1101,15 +1581,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Publish workflow guides users through required steps. Validation is performed. Signing is applied if applicable. Cartridge is finalized and marked as published.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Content Templates
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-60**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-60**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.45 (Template Creation)
 | Test Steps |
 a|
@@ -1119,12 +1606,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Template is created and saved. Template includes all specified components. Template can be reused.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-61**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-61**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.46 (Template Library)
 | Test Steps |
 a|
@@ -1135,12 +1629,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Template library displays available templates. Templates can be browsed and previewed. Library interface functions correctly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-62**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-62**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.47 (Template Application)
 | Test Steps |
 a|
@@ -1151,12 +1652,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Template can be applied to new cartridges. Content structure and styles are populated. Customization is allowed after template application.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-63**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-63**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.48 (Template Management)
 | Test Steps |
 a|
@@ -1165,15 +1673,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** All template management operations function correctly. Templates can be created, edited, deleted, imported, and exported. Management interface works as expected.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Version History
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-64**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-64**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.54 (Version Tracking)
 | Test Steps |
 a|
@@ -1183,12 +1698,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Version history is maintained for the cartridge. Changes to content, metadata, and structure are tracked over time. Version snapshots are created successfully.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-65**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-65**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.55 (Version Snapshots)
 | Test Steps |
 a|
@@ -1199,12 +1721,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Version snapshots are created at significant milestones. Manual snapshots can be created. Snapshots capture cartridge state correctly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-66**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-66**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.56 (Version Comparison)
 | Test Steps |
 a|
@@ -1213,12 +1742,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Version comparison functionality works correctly. Changes in content, metadata, and structure are highlighted. Comparison interface displays differences clearly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-67**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-67**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.57 (Version Restoration)
 | Test Steps |
 a|
@@ -1228,12 +1764,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Cartridge can be restored to a previous version. Option to create new version or replace current version is available. Restoration works correctly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-68**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-68**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.58 (Version Metadata)
 | Test Steps |
 a|
@@ -1243,15 +1786,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Each version snapshot stores metadata (timestamp, version number/identifier, optional notes). Version metadata is displayed correctly. Notes can be added and viewed.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Accessibility
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-69**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-69**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.64 (Keyboard Navigation)
 | Test Steps |
 a|
@@ -1260,12 +1810,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** All editing and navigation functions are accessible via keyboard. Full keyboard navigation is supported. Application can be operated without a mouse.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-70**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-70**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.65 (Screen Reader Support)
 | Test Steps |
 a|
@@ -1274,12 +1831,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Creator Tool is compatible with screen readers. Appropriate ARIA labels and semantic markup are provided. All UI elements are accessible via screen reader.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-71**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-71**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.66 (High Contrast Mode)
 | Test Steps |
 a|
@@ -1289,12 +1853,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** High contrast display mode is supported. Interface displays correctly in high contrast mode. All UI elements are visible and functional.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-72**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-72**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.67 (Font Scaling)
 | Test Steps |
 a|
@@ -1304,12 +1875,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** UI font size can be scaled. Zoom functionality works for editing interface. Scaling and zoom persist across sessions.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-73**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-73**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.68 (Accessibility Standards)
 | Test Steps |
 a|
@@ -1317,12 +1895,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Creator Tool complies with WCAG 2.1 Level AA standards. All essential functions are accessible via keyboard. Content is readable by screen readers. Visual elements meet contrast requirements.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-74**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-74**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.69 (Keyboard Shortcuts Documentation)
 | Test Steps |
 a|
@@ -1332,15 +1917,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Keyboard shortcuts documentation is available within the application. Documentation is accessible. All shortcuts are documented.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === UI Theming Support
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-75**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-75**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.75 (Built-in UI Themes)
 | Test Steps |
 a|
@@ -1349,12 +1941,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Three immutable built-in themes are available. Light theme is the default. All themes are accessible.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-76**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-76**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.76 (UI Theme Selection)
 | Test Steps |
 a|
@@ -1364,12 +1963,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** UI themes can be selected and switched. Theme selection persists across application sessions. Theme changes apply immediately.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-77**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-77**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.77 (Custom UI Theme Creation)
 | Test Steps |
 a|
@@ -1380,12 +1986,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Custom UI themes can be created. UI colors, fonts, and styling can be modified. Custom themes can be saved.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-78**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-78**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.78 (Custom UI Theme Management)
 | Test Steps |
 a|
@@ -1394,12 +2007,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Custom UI themes can be saved, loaded, edited, and deleted. Themes are stored locally and persist across sessions. Management operations work correctly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-79**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-79**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.79 (UI Theme Application)
 | Test Steps |
 a|
@@ -1408,12 +2028,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** UI theme changes apply immediately to entire Creator Tool interface. Menu bars, toolbars, sidebars, and editing areas are updated. Theme application works correctly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-80**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-80**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.80 (UI Theme Preview)
 | Test Steps |
 a|
@@ -1422,12 +2049,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** UI theme preview is available. Preview shows how interface will look with selected theme. Preview is accurate.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-81**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-81**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.81 (UI Theme Export/Import)
 | Test Steps |
 a|
@@ -1437,15 +2071,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Custom UI themes can be exported to shareable files. UI themes can be imported from files. Export/import functions work correctly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Content Theme Management
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-82**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-82**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.82 (Content Theme Manager Dialog)
 | Test Steps |
 a|
@@ -1455,12 +2096,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Content Theme Manager dialog displays correctly. Left panel shows available themes with Apply buttons. Right panel shows theme configuration and live preview. Dialog structure matches specification.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-83**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-83**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.83 (Content Theme List)
 | Test Steps |
 a|
@@ -1470,12 +2118,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** List of available content themes is displayed. Built-in themes are immutable and clearly distinguished. Apply buttons function correctly. Themes can be applied to cartridge.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-84**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-84**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.84 (Content Theme Actions)
 | Test Steps |
 a|
@@ -1488,12 +2143,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Add, Copy, Rename, and Delete actions work for custom themes. Built-in themes cannot be deleted or renamed. All theme management actions function correctly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-85**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-85**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.85 (Persist on Add)
 | Test Steps |
 a|
@@ -1503,12 +2165,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** "Persist on add" checkbox is available. When enabled, theme is automatically saved to cartridge's theme library when created or modified. Persistence works correctly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-86**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-86**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.86 (Content Theme Configuration)
 | Test Steps |
 a|
@@ -1520,12 +2189,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Theme configuration panel allows setting theme name. Core colors can be configured using color pickers/swatches. Color presets can be selected. Colors can be reset to defaults. Configuration interface works correctly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-87**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-87**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.87 (Content Theme Live Preview)
 | Test Steps |
 a|
@@ -1535,12 +2211,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Live preview panel displays sample content with current theme configuration. Preview shows headings, body text, links, emphasis, inline code, quoted text, tables. Preview updates as configuration changes.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-88**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-88**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.88 (Content Theme Actions)
 | Test Steps |
 a|
@@ -1550,12 +2233,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Apply button applies theme to current cartridge. Save button saves theme configuration (enabled when modified). Cancel discards changes and closes dialog. Revert reverts theme to last saved state. All action buttons function correctly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-89**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-89**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.89 (Content Theme Storage)
 | Test Steps |
 a|
@@ -1566,12 +2256,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Content themes are stored within the cartridge file. Themes are accessible when editing the cartridge. Themes are applied to content rendering in Reader. Storage works correctly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-CT-90**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-CT-90**
+| Test Steps |
+a|
 | Requirement Covered | FR-CT-3.90 (Content Theme Application)
 | Test Steps |
 a|
@@ -1582,7 +2279,10 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** When theme is applied, cartridge's theme settings are updated. Theme controls colors and fonts (visual appearance and typography). CSS stylesheet controls structure (layout, positioning, spacing). Theme affects content in both Creator Tool preview and Reader.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 == Test Cases: Error Scenario Validation
@@ -1590,9 +2290,13 @@ a|
 === Reader Application Error Scenarios
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-01**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-01**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.1 (Cartridge File Not Found)
 | Test Steps |
 a|
@@ -1601,12 +2305,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** User-friendly error message displayed: "Cartridge file not found. It may have been moved or deleted." Error is logged with ERROR level including file path and error details. Reader returns to Library Manager.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-02**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-02**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.1 (Invalid SQLite Format)
 | Test Steps |
 a|
@@ -1615,12 +2326,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Error message displayed: "Invalid cartridge format. The file may be corrupted." Error is logged with ERROR level. Reader does not crash. User can return to Library Manager.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-03**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-03**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.1 (File Corruption)
 | Test Steps |
 a|
@@ -1630,12 +2348,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** SQLite corruption is detected via integrity checks. Recovery is attempted if possible. If recovery fails, error displayed with option to delete corrupted cartridge. Error is logged with ERROR level.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-04**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-04**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.1 (File Permission Errors)
 | Test Steps |
 a|
@@ -1644,12 +2369,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Error message displayed: "Cannot access cartridge file. Check file permissions." Error is logged with ERROR level. Reader handles permission errors gracefully.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-05**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-05**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.2 (Database Locked)
 | Test Steps |
 a|
@@ -1658,12 +2390,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Reader detects database locked error. Retry with exponential backoff (max 3 retries). If still locked, error displayed: "Cartridge is in use by another application." Error is logged with ERROR level.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-06**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-06**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.2 (Disk Full)
 | Test Steps |
 a|
@@ -1672,12 +2411,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Disk full error is detected. Error message displayed: "Insufficient disk space. Free up space and try again." Error is logged with ERROR level. Operation fails gracefully without data loss.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-07**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-07**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.2 (SQLite Corruption - Connection)
 | Test Steps |
 a|
@@ -1687,12 +2433,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** SQLite corruption detected during connection. Recovery attempted using `PRAGMA integrity_check`. If recovery fails, error displayed with option to delete corrupted cartridge. Error is logged with ERROR level.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-08**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-08**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.2 (Connection Timeout)
 | Test Steps |
 a|
@@ -1701,12 +2454,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Connection timeout detected. Error message displayed: "Database connection timeout. The cartridge may be on a slow storage device." Error is logged with ERROR level. Reader handles timeout gracefully.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-09**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-09**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.3 (Invalid Signature)
 | Test Steps |
 a|
@@ -1716,12 +2476,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Invalid signature detected. Error message displayed: "Cartridge signature is invalid. The content may have been tampered with or corrupted." App execution is blocked. Error is logged as security event with WARN level.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-10**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-10**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.3 (Expired Certificate)
 | Test Steps |
 a|
@@ -1730,12 +2497,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Expired certificate detected. Cartridge is downgraded to Level 2 (Self-Signed Trust). Integrity warning displayed. Error message: "The cartridge's security certificate has expired. Contact the publisher for an updated version." Apps require consent.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-11**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-11**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.3 (Untrusted CA)
 | Test Steps |
 a|
@@ -1744,12 +2518,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Untrusted CA detected. Error message displayed: "The cartridge's security certificate is not from a trusted authority. Proceed with caution." Cartridge loaded at Level 2. Apps require consent.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-12**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-12**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.3 (Corrupted Security Data)
 | Test Steps |
 a|
@@ -1759,12 +2540,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Corrupted security data detected. Error message displayed: "Cartridge security data is corrupted. The file may be damaged." App execution is blocked. Error is logged with ERROR level.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-13**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-13**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.3 (Hash Mismatch - Tampering)
 | Test Steps |
 a|
@@ -1774,12 +2562,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Hash mismatch detected (H2 recalculation differs from stored hash). Error message displayed: "Cartridge integrity check failed. The file has been modified since it was signed. For security reasons, execution is blocked." Cartridge is rejected regardless of trust status. Error is logged as security event with WARN level.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-14**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-14**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.4 (Disk Full - File System)
 | Test Steps |
 a|
@@ -1788,12 +2583,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Disk full error detected before file copy. Error message displayed: "Insufficient disk space. Free up [X] MB and try again." Import operation fails gracefully. Error is logged with ERROR level.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-15**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-15**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.4 (Permission Denied)
 | Test Steps |
 a|
@@ -1802,12 +2604,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Permission denied error detected. Error message displayed: "Permission denied. Check file permissions or run as administrator." Operation fails gracefully. Error is logged with ERROR level.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-16**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-16**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.4 (Path Too Long)
 | Test Steps |
 a|
@@ -1815,12 +2624,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Path too long error detected. Error message displayed: "File path is too long. Move the cartridge to a shorter path." Import operation fails gracefully. Error is logged with ERROR level.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-17**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-17**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.4 (Invalid Characters)
 | Test Steps |
 a|
@@ -1828,12 +2644,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Invalid characters detected. Path is sanitized if possible, or error displayed. Warning shown if sanitization occurred. Operation completes or fails gracefully based on sanitization success.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-18**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-18**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.5 (Manifest Update Failure)
 | Test Steps |
 a|
@@ -1842,12 +2665,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Manifest update fails. Error dialog displayed with operation type, cartridge info, error message, context, and suggested resolution. "Copy Error Details" button available. Operation continues (non-blocking). Error is logged with ERROR level. Update is retried on next application launch.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-19**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-19**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.6 (Sandbox Path Traversal)
 | Test Steps |
 a|
@@ -1856,12 +2686,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Path traversal attempt is blocked. Sandbox API returns error code: `PERMISSION_DENIED` or `INVALID_PATH`. Operation is blocked. Error is logged with WARN level.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-20**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-20**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.6 (Sandbox Invalid Filename)
 | Test Steps |
 a|
@@ -1870,12 +2707,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Invalid filename is rejected. Sandbox API returns error code: `INVALID_FILENAME`. Operation is blocked. Error is logged with WARN level.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-21**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-21**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.6 (Sandbox File Size Limit)
 | Test Steps |
 a|
@@ -1884,12 +2728,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** File size limit exceeded. Sandbox API returns error code: `FILE_TOO_LARGE`. Operation is blocked. Error is logged with WARN level.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-22**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-22**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.6 (Sandbox Disk Space Exhaustion)
 | Test Steps |
 a|
@@ -1899,12 +2750,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Disk space exhaustion detected. Sandbox API returns error code: `DISK_FULL`. Operation is blocked. Error is logged with WARN level.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-23**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-23**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.7 (WebEngine Crash)
 | Test Steps |
 a|
@@ -1912,12 +2770,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** WebEngine crash is detected. Reader does not crash. Error is logged with ERROR level. Recovery options provided: reload page, close app. User can continue using Reader.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-24**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-24**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.7 (JavaScript Error)
 | Test Steps |
 a|
@@ -1926,15 +2791,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** JavaScript errors are caught and logged. Reader does not crash. Errors are logged with WARN level. Content continues to render. User can continue using Reader.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Creator Tool Error Scenarios
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-25**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-25**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.8 (Invalid HTML)
 | Test Steps |
 a|
@@ -1944,12 +2816,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Validation errors are displayed. Specific error messages indicate invalid HTML with line numbers. Cartridge cannot be saved until errors are corrected. Errors displayed in validation panel.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-26**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-26**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.8 (Malformed JSON Schema)
 | Test Steps |
 a|
@@ -1959,12 +2838,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Validation errors are displayed. Specific error messages indicate malformed JSON schema. Form cannot be saved until errors are corrected. Errors displayed in validation panel.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-27**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-27**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.8 (Missing Required Metadata)
 | Test Steps |
 a|
@@ -1973,12 +2859,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Validation errors are displayed. Specific error messages indicate missing required metadata fields. Export operation is prevented. User must provide required metadata before exporting.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-28**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-28**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.8 (Invalid Form Definition)
 | Test Steps |
 a|
@@ -1988,12 +2881,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Validation errors are displayed. Specific error messages indicate invalid form definition with details. Form cannot be saved until errors are corrected. Errors displayed in validation panel.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-29**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-29**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.8 (Resource Reference Error)
 | Test Steps |
 a|
@@ -2003,12 +2903,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Validation error displayed: "Referenced resource '[path]' not found." Export operation is prevented. User must fix resource references before exporting.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-30**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-30**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.9 (Database Initialization Failure)
 | Test Steps |
 a|
@@ -2016,12 +2923,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Database initialization failure detected. Partial changes are rolled back. Error message displayed: "Failed to create cartridge database. Check disk space and permissions." Error is logged with ERROR level.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-31**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-31**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.9 (GUID Generation Failure)
 | Test Steps |
 a|
@@ -2030,12 +2944,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** GUID generation failure detected. Retry attempted. If persistent failure, error message displayed: "Failed to generate unique identifier. Try again." Error is logged with ERROR level.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-32**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-32**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.9 (Schema Creation Error)
 | Test Steps |
 a|
@@ -2044,12 +2965,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Schema creation error detected. Database is rolled back. Error message displayed: "Failed to create cartridge structure. The cartridge file may be corrupted." Error is logged with ERROR level.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-33**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-33**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.10 (Invalid Certificate Format)
 | Test Steps |
 a|
@@ -2058,12 +2986,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Invalid certificate format detected. Error message displayed: "Certificate file is invalid or corrupted. Select a valid certificate file." Import fails gracefully. User can select a different certificate file.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-34**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-34**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.10 (Expired Certificate - Signing)
 | Test Steps |
 a|
@@ -2072,12 +3007,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Expired certificate detected. Error message displayed: "Certificate has expired. Use a valid certificate or generate a new one." Signing operation is prevented. User can select a different certificate.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-35**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-35**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.10 (Missing Private Key)
 | Test Steps |
 a|
@@ -2086,12 +3028,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Missing private key detected. Error message displayed: "Private key file not found. Provide the private key for signing." Signing operation is prevented. User can provide the private key and retry.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-36**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-36**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.10 (Signing Failure)
 | Test Steps |
 a|
@@ -2100,12 +3049,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Signing failure detected. Error message displayed: "Failed to sign cartridge. Check certificate and key files." Signing operation fails gracefully. User can correct certificate/key issues and retry.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-37**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-37**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.10 (Certificate Import Error)
 | Test Steps |
 a|
@@ -2114,12 +3070,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Certificate import error detected. Error message displayed: "Failed to import certificate. Verify the certificate file format." Import fails gracefully. User can select a different certificate file.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-38**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-38**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.11 (File Write Error)
 | Test Steps |
 a|
@@ -2129,12 +3092,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** File write error detected. Error message displayed: "Failed to write cartridge file. Check disk space and permissions." Working cartridge state is preserved. Export operation can be retried after resolving the issue.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-39**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-39**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.11 (Disk Full - Export)
 | Test Steps |
 a|
@@ -2145,12 +3115,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Disk full error detected. Error message displayed: "Insufficient disk space. Free up [X] MB and try again." Working cartridge state is preserved. Export operation can be retried after freeing disk space.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-40**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-40**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.11 (Permission Error - Export)
 | Test Steps |
 a|
@@ -2160,12 +3137,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Permission error detected. Error message displayed: "Permission denied. Check file permissions or choose a different location." Working cartridge state is preserved. Export operation can be retried after resolving permissions.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-41**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-41**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.11 (Hash Calculation Failure)
 | Test Steps |
 a|
@@ -2175,12 +3159,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Hash calculation failure detected. Error message displayed: "Failed to calculate content hash. Try exporting again." Working cartridge state is preserved. Export operation can be retried.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-42**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-42**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.12 (Unsupported File Format)
 | Test Steps |
 a|
@@ -2189,12 +3180,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Unsupported file format detected. Detailed error message indicates what failed and why: "Unsupported file format. Supported formats: Markdown (.md), DOCX (.docx), HTML (.html, .htm)." Import operation fails gracefully.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-43**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-43**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.12 (Corrupted Source File)
 | Test Steps |
 a|
@@ -2203,12 +3201,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Corrupted source file detected. Detailed error message indicates what failed and why: "Source file is corrupted or invalid. Cannot import file." Import operation fails gracefully.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-44**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-44**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.12 (Missing Resources - Import)
 | Test Steps |
 a|
@@ -2217,12 +3222,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Missing resources detected. Detailed error message indicates what failed and why: "Referenced resources not found: [list of missing resources]." Import operation may complete with warnings, or fail if resources are critical.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-45**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-45**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.12 (Import Validation Errors)
 | Test Steps |
 a|
@@ -2231,12 +3243,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Import validation errors are detected. Feedback provided on formatting or structure issues. Issues requiring manual adjustment are identified. User can review and fix issues.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-46**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-46**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.13 (Resource File Not Found)
 | Test Steps |
 a|
@@ -2245,12 +3264,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Resource file not found error detected. Error message displayed: "Resource file not found: [path]." Resource is not added to cartridge. User can correct the path and retry.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-47**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-47**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.13 (Invalid Image Format)
 | Test Steps |
 a|
@@ -2259,12 +3285,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Invalid image format detected. Resource is validated before adding. Error message displayed: "Invalid image format. Supported formats: [list]." Resource is not added to cartridge.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-48**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-48**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.13 (File Size Limit Exceeded)
 | Test Steps |
 a|
@@ -2273,12 +3306,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** File size limit exceeded error detected. Error message displayed: "File size exceeds limit. Maximum size: [X] MB." Resource is not added to cartridge. User can use a smaller file.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-ERR-49**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-ERR-49**
+| Test Steps |
+a|
 | Requirement Covered | FR-ERR-4.13 (Resource Path Error)
 | Test Steps |
 a|
@@ -2287,15 +3327,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Resource path error detected. Path is validated before adding. Error message displayed: "Invalid resource path: [path]." Resource is not added to cartridge. User can correct the path.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 == Test Cases: Performance Validation
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-PERF-01**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-PERF-01**
+| Test Steps |
+a|
 | Requirement Covered | NFR-3.1 (Library Load Performance)
 | Test Steps |
 a|
@@ -2305,12 +3352,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Library View (Bookshelf or List) loads and displays all required metadata fields (Title, Author, Year, Cover Image) within **500 milliseconds**. Performance demonstrates reliance on manifest data, not file parsing.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-PERF-02**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-PERF-02**
+| Test Steps |
+a|
 | Requirement Covered | FR-2.9.8 (Search Performance)
 | Test Steps |
 a|
@@ -2320,12 +3374,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Search completes within **2 seconds** for cartridges with 100+ pages. Search results are displayed correctly. Optional indexing/caching may be used to improve performance.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-PERF-03**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-PERF-03**
+| Test Steps |
+a|
 | Requirement Covered | Large Cartridge Opening
 | Test Steps |
 a|
@@ -2335,12 +3396,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Large cartridge opens and displays content within reasonable time (< 5 seconds for 1000+ pages). No application freezing or unresponsiveness. User can interact with content after opening.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-PERF-04**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-PERF-04**
+| Test Steps |
+a|
 | Requirement Covered | Concurrent Window Operations
 | Test Steps |
 a|
@@ -2350,12 +3418,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** All windows remain responsive. Operations complete without noticeable delay. No performance degradation observed. Memory usage is reasonable (no excessive memory consumption).
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-PERF-05**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-PERF-05**
+| Test Steps |
+a|
 | Requirement Covered | Large Library Performance
 | Test Steps |
 a|
@@ -2366,12 +3441,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Library Manager remains responsive with 500+ cartridges. All operations complete without noticeable delay. Library load time may exceed 500ms but remains reasonable (< 2 seconds). No application freezing.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-PERF-06**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-PERF-06**
+| Test Steps |
+a|
 | Requirement Covered | Form Data Save/Load Performance
 | Test Steps |
 a|
@@ -2382,12 +3464,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Form data save/load operations complete without noticeable delay (< 200ms user-perceived "instant"). Operations are near-instantaneous for typical form data sizes.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-PERF-07**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-PERF-07**
+| Test Steps |
+a|
 | Requirement Covered | Content Rendering Performance
 | Test Steps |
 a|
@@ -2397,12 +3486,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Content rendering completes without noticeable delay (< 200ms user-perceived "instant"). Page navigation is smooth. No visible lag or stuttering.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-PERF-08**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-PERF-08**
+| Test Steps |
+a|
 | Requirement Covered | Performance Regression Baseline
 | Test Steps |
 a|
@@ -2411,7 +3507,10 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Baseline metrics documented. Metrics can be used for regression testing to ensure performance doesn't degrade with code changes.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 **Performance Testing Notes:**
@@ -2426,9 +3525,13 @@ a|
 === WebEngine Configuration and Standards
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-WE-01**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-WE-01**
+| Test Steps |
+a|
 | Requirement Covered | FR-WE-5.1 (Profile Configuration)
 | Test Steps |
 a|
@@ -2438,12 +3541,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** WebEngine profile is created and configured with appropriate settings. Profile settings match specification (security, performance, cache). Profile is used by QWebEngineView.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-WE-02**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-WE-02**
+| Test Steps |
+a|
 | Requirement Covered | FR-WE-5.2 (JavaScript Engine Version)
 | Test Steps |
 a|
@@ -2452,12 +3562,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Application reports V8 engine version. Version matches Qt WebEngine version requirements. Version is documented in application or logs.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-WE-03**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-WE-03**
+| Test Steps |
+a|
 | Requirement Covered | FR-WE-5.3 (HTML/CSS Standards)
 | Test Steps |
 a|
@@ -2467,12 +3584,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** HTML5 features render correctly. CSS3 features render correctly. Standards compliance matches Chromium version capabilities. No rendering errors.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-WE-04**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-WE-04**
+| Test Steps |
+a|
 | Requirement Covered | FR-WE-5.4 (Security Settings)
 | Test Steps |
 a|
@@ -2483,12 +3607,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Local file system access blocked (except via WebChannel). Network requests blocked by interceptor. Plugins disabled. Security settings enforced correctly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-WE-05**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-WE-05**
+| Test Steps |
+a|
 | Requirement Covered | FR-WE-5.5 (Performance Settings)
 | Test Steps |
 a|
@@ -2499,12 +3630,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Memory usage is reasonable per view (~50-100MB). Hardware acceleration enabled if available. Cache is working correctly. Performance is acceptable.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-WE-06**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-WE-06**
+| Test Steps |
+a|
 | Requirement Covered | FR-WE-5.6 (Profile Isolation)
 | Test Steps |
 a|
@@ -2515,12 +3653,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Content rendering uses separate profile from embedded apps. Each embedded app has isolated profile or view. Profiles do not interfere with each other. Settings are independent.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-WE-07**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-WE-07**
+| Test Steps |
+a|
 | Requirement Covered | FR-WE-5.7 (Network Interceptor)
 | Test Steps |
 a|
@@ -2532,12 +3677,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** All network requests are blocked by interceptor. Error messages indicate request was blocked. No network traffic occurs. Interceptor logs blocked requests.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-WE-08**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-WE-08**
+| Test Steps |
+a|
 | Requirement Covered | FR-WE-5.8 (CSP Headers)
 | Test Steps |
 a|
@@ -2547,12 +3699,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** CSP headers are set correctly. CSP policy matches specification. CSP violations are logged or blocked. Policy is enforced.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-WE-09**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-WE-09**
+| Test Steps |
+a|
 | Requirement Covered | FR-WE-5.9 (WebChannel Configuration)
 | Test Steps |
 a|
@@ -2562,12 +3721,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** SmartbookBridge object is accessible from JavaScript. WebChannel communication works correctly. API methods can be called from JavaScript. Callbacks receive responses.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-WE-10**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-WE-10**
+| Test Steps |
+a|
 | Requirement Covered | FR-WE-5.10 (Error Handling)
 | Test Steps |
 a|
@@ -2577,15 +3743,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** JavaScript errors are caught and logged. Process crashes are detected. Recovery options are provided (reload, close). Application does not crash.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Network Blocking Security Tests
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-WE-11**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-WE-11**
+| Test Steps |
+a|
 | Requirement Covered | Network Blocking - fetch()
 | Test Steps |
 a|
@@ -2595,12 +3768,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** fetch() requests are blocked. No network traffic occurs. Error is returned to JavaScript. Request is logged as blocked.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-WE-12**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-WE-12**
+| Test Steps |
+a|
 | Requirement Covered | Network Blocking - XMLHttpRequest
 | Test Steps |
 a|
@@ -2610,12 +3790,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** XMLHttpRequest is blocked. No network traffic occurs. Error is returned to JavaScript. Request is logged as blocked.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-WE-13**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-WE-13**
+| Test Steps |
+a|
 | Requirement Covered | Network Blocking - WebSocket
 | Test Steps |
 a|
@@ -2625,12 +3812,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** WebSocket connections are blocked. No network traffic occurs. Connection fails. Request is logged as blocked.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-WE-14**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-WE-14**
+| Test Steps |
+a|
 | Requirement Covered | Network Blocking - Image Loading
 | Test Steps |
 a|
@@ -2640,12 +3834,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** External image loading is blocked. Image fails to load. No network traffic occurs. Error is logged.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-WE-15**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-WE-15**
+| Test Steps |
+a|
 | Requirement Covered | Network Blocking - Script Loading
 | Test Steps |
 a|
@@ -2655,12 +3856,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** External script loading is blocked. Script fails to load. No network traffic occurs. Error is logged.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-WE-16**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-WE-16**
+| Test Steps |
+a|
 | Requirement Covered | Network Blocking - Service Workers
 | Test Steps |
 a|
@@ -2671,15 +3879,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Service workers are disabled. Registration fails. No service worker is created. HttpCacheType is set to NoCache.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Performance and Standards Tests
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-WE-17**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-WE-17**
+| Test Steps |
+a|
 | Requirement Covered | Memory Usage per View
 | Test Steps |
 a|
@@ -2690,12 +3905,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Single view uses ~50-100MB RAM. Multiple views scale linearly. Memory usage is reasonable. No memory leaks observed.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-WE-18**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-WE-18**
+| Test Steps |
+a|
 | Requirement Covered | Hardware Acceleration
 | Test Steps |
 a|
@@ -2705,12 +3927,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Hardware acceleration is enabled if available. Rendering performance is improved. No visual artifacts. Acceleration status can be verified.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-WE-19**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-WE-19**
+| Test Steps |
+a|
 | Requirement Covered | Cache Performance
 | Test Steps |
 a|
@@ -2720,12 +3949,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Second load is faster due to cache. Cache is working correctly. Cache size is within configured limits. Cache location is correct.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-WE-20**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-WE-20**
+| Test Steps |
+a|
 | Requirement Covered | Multiple Embedded Apps
 | Test Steps |
 a|
@@ -2735,12 +3971,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** All apps run without performance degradation. Memory usage is acceptable. No crashes or freezes. Each app is isolated.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-WE-21**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-WE-21**
+| Test Steps |
+a|
 | Requirement Covered | HTML5 Semantic Elements
 | Test Steps |
 a|
@@ -2750,12 +3993,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Semantic elements render correctly. Elements are properly styled. Structure is maintained. No rendering errors.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-WE-22**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-WE-22**
+| Test Steps |
+a|
 | Requirement Covered | HTML5 Canvas
 | Test Steps |
 a|
@@ -2765,12 +4015,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Canvas renders correctly. Graphics are drawn properly. Performance is acceptable. No visual artifacts.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-WE-23**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-WE-23**
+| Test Steps |
+a|
 | Requirement Covered | CSS3 Flexbox
 | Test Steps |
 a|
@@ -2780,12 +4037,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Flexbox layout renders correctly. Elements are positioned properly. Layout is responsive. No layout errors.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-WE-24**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-WE-24**
+| Test Steps |
+a|
 | Requirement Covered | CSS3 Grid
 | Test Steps |
 a|
@@ -2795,12 +4059,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Grid layout renders correctly. Elements are positioned properly. Layout matches specification. No layout errors.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-WE-25**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-WE-25**
+| Test Steps |
+a|
 | Requirement Covered | CSS3 Animations
 | Test Steps |
 a|
@@ -2810,12 +4081,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Animations play correctly. Performance is smooth (60fps). No visual artifacts. Animations can be paused/stopped.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-WE-26**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-WE-26**
+| Test Steps |
+a|
 | Requirement Covered | ECMAScript 2022 Features
 | Test Steps |
 a|
@@ -2825,7 +4103,10 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** ES2022 features work correctly. JavaScript executes without errors. Features are supported. No compatibility issues.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 == Test Cases: SQLite Configuration Validation
@@ -2833,9 +4114,13 @@ a|
 === SQLite Configuration and Optimization
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-01**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-01**
+| Test Steps |
+a|
 | Requirement Covered | FR-SQL-6.1 (Minimum Version)
 | Test Steps |
 a|
@@ -2845,12 +4130,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** SQLite version is detected and logged. Version is 3.51 or higher. Error is displayed if version is insufficient.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-02**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-02**
+| Test Steps |
+a|
 | Requirement Covered | FR-SQL-6.2 (Version Detection)
 | Test Steps |
 a|
@@ -2859,12 +4151,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** SQLite version is logged at application startup. Version information is available in logs. Version format is correct (e.g., "3.51.0").
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-03**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-03**
+| Test Steps |
+a|
 | Requirement Covered | FR-SQL-6.3 (WAL Mode - Local Database)
 | Test Steps |
 a|
@@ -2875,12 +4174,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Local database is created with WAL mode enabled. Journal mode is "wal". WAL file (-wal) is created alongside database. Database functions correctly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-04**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-04**
+| Test Steps |
+a|
 | Requirement Covered | FR-SQL-6.3 (WAL Mode - Existing Database)
 | Test Steps |
 a|
@@ -2890,12 +4196,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Existing database is automatically converted to WAL mode. Conversion is logged. Database functions correctly after conversion. WAL file is created.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-05**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-05**
+| Test Steps |
+a|
 | Requirement Covered | FR-SQL-6.4 (WAL Mode - Cartridge Files)
 | Test Steps |
 a|
@@ -2905,12 +4218,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Cartridge file is created with WAL mode enabled. Journal mode is "wal". WAL file is created alongside cartridge. Cartridge functions correctly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-06**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-06**
+| Test Steps |
+a|
 | Requirement Covered | FR-SQL-6.5 (WAL Checkpoint Configuration)
 | Test Steps |
 a|
@@ -2920,12 +4240,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** WAL checkpoint occurs when WAL file exceeds 10MB or 1000 pages written. Checkpoint truncates WAL file. Checkpoint is logged. WAL file size is managed.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-07**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-07**
+| Test Steps |
+a|
 | Requirement Covered | FR-SQL-6.6 (WAL Mode Detection)
 | Test Steps |
 a|
@@ -2935,12 +4262,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** WAL mode is detected. Warning is logged if database is not in WAL mode. Database can still be read (if read-only). Detection works correctly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-08**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-08**
+| Test Steps |
+a|
 | Requirement Covered | FR-SQL-6.7 (Page Size Configuration)
 | Test Steps |
 a|
@@ -2950,12 +4284,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Database is created with page size 4096 bytes. Page size is correctly set. Page size matches specification. Page size is verified.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-09**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-09**
+| Test Steps |
+a|
 | Requirement Covered | FR-SQL-6.8 (Cache Size Configuration)
 | Test Steps |
 a|
@@ -2966,12 +4307,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Local database cache size is 2000 pages (8MB with 4KB pages). Cartridge cache size is 1000 pages (4MB with 4KB pages). Cache sizes are correctly configured. Cache is working.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-10**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-10**
+| Test Steps |
+a|
 | Requirement Covered | FR-SQL-6.9 (Synchronous Configuration)
 | Test Steps |
 a|
@@ -2981,12 +4329,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Synchronous mode is set to NORMAL (1). Setting is correctly configured. Mode is appropriate for WAL mode. Configuration is verified.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-11**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-11**
+| Test Steps |
+a|
 | Requirement Covered | FR-SQL-6.10 (Journal Mode Configuration)
 | Test Steps |
 a|
@@ -2996,12 +4351,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Journal mode is set to WAL. Mode is correctly configured. WAL mode is enabled. Configuration is verified.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-12**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-12**
+| Test Steps |
+a|
 | Requirement Covered | FR-SQL-6.11 (Foreign Key Constraints)
 | Test Steps |
 a|
@@ -3012,12 +4374,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Foreign key constraints are enabled. Constraint violations are rejected. Error is returned (SQLITE_CONSTRAINT_FOREIGNKEY). Data integrity is maintained.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-13**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-13**
+| Test Steps |
+a|
 | Requirement Covered | FR-SQL-6.12 (Query Optimizer)
 | Test Steps |
 a|
@@ -3028,12 +4397,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** ANALYZE updates query optimizer statistics. Query performance is improved after ANALYZE. Statistics are used by optimizer. Performance improvement is measurable.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-14**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-14**
+| Test Steps |
+a|
 | Requirement Covered | FR-SQL-6.13 (Index Optimization)
 | Test Steps |
 a|
@@ -3044,12 +4420,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** All required indexes exist. Queries use indexes (verified with EXPLAIN QUERY PLAN). Query performance is optimal. Indexes are effective.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-15**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-15**
+| Test Steps |
+a|
 | Requirement Covered | FR-SQL-6.14 (Vacuum and Optimization)
 | Test Steps |
 a|
@@ -3061,15 +4444,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** VACUUM operation completes successfully. Database file size is reduced. Database integrity is maintained. ANALYZE is run after VACUUM. Statistics are updated.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Connection and Transaction Testing
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-16**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-16**
+| Test Steps |
+a|
 | Requirement Covered | FR-SQL-6.15 (Connection Pooling)
 | Test Steps |
 a|
@@ -3080,12 +4470,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Local database uses single connection (Singleton). Each cartridge has separate connection (Per-Instance). Connections are managed correctly. No connection leaks.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-17**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-17**
+| Test Steps |
+a|
 | Requirement Covered | FR-SQL-6.16 (Connection Timeout)
 | Test Steps |
 a|
@@ -3095,12 +4492,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Connection timeout occurs after 30 seconds. Retry logic with exponential backoff is used. Maximum 3 retry attempts. Error is displayed after timeout.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-18**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-18**
+| Test Steps |
+a|
 | Requirement Covered | FR-SQL-6.17 (Busy Handler)
 | Test Steps |
 a|
@@ -3110,12 +4514,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Busy handler waits up to 5 seconds. Exponential backoff is used. SQLITE_BUSY error is returned if lock persists. Error is handled gracefully. No application crash.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-19**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-19**
+| Test Steps |
+a|
 | Requirement Covered | FR-SQL-6.18 (Transaction Usage)
 | Test Steps |
 a|
@@ -3126,12 +4537,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Transaction is used for form data save. All operations are atomic. Rollback occurs on error. Data integrity is maintained. No partial updates.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-20**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-20**
+| Test Steps |
+a|
 | Requirement Covered | FR-SQL-6.19 (Transaction Isolation)
 | Test Steps |
 a|
@@ -3142,12 +4560,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Transactions are properly isolated. WAL mode allows concurrent reads. Writes are serialized correctly. No data corruption occurs. Isolation is maintained.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-21**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-21**
+| Test Steps |
+a|
 | Requirement Covered | FR-SQL-6.20 (Savepoint Support)
 | Test Steps |
 a|
@@ -3158,15 +4583,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Savepoints are created correctly. Rollback to savepoint works. Partial operations can be rolled back. Transaction integrity is maintained. Savepoint functionality works.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Error Handling and Recovery Testing
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-22**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-22**
+| Test Steps |
+a|
 | Requirement Covered | FR-SQL-6.21 (Integrity Checks - Quick)
 | Test Steps |
 a|
@@ -3177,12 +4609,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Quick integrity check is performed on cartridge open. Check completes quickly (< 1 second for typical cartridge). Results are logged. "ok" result indicates integrity.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-23**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-23**
+| Test Steps |
+a|
 | Requirement Covered | FR-SQL-6.21 (Integrity Checks - Full)
 | Test Steps |
 a|
@@ -3193,12 +4632,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Full integrity check is performed. Check is comprehensive. Results are logged. Errors are reported if corruption detected. Check identifies specific issues.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-24**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-24**
+| Test Steps |
+a|
 | Requirement Covered | FR-SQL-6.22 (Corruption Recovery)
 | Test Steps |
 a|
@@ -3209,12 +4655,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Corruption is detected. Recovery is attempted using .dump/.read or similar method. Recovered data is logged. User is notified of recovery status. Maximum data is recovered.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-25**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-25**
+| Test Steps |
+a|
 | Requirement Covered | FR-SQL-6.23 (Backup and Restore)
 | Test Steps |
 a|
@@ -3226,15 +4679,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Backup is created before major operations. Backup file is stored in backup directory. Backup can be restored. Database is restored to pre-operation state. Backup naming is correct.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Performance and Stress Testing
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-26**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-26**
+| Test Steps |
+a|
 | Requirement Covered | WAL Mode Performance
 | Test Steps |
 a|
@@ -3247,12 +4707,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** WAL mode provides better performance for mixed workloads. Concurrent reads don't block writes. Performance improvement is measurable (10-30% improvement typical). WAL mode is beneficial.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-27**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-27**
+| Test Steps |
+a|
 | Requirement Covered | Cache Size Performance
 | Test Steps |
 a|
@@ -3262,12 +4729,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Larger cache sizes improve query performance. Optimal cache size is identified (2000 pages for local, 1000 for cartridges). Performance improvement is measurable. Cache is effective.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-28**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-28**
+| Test Steps |
+a|
 | Requirement Covered | Index Performance
 | Test Steps |
 a|
@@ -3278,12 +4752,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Indexed queries are significantly faster (10-100x improvement). Index usage is verified with EXPLAIN QUERY PLAN. Performance difference is measurable. Indexes are effective.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-29**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-29**
+| Test Steps |
+a|
 | Requirement Covered | Transaction Performance
 | Test Steps |
 a|
@@ -3293,12 +4774,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Transactions maintain data integrity. Performance impact is minimal (< 5% overhead). Atomicity is guaranteed. Transactions are efficient.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-30**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-30**
+| Test Steps |
+a|
 | Requirement Covered | Large Database Performance
 | Test Steps |
 a|
@@ -3309,12 +4797,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Queries complete within reasonable time (< 500ms for manifest queries). Indexes are used effectively. Performance is acceptable. No performance degradation with large datasets.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-31**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-31**
+| Test Steps |
+a|
 | Requirement Covered | Concurrent Access
 | Test Steps |
 a|
@@ -3325,12 +4820,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Concurrent access works correctly with WAL mode. Reads don't block each other. Writes are serialized. No data corruption occurs. WAL mode enables concurrency.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-32**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-32**
+| Test Steps |
+a|
 | Requirement Covered | High Write Load
 | Test Steps |
 a|
@@ -3341,12 +4843,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** WAL file grows during high write load. Checkpoint occurs when threshold reached. WAL file size is managed. Performance remains acceptable. No performance degradation.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-33**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-33**
+| Test Steps |
+a|
 | Requirement Covered | Large Transaction
 | Test Steps |
 a|
@@ -3357,12 +4866,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Large transaction completes successfully. All operations are atomic. Rollback works if transaction fails. Performance is acceptable. Transaction handles large operations.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SQL-34**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SQL-34**
+| Test Steps |
+a|
 | Requirement Covered | Database Size Limits
 | Test Steps |
 a|
@@ -3372,7 +4888,10 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Database handles large sizes correctly. Performance degrades gracefully. Operations complete successfully. No errors occur. Database remains functional.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 == Test Cases: Platform-Specific Considerations Validation
@@ -3380,9 +4899,13 @@ a|
 === Platform Support Testing
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-PLAT-01**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-PLAT-01**
+| Test Steps |
+a|
 | Requirement Covered | FR-PLAT-7.1 (Linux Distribution Support)
 | Test Steps |
 a|
@@ -3392,12 +4915,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Application installs and runs correctly on all specified Linux distributions. All core functionality works. No distribution-specific errors.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-PLAT-02**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-PLAT-02**
+| Test Steps |
+a|
 | Requirement Covered | FR-PLAT-7.2 (macOS Support)
 | Test Steps |
 a|
@@ -3407,12 +4937,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Application installs and runs correctly on macOS 26.1. Works on both ARM64 and X86_64. All core functionality works.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-PLAT-03**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-PLAT-03**
+| Test Steps |
+a|
 | Requirement Covered | FR-PLAT-7.3 (Windows Support)
 | Test Steps |
 a|
@@ -3422,12 +4959,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Application installs and runs correctly on Windows 11. All core functionality works. No Windows-specific errors.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-PLAT-04**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-PLAT-04**
+| Test Steps |
+a|
 | Requirement Covered | FR-PLAT-7.4 (Architecture Support)
 | Test Steps |
 a|
@@ -3437,12 +4981,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Application builds successfully for both ARM64 and X86_64. Both builds function correctly. Architecture-specific optimizations work.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-PLAT-05**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-PLAT-05**
+| Test Steps |
+a|
 | Requirement Covered | FR-PLAT-7.6 (Universal Binary - macOS)
 | Test Steps |
 a|
@@ -3452,15 +5003,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Universal binary is created successfully. Binary contains both architectures (verified with `lipo -info`). Application runs correctly on both ARM64 and X86_64 Macs.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === UI Framework Testing
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-PLAT-06**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-PLAT-06**
+| Test Steps |
+a|
 | Requirement Covered | FR-PLAT-7.7 (Qt Fusion Widget Set)
 | Test Steps |
 a|
@@ -3471,12 +5029,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Fusion style is applied to all UI components. UI appearance is consistent across all platforms. No platform-specific style differences (except where necessary for platform integration).
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-PLAT-07**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-PLAT-07**
+| Test Steps |
+a|
 | Requirement Covered | FR-PLAT-7.8 (UI Consistency)
 | Test Steps |
 a|
@@ -3486,15 +5051,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** UI components behave consistently across platforms. Platform-specific adaptations are minimal and appropriate. Menu bar integration works on macOS. System tray works on Windows/Linux (if implemented).
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Security Testing
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-PLAT-08**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-PLAT-08**
+| Test Steps |
+a|
 | Requirement Covered | FR-PLAT-7.9 (Platform Security Standards)
 | Test Steps |
 a|
@@ -3504,12 +5076,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Credentials are stored using platform-specific secure storage. Credentials are encrypted and protected. Credentials can be retrieved correctly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-PLAT-09**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-PLAT-09**
+| Test Steps |
+a|
 | Requirement Covered | FR-PLAT-7.10 (Secure Storage)
 | Test Steps |
 a|
@@ -3519,12 +5098,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Credentials are stored in Windows Credential Manager (Windows), Keychain (macOS), or libsecret (Linux). Credentials are encrypted. Credentials can be retrieved correctly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-PLAT-10**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-PLAT-10**
+| Test Steps |
+a|
 | Requirement Covered | FR-PLAT-7.11 (Certificate Validation)
 | Test Steps |
 a|
@@ -3534,15 +5120,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Valid certificates are accepted. Invalid certificates are rejected. Certificate validation uses Windows Certificate Store (Windows), Keychain (macOS), or system CA bundle (Linux).
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Distribution and Packaging Testing
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-PLAT-11**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-PLAT-11**
+| Test Steps |
+a|
 | Requirement Covered | FR-PLAT-7.13 (Distribution Format)
 | Test Steps |
 a|
@@ -3553,12 +5146,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Installers/packages are created successfully. Installation works correctly on each platform. Application is installed to correct locations.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-PLAT-12**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-PLAT-12**
+| Test Steps |
+a|
 | Requirement Covered | FR-PLAT-7.14 (Universal Binary - macOS)
 | Test Steps |
 a|
@@ -3568,12 +5168,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Universal binary is created and included in distribution. Binary contains both ARM64 and X86_64 architectures. Distribution is preferred format for macOS.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-PLAT-13**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-PLAT-13**
+| Test Steps |
+a|
 | Requirement Covered | FR-PLAT-7.15 (Code Signing)
 | Test Steps |
 a|
@@ -3584,15 +5191,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Application is code-signed on Windows (if certificate available). Application is code-signed and notarized on macOS. Linux packages are GPG signed (if key available). Signatures are valid.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === File Association and URL Scheme Testing
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-PLAT-14**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-PLAT-14**
+| Test Steps |
+a|
 | Requirement Covered | FR-PLAT-7.23 (File Associations)
 | Test Steps |
 a|
@@ -3602,12 +5216,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** File association is registered correctly. Double-clicking .sqlite file opens application with cartridge loaded. File association works on all platforms.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-PLAT-15**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-PLAT-15**
+| Test Steps |
+a|
 | Requirement Covered | FR-PLAT-7.24 (URL Scheme Handling)
 | Test Steps |
 a|
@@ -3617,7 +5238,10 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** URL scheme handler is registered correctly. Application handles `smartbook://` URLs correctly. URL scheme works on all platforms that support it.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 == Test Cases: Help System and User Manual Validation
@@ -3625,9 +5249,13 @@ a|
 === Help System Access and Content
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-HELP-01**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-HELP-01**
+| Test Steps |
+a|
 | Requirement Covered | FR-HELP-8.1 (Help Menu Access)
 | Test Steps |
 a|
@@ -3639,12 +5267,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Help menu is accessible from menu bar. "User Manual" option is present. F1 key opens help system. Help system is accessible via multiple methods.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-HELP-02**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-HELP-02**
+| Test Steps |
+a|
 | Requirement Covered | FR-HELP-8.2 (Help System Format)
 | Test Steps |
 a|
@@ -3655,12 +5290,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Help system displays content correctly. Help content is stored in application directory. Help is accessible without network connection. Help format is appropriate for platform.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-HELP-03**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-HELP-03**
+| Test Steps |
+a|
 | Requirement Covered | FR-HELP-8.3 (Help Content Location)
 | Test Steps |
 a|
@@ -3670,12 +5312,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Help content is stored in `{install_dir}/help/` (Windows/Linux) or `{install_dir}/Resources/help/` (macOS). Help content is included in distribution. Help content is accessible.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-HELP-04**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-HELP-04**
+| Test Steps |
+a|
 | Requirement Covered | FR-HELP-8.4 (User Manual Scope)
 | Test Steps |
 a|
@@ -3691,12 +5340,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** All required sections are present in user manual. Content is comprehensive and covers all major features. Manual structure is logical and easy to navigate.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-HELP-05**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-HELP-05**
+| Test Steps |
+a|
 | Requirement Covered | FR-HELP-8.5 (User Manual Structure)
 | Test Steps |
 a|
@@ -3709,15 +5365,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Table of contents is present with working navigation links. Manual is organized logically. Index is available for quick lookup. Cross-references work correctly. Search functionality works (if implemented).
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === PDF User Manual Distribution
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-HELP-06**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-HELP-06**
+| Test Steps |
+a|
 | Requirement Covered | FR-HELP-8.7 (PDF Manual Inclusion)
 | Test Steps |
 a|
@@ -3730,12 +5393,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** PDF manual is included in Windows installer and installed to `{install_dir}/docs/SmartBook_User_Manual.pdf`. PDF manual is included in macOS app bundle or DMG. PDF manual is included in Linux package and installed to `/usr/share/doc/smartbook/` or accessible location.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-HELP-07**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-HELP-07**
+| Test Steps |
+a|
 | Requirement Covered | FR-HELP-8.8 (PDF Manual Access)
 | Test Steps |
 a|
@@ -3748,12 +5418,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** PDF manual is accessible via Help menu. PDF opens in system's default PDF viewer. PDF is accessible from installation directory. PDF content is readable and properly formatted.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-HELP-08**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-HELP-08**
+| Test Steps |
+a|
 | Requirement Covered | FR-HELP-8.9 (PDF Manual Naming)
 | Test Steps |
 a|
@@ -3763,12 +5440,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** PDF filename is consistent (`SmartBook_User_Manual.pdf` or versioned). Filename is documented. Filename is consistent across all platforms.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-HELP-09**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-HELP-09**
+| Test Steps |
+a|
 | Requirement Covered | FR-HELP-8.10 (PDF Manual Generation)
 | Test Steps |
 a|
@@ -3779,15 +5463,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** PDF manual contains same content as HTML help. Formatting is preserved (images, tables, cross-references). PDF is generated from single source. PDF quality is acceptable.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Help System Integration
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-HELP-10**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-HELP-10**
+| Test Steps |
+a|
 | Requirement Covered | FR-HELP-8.11 (Context-Sensitive Help)
 | Test Steps |
 a|
@@ -3800,12 +5491,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Context-sensitive help is available in dialogs. Help buttons link to relevant sections. Tooltips provide brief help text. "What's This?" mode works (if implemented). Help is contextually relevant.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-HELP-11**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-HELP-11**
+| Test Steps |
+a|
 | Requirement Covered | FR-HELP-8.12 (Help Viewer)
 | Test Steps |
 a|
@@ -3818,12 +5516,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Help viewer displays content correctly. Navigation controls work (back, forward, home). Search functionality works. Help content can be printed. Window state (size, position) is restored.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-HELP-12**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-HELP-12**
+| Test Steps |
+a|
 | Requirement Covered | FR-HELP-8.13 (Help Content Updates)
 | Test Steps |
 a|
@@ -3834,15 +5539,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Help content version is displayed. Version can be compared with application version. Help content can be updated independently. Update mechanism works (if implemented).
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Platform-Specific Help Integration
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-HELP-13**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-HELP-13**
+| Test Steps |
+a|
 | Requirement Covered | FR-HELP-8.14 (macOS Help Book)
 | Test Steps |
 a|
@@ -3854,12 +5566,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Help menu integrates with macOS Help system. Help content is accessible via macOS Help Viewer. Spotlight search indexes help content. PDF manual is accessible via Help menu.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-HELP-14**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-HELP-14**
+| Test Steps |
+a|
 | Requirement Covered | FR-HELP-8.15 (Windows Help)
 | Test Steps |
 a|
@@ -3871,12 +5590,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** F1 key opens HTML help. Help menu provides access to PDF manual. PDF manual is accessible from installation directory. Windows Help integration works (if implemented).
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-HELP-15**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-HELP-15**
+| Test Steps |
+a|
 | Requirement Covered | FR-HELP-8.16 (Linux Help)
 | Test Steps |
 a|
@@ -3888,7 +5614,10 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** F1 key or Help menu opens HTML help. Desktop environment help integration works (if applicable). PDF manual is accessible via Help menu. PDF manual is in standard documentation directory.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 == Test Cases: Custom Navigation Bar Validation
@@ -3896,9 +5625,13 @@ a|
 === Navigation Structure and Display
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-NAV-01**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-NAV-01**
+| Test Steps |
+a|
 | Requirement Covered | FR-NAV-9.1, FR-NAV-9.6 (Custom Navigation Bar Support)
 | Test Steps |
 a|
@@ -3909,12 +5642,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Custom navigation bar is displayed when defined in cartridge. Navigation bar is separate from application menu. Navigation bar is positioned correctly above content. Navigation bar is visible and functional.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-NAV-02**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-NAV-02**
+| Test Steps |
+a|
 | Requirement Covered | FR-NAV-9.2 (Navigation Bar Definition)
 | Test Steps |
 a|
@@ -3925,12 +5665,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Navigation groups are displayed correctly. Menu items are present in each group. Navigation structure matches cartridge definition. Navigation bar is properly organized.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-NAV-03**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-NAV-03**
+| Test Steps |
+a|
 | Requirement Covered | FR-NAV-9.7 (Navigation Bar Visibility)
 | Test Steps |
 a|
@@ -3942,15 +5689,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Navigation bar is hidden when not defined. Navigation bar is displayed when defined. Navigation bar toggle works (if supported). Visibility behavior is correct.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Browse Navigation
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-NAV-04**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-NAV-04**
+| Test Steps |
+a|
 | Requirement Covered | FR-NAV-9.3 (Browse Navigation)
 | Test Steps |
 a|
@@ -3962,12 +5716,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Browse navigation group is displayed. Browse options (By Creator, By Issue, By Title) are present. Browse navigation filters or navigates content correctly. Browse functionality works as expected.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-NAV-05**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-NAV-05**
+| Test Steps |
+a|
 | Requirement Covered | FR-NAV-9.3 (Browse by Creator)
 | Test Steps |
 a|
@@ -3978,12 +5739,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Browse by Creator filters content correctly. Filtered results match creator criteria. Content display is appropriate for filtered view.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-NAV-06**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-NAV-06**
+| Test Steps |
+a|
 | Requirement Covered | FR-NAV-9.3 (Browse by Issue)
 | Test Steps |
 a|
@@ -3994,12 +5762,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Browse by Issue filters content correctly. Filtered results match issue criteria. Content display is appropriate for filtered view.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-NAV-07**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-NAV-07**
+| Test Steps |
+a|
 | Requirement Covered | FR-NAV-9.3 (Browse by Title)
 | Test Steps |
 a|
@@ -4010,15 +5785,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Browse by Title filters content correctly. Filtered results match title criteria. Content display is appropriate for filtered view.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Department Navigation
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-NAV-08**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-NAV-08**
+| Test Steps |
+a|
 | Requirement Covered | FR-NAV-9.4 (Department Navigation)
 | Test Steps |
 a|
@@ -4030,12 +5812,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Departments navigation group is displayed. Department items are present in dropdown. Department navigation works correctly. Navigation targets department content appropriately.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-NAV-09**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-NAV-09**
+| Test Steps |
+a|
 | Requirement Covered | FR-NAV-9.4 (Department Hierarchical Structure)
 | Test Steps |
 a|
@@ -4046,15 +5835,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Hierarchical department structure is supported. Parent and sub-departments are accessible. Navigation to hierarchical departments works correctly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Bibliography Navigation
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-NAV-10**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-NAV-10**
+| Test Steps |
+a|
 | Requirement Covered | FR-NAV-9.5 (Bibliography Navigation)
 | Test Steps |
 a|
@@ -4066,12 +5862,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Bibliographies navigation group is displayed. Bibliography format options are present. Bibliography navigation works correctly. Navigation targets bibliography reference pages.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-NAV-11**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-NAV-11**
+| Test Steps |
+a|
 | Requirement Covered | FR-NAV-9.5 (Bibliography Anchor Navigation)
 | Test Steps |
 a|
@@ -4083,15 +5886,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Bibliography anchor navigation works correctly. Page loads and scrolls to correct anchor. Multiple bibliography formats are accessible. Anchor navigation is precise.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Navigation Target Resolution
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-NAV-12**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-NAV-12**
+| Test Steps |
+a|
 | Requirement Covered | FR-NAV-9.8 (Page ID Navigation)
 | Test Steps |
 a|
@@ -4103,12 +5913,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Page ID navigation works correctly. Target page loads successfully. Reading position is updated. Navigation history is updated.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-NAV-13**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-NAV-13**
+| Test Steps |
+a|
 | Requirement Covered | FR-NAV-9.8 (Anchor Navigation)
 | Test Steps |
 a|
@@ -4119,12 +5936,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Anchor navigation works correctly. Page scrolls to anchor or loads appropriate page. Reading position includes anchor information.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-NAV-14**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-NAV-14**
+| Test Steps |
+a|
 | Requirement Covered | FR-NAV-9.8 (Page and Anchor Navigation)
 | Test Steps |
 a|
@@ -4136,12 +5960,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Page and anchor navigation works correctly. Target page loads. Page scrolls to target anchor. Reading position includes both page and anchor information.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-NAV-15**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-NAV-15**
+| Test Steps |
+a|
 | Requirement Covered | FR-NAV-9.8 (Custom Handler Navigation)
 | Test Steps |
 a|
@@ -4152,15 +5983,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Custom handler navigation works correctly. Custom handler executes successfully. Handler produces expected navigation results. Custom navigation functionality works as designed.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Navigation Bar Styling and Accessibility
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-NAV-16**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-NAV-16**
+| Test Steps |
+a|
 | Requirement Covered | FR-NAV-9.6 (Navigation Bar Styling)
 | Test Steps |
 a|
@@ -4171,12 +6009,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Navigation bar styling matches cartridge CSS. Navigation bar respects content themes. Navigation bar is responsive. Styling is consistent and appropriate.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-NAV-17**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-NAV-17**
+| Test Steps |
+a|
 | Requirement Covered | FR-NAV-9.6 (Keyboard Navigation)
 | Test Steps |
 a|
@@ -4188,15 +6033,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Keyboard navigation works correctly. Tab navigation moves between groups. Arrow keys navigate within menus. Enter/Space activates items. Escape closes menus.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Creator Tool Navigation Support
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-NAV-18**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-NAV-18**
+| Test Steps |
+a|
 | Requirement Covered | FR-NAV-9.10 (Define Navigation Structure)
 | Test Steps |
 a|
@@ -4208,12 +6060,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Creator Tool allows defining navigation structure. Navigation groups can be created. Menu items can be added. Menu items can be linked to targets. Preview functionality works.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-NAV-19**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-NAV-19**
+| Test Steps |
+a|
 | Requirement Covered | FR-NAV-9.10 (Export Navigation Structure)
 | Test Steps |
 a|
@@ -4224,7 +6083,10 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Navigation structure is exported with cartridge. Navigation structure is preserved in exported cartridge. Navigation structure is functional in Reader. Export process includes navigation data.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 == Test Cases: Series and Edition Grouping Validation
@@ -4232,9 +6094,13 @@ a|
 === Series and Edition Metadata
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-SERIES-01**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SERIES-01**
+| Test Steps |
+a|
 | Requirement Covered | FR-SERIES-10.1 (Series Name Metadata)
 | Test Steps |
 a|
@@ -4246,12 +6112,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Series name metadata is stored correctly. Series name is preserved in exported cartridge. Series name is readable from cartridge metadata.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SERIES-02**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SERIES-02**
+| Test Steps |
+a|
 | Requirement Covered | FR-SERIES-10.2 (Edition Name Metadata)
 | Test Steps |
 a|
@@ -4263,12 +6136,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Edition name metadata is stored correctly. Edition name is preserved in exported cartridge. Edition name is readable from cartridge metadata.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SERIES-03**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SERIES-03**
+| Test Steps |
+a|
 | Requirement Covered | FR-SERIES-10.3 (Series Order Metadata)
 | Test Steps |
 a|
@@ -4279,12 +6159,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Series order metadata is stored correctly. Series order is preserved in exported cartridge. Series order is readable from cartridge metadata.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SERIES-04**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SERIES-04**
+| Test Steps |
+a|
 | Requirement Covered | FR-SERIES-10.4 (Creator Tool Series Support)
 | Test Steps |
 a|
@@ -4296,15 +6183,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Creator Tool provides UI for series/edition metadata. All three fields (series_name, edition_name, series_order) are editable. Values are saved and displayed correctly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Auto-Grouping by Series and Edition
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-SERIES-05**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SERIES-05**
+| Test Steps |
+a|
 | Requirement Covered | FR-SERIES-10.5 (Auto-Grouping by Series)
 | Test Steps |
 a|
@@ -4317,12 +6211,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Series auto-grouping works correctly. Series appears in browse view. All cartridges with matching series_name are grouped together. Series grouping is automatic (no manual setup required).
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SERIES-06**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SERIES-06**
+| Test Steps |
+a|
 | Requirement Covered | FR-SERIES-10.6 (Auto-Grouping by Edition)
 | Test Steps |
 a|
@@ -4335,12 +6236,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Edition auto-grouping works correctly. Edition appears in browse view. All cartridges with matching edition_name are grouped together. Edition grouping is automatic (no manual setup required).
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SERIES-07**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SERIES-07**
+| Test Steps |
+a|
 | Requirement Covered | FR-SERIES-10.7 (Series Display Ordering)
 | Test Steps |
 a|
@@ -4352,15 +6260,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Series ordering uses series_order when available. Cartridges with series_order are displayed in correct order. Cartridges without series_order are ordered alphabetically. Ordering is consistent and correct.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Custom Collections
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-SERIES-08**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SERIES-08**
+| Test Steps |
+a|
 | Requirement Covered | FR-SERIES-10.8 (Custom Collections)
 | Test Steps |
 a|
@@ -4372,12 +6287,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Custom collections can be created. Collection name is stored correctly. Cartridges can be added to collection. Collection displays all members correctly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SERIES-09**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SERIES-09**
+| Test Steps |
+a|
 | Requirement Covered | FR-SERIES-10.9 (Collection Management)
 | Test Steps |
 a|
@@ -4390,12 +6312,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** All collection management operations work correctly. Add/remove cartridges works. Rename collection works. Delete collection works. Operations persist across sessions.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SERIES-10**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SERIES-10**
+| Test Steps |
+a|
 | Requirement Covered | FR-SERIES-10.9 (View Collection Members)
 | Test Steps |
 a|
@@ -4406,15 +6335,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Collection view displays all members correctly. Cartridges are accessible from collection view. Collection view is functional and user-friendly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Grouping Display and Navigation
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-SERIES-11**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SERIES-11**
+| Test Steps |
+a|
 | Requirement Covered | FR-SERIES-10.10 (Grouping Display)
 | Test Steps |
 a|
@@ -4427,12 +6363,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** All grouping views are accessible. Series view displays all series correctly. Edition view displays all editions correctly. Custom collections view displays all collections correctly. Views are functional and intuitive.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SERIES-12**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SERIES-12**
+| Test Steps |
+a|
 | Requirement Covered | FR-SERIES-10.10 (Search by Series/Edition)
 | Test Steps |
 a|
@@ -4443,12 +6386,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Search by series name works correctly. Search by edition name works correctly. Search results are accurate. Search is responsive and user-friendly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SERIES-13**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SERIES-13**
+| Test Steps |
+a|
 | Requirement Covered | FR-SERIES-10.11 (Grouping Persistence)
 | Test Steps |
 a|
@@ -4461,15 +6411,22 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Custom collections persist across sessions. Collection members persist. Auto-grouping works on import. Grouping data is maintained correctly.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 === Performance and Edge Cases
 
 
+
 [cols="1,4"]
 |===
-| Test Case ID | **T-SERIES-14**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SERIES-14**
+| Test Steps |
+a|
 | Requirement Covered | FR-SERIES-10.12 (Grouping Performance)
 | Test Steps |
 a|
@@ -4482,12 +6439,19 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Grouping views load within performance requirements (< 500ms). Performance is acceptable with large libraries. Grouping operations are efficient. No performance degradation with many groups.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
+
 
 
 [cols="1,4"]
 |===
-| Test Case ID | **T-SERIES-15**
+| Test Case ID | Test Case ID
+| Requirement Covered | **T-SERIES-15**
+| Test Steps |
+a|
 | Requirement Covered | FR-SERIES-10.5, FR-SERIES-10.6 (Empty Groups)
 | Test Steps |
 a|
@@ -4500,7 +6464,10 @@ a|
 | Expected Result (Acceptance Criteria) |
 a|
 **AC:** Empty groups are handled appropriately. Grouping updates when metadata changes. Group membership is maintained correctly. Edge cases are handled gracefully.
+| Expected Result (Acceptance Criteria) |
+a|
 |===
+
 
 
 ---
