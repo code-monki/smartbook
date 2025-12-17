@@ -1,143 +1,165 @@
-# SmartBook Testing Guide
+= SmartBook Testing Guide
+:author: AI Assistant
+:revdate: 2025-12-16
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
 
-## Getting Started
+== Getting Started
 
-### Step 1: Check Dependencies
+=== Step 1: Check Dependencies
 
 Before building, verify all required dependencies are installed:
 
 **macOS/Linux:**
-```bash
+[source,bash]
+----
 ./check-dependencies.sh
-```
+----
 
 **Windows:**
-```powershell
+[source,powershell]
+----
 .\check-dependencies.ps1
-```
+----
 
 This will check for:
-- CMake 3.20+
-- C++ compiler (clang/g++ on Unix, MSVC/MinGW on Windows)
-- Qt 6.2+ with required components
-- SQLite
-- Documentation tools (optional)
+* CMake 3.20+
+* C++ compiler (clang/g++ on Unix, MSVC/MinGW on Windows)
+* Qt 6.2+ with required components
+* SQLite
+* Documentation tools (optional)
 
 Install any missing dependencies before proceeding.
 
-### Step 2: Initial Build
+=== Step 2: Initial Build
 
 Start with building just the common library to verify the build system works:
 
 **macOS:**
-```bash
+[source,bash]
+----
 cd common
 make
-```
+----
 
 **Linux:**
-```bash
+[source,bash]
+----
 cd common
 make
-```
+----
 
 **Windows:**
-```powershell
+[source,powershell]
+----
 .\build-windows.ps1 -Target common
-```
+----
 
 **Expected Result:** Common library should build successfully. If there are errors, fix them one at a time with atomic commits.
 
-### Step 3: Build All Components
+=== Step 3: Build All Components
 
 Once common library builds successfully, build everything:
 
 **macOS:**
-```bash
+[source,bash]
+----
 make macos
-```
+----
 
 **Linux:**
-```bash
+[source,bash]
+----
 make linux
-```
+----
 
 **Windows:**
-```powershell
+[source,powershell]
+----
 .\build-windows.ps1
-```
+----
 
 **Expected Result:** All components (common, reader, creator) should build.
 
-### Step 4: Run Basic Tests
+=== Step 4: Run Basic Tests
 
 Test the build system and basic functionality:
 
 **macOS/Linux:**
-```bash
+[source,bash]
+----
 make test-build
-```
+----
 
 **Windows:**
-```powershell
+[source,powershell]
+----
 .\build-windows.ps1 -Target test
-```
+----
 
 **Expected Result:** Test suite should compile (may not pass yet, but should build).
 
-### Step 5: Try Running Applications
+=== Step 5: Try Running Applications
 
 Attempt to run the applications (they may not work fully yet, but should launch):
 
 **macOS/Linux:**
-```bash
+[source,bash]
+----
 make run-reader
 # or
 make run-creator
-```
+----
 
 **Windows:**
-```powershell
+[source,powershell]
+----
 .\build-windows.ps1 -Target run-reader
 # or
 .\build-windows.ps1 -Target run-creator
-```
+----
 
 **Expected Result:** Applications should launch (may show empty windows or errors, but should not crash immediately).
 
-## Testing Workflow
+== Testing Workflow
 
-### For Each Issue Found:
+=== For Each Issue Found:
 
-1. **Identify the Problem**
-   - What component? (common, reader, creator)
-   - What's the error message?
-   - Can you reproduce it consistently?
+. **Identify the Problem**
+   * What component? (common, reader, creator)
+   * What's the error message?
+   * Can you reproduce it consistently?
 
-2. **Create Atomic Fix**
-   - Fix ONE thing at a time
-   - Test the fix in isolation
-   - Commit with descriptive message:
-     ```
-     fix(<component>): <brief description>
-     
-     <detailed explanation>
-     ```
+. **Create Atomic Fix**
+   * Fix ONE thing at a time
+   * Test the fix in isolation
+   * Commit with descriptive message:
+   +
+   [source,text]
+   ----
+   fix(<component>): <brief description>
+   
+   <detailed explanation>
+   ----
 
-3. **Verify Fix**
-   - Rebuild affected component
-   - Test the specific functionality
-   - Ensure no regressions
+. **Verify Fix**
+   * Rebuild affected component
+   * Test the specific functionality
+   * Ensure no regressions
 
-4. **Commit**
-   ```bash
+. **Commit**
+   [source,bash]
+   ----
    git add <changed-files>
    git commit  # Will use template
-   ```
+   ----
 
-### Example Workflow:
+=== Example Workflow:
 
-```bash
+[source,bash]
+----
 # 1. Build and find error
 make macos
 # Error: Missing include in LocalDBManager.cpp
@@ -156,53 +178,55 @@ make
 git add common/src/database/LocalDBManager.cpp
 git commit
 # Enter: fix(common): Add missing QSqlQuery include in LocalDBManager
-```
+----
 
-## Common Issues to Watch For
+== Common Issues to Watch For
 
-### Build Issues:
-- Missing includes
-- Incorrect CMake configuration
-- Qt component not found
-- Linker errors
-- Platform-specific issues
+=== Build Issues:
+* Missing includes
+* Incorrect CMake configuration
+* Qt component not found
+* Linker errors
+* Platform-specific issues
 
-### Runtime Issues:
-- Application crashes on startup
-- Missing Qt plugins
-- Database initialization failures
-- Path resolution problems
+=== Runtime Issues:
+* Application crashes on startup
+* Missing Qt plugins
+* Database initialization failures
+* Path resolution problems
 
-### Test Issues:
-- Tests don't compile
-- Tests fail
-- Missing test dependencies
+=== Test Issues:
+* Tests don't compile
+* Tests fail
+* Missing test dependencies
 
-## Testing Priorities
+== Testing Priorities
 
-### Phase 1: Build System
-1. ✅ Dependencies check
-2. ✅ Common library builds
-3. ✅ Reader builds
-4. ✅ Creator builds
-5. ✅ Tests build
+=== Phase 1: Build System
+. [x] Dependencies check
+. [ ] Common library builds
+. [ ] Reader builds
+. [ ] Creator builds
+. [ ] Tests build
 
-### Phase 2: Basic Functionality
-1. Applications launch without crashing
-2. Database initialization works
-3. Basic UI displays
-4. No immediate crashes
+=== Phase 2: Basic Functionality
+. [ ] Applications launch without crashing
+. [ ] Database initialization works
+. [ ] Basic UI displays
+. [ ] No immediate crashes
 
-### Phase 3: Core Features
-1. Library management
-2. Cartridge loading
-3. Content display
-4. Form handling
+=== Phase 3: Core Features
+. [ ] Library management
+. [ ] Cartridge loading
+. [ ] Content display
+. [ ] Form handling
 
-## Atomic Commit Examples
+== Atomic Commit Examples
 
-### Good Atomic Commits:
-```bash
+=== Good Atomic Commits:
+
+[source,text]
+----
 fix(common): Add missing QSqlQuery include in LocalDBManager.cpp
 
 The LocalDBManager was using QSqlQuery without including
@@ -223,10 +247,12 @@ Added test cases for:
 - Database initialization
 - Schema creation
 - Query execution
-```
+----
 
-### Avoid:
-```bash
+=== Avoid:
+
+[source,text]
+----
 # Bad: Multiple unrelated changes
 fix(common): Fix includes and update reader UI and add tests
 
@@ -234,44 +260,45 @@ fix(common): Fix includes and update reader UI and add tests
 fix(common): Add missing includes
 feat(reader): Update library view UI
 test(common): Add LocalDBManager tests
-```
+----
 
-## Next Steps After Initial Build
+== Next Steps After Initial Build
 
 Once you have a successful build:
 
-1. **Document Build Issues**
-   - Create issues or notes for any problems encountered
-   - Document workarounds
+. **Document Build Issues**
+   * Create issues or notes for any problems encountered
+   * Document workarounds
 
-2. **Start Implementing TODOs**
-   - The codebase has TODO markers for incomplete features
-   - Implement them one at a time with atomic commits
+. **Start Implementing TODOs**
+   * The codebase has TODO markers for incomplete features
+   * Implement them one at a time with atomic commits
 
-3. **Add Unit Tests**
-   - Start with common library components
-   - Test database operations
-   - Test utility functions
+. **Add Unit Tests**
+   * Start with common library components
+   * Test database operations
+   * Test utility functions
 
-4. **Test Platform-Specific Features**
-   - Path resolution
-   - Platform utilities
-   - Security features
+. **Test Platform-Specific Features**
+   * Path resolution
+   * Platform utilities
+   * Security features
 
-## Getting Help
+== Getting Help
 
 If you encounter issues:
 
-1. Check the error message carefully
-2. Review the relevant source files
-3. Check CMake configuration
-4. Verify dependencies are correct
-5. Look for similar issues in the codebase
-6. Commit any fixes atomically
+. Check the error message carefully
+. Review the relevant source files
+. Check CMake configuration
+. Verify dependencies are correct
+. Look for similar issues in the codebase
+. Commit any fixes atomically
 
-## Quick Reference
+== Quick Reference
 
-```bash
+[source,bash]
+----
 # Check dependencies
 ./check-dependencies.sh          # Unix/macOS
 .\check-dependencies.ps1         # Windows
@@ -292,6 +319,13 @@ make test-build                  # Unix/macOS
 # Clean
 make clean                       # Unix/macOS
 # Windows: Delete build\ directory
-```
+----
 
 Good luck with testing! Remember: one fix, one commit, one test at a time.
+
+== Revision History
+
+|===
+| Date | Version | Changes | Author
+| 2025-12-16 | 1.0 | Initial testing guide | AI Assistant
+|===
