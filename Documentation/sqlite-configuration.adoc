@@ -1027,34 +1027,34 @@ bool LocalDBManager::backupDatabase(const QString& backupPath) {
 
 === Configuration Best Practices
 
-1. **WAL Mode:** Always use WAL mode for better concurrency and performance
-2. **Page Size:** Use 4096 bytes (4KB) for optimal performance
-3. **Cache Size:** Configure appropriate cache size based on database usage
-4. **Synchronous:** Use NORMAL mode with WAL (safe and performant)
-5. **Foreign Keys:** Always enable foreign key constraints
-6. **Transactions:** Use transactions for all multi-step operations
-7. **Indexes:** Ensure all frequently queried columns are indexed
-8. **ANALYZE:** Run ANALYZE after significant data changes
-9. **Integrity Checks:** Perform periodic integrity checks
-10. **Backups:** Create backups before major operations
+. **WAL Mode:** Always use WAL mode for better concurrency and performance
+. **Page Size:** Use 4096 bytes (4KB) for optimal performance
+. **Cache Size:** Configure appropriate cache size based on database usage
+. **Synchronous:** Use NORMAL mode with WAL (safe and performant)
+. **Foreign Keys:** Always enable foreign key constraints
+. **Transactions:** Use transactions for all multi-step operations
+. **Indexes:** Ensure all frequently queried columns are indexed
+. **ANALYZE:** Run ANALYZE after significant data changes
+. **Integrity Checks:** Perform periodic integrity checks
+. **Backups:** Create backups before major operations
 
 === Performance Best Practices
 
-1. **Connection Management:** Open connections on-demand, close when done
-2. **Transaction Scope:** Keep transactions as short as possible
-3. **Batch Operations:** Use batch inserts/updates for bulk operations
-4. **Index Usage:** Verify indexes are used with EXPLAIN QUERY PLAN
-5. **Query Optimization:** Use prepared statements for repeated queries
-6. **WAL Checkpointing:** Monitor WAL file size and checkpoint appropriately
-7. **Vacuum:** Run VACUUM periodically to reduce fragmentation
+. **Connection Management:** Open connections on-demand, close when done
+. **Transaction Scope:** Keep transactions as short as possible
+. **Batch Operations:** Use batch inserts/updates for bulk operations
+. **Index Usage:** Verify indexes are used with EXPLAIN QUERY PLAN
+. **Query Optimization:** Use prepared statements for repeated queries
+. **WAL Checkpointing:** Monitor WAL file size and checkpoint appropriately
+. **Vacuum:** Run VACUUM periodically to reduce fragmentation
 
 === Security Best Practices
 
-1. **Input Validation:** Always validate and sanitize user input
-2. **Prepared Statements:** Use prepared statements to prevent SQL injection
-3. **Transaction Rollback:** Always rollback transactions on error
-4. **Integrity Checks:** Verify database integrity regularly
-5. **Backup Strategy:** Maintain backups for recovery
+. **Input Validation:** Always validate and sanitize user input
+. **Prepared Statements:** Use prepared statements to prevent SQL injection
+. **Transaction Rollback:** Always rollback transactions on error
+. **Integrity Checks:** Verify database integrity regularly
+. **Backup Strategy:** Maintain backups for recovery
 
 == Summary
 

@@ -910,32 +910,32 @@ MimeType=application/x-sqlite3;application/vnd.sqlite3;x-scheme-handler/smartboo
 
 === Platform Support Best Practices
 
-1. **Cross-Platform Compatibility:** Use Qt's cross-platform APIs whenever possible
-2. **Platform Detection:** Use Qt's platform macros (`Q_OS_WIN`, `Q_OS_MACOS`, `Q_OS_LINUX`)
-3. **Architecture Support:** Build and test on both ARM64 and X86_64 where feasible
-4. **Universal Binaries:** Use universal binaries for macOS when possible
-5. **Version Requirements:** Clearly document minimum OS versions
+. **Cross-Platform Compatibility:** Use Qt's cross-platform APIs whenever possible
+. **Platform Detection:** Use Qt's platform macros (`Q_OS_WIN`, `Q_OS_MACOS`, `Q_OS_LINUX`)
+. **Architecture Support:** Build and test on both ARM64 and X86_64 where feasible
+. **Universal Binaries:** Use universal binaries for macOS when possible
+. **Version Requirements:** Clearly document minimum OS versions
 
 === UI Best Practices
 
-1. **Consistent Appearance:** Use Qt Fusion style for uniform appearance
-2. **Platform Integration:** Follow platform-specific UI guidelines where necessary
-3. **Accessibility:** Ensure UI is accessible on all platforms
-4. **Theming:** Support theming while maintaining platform integration
+. **Consistent Appearance:** Use Qt Fusion style for uniform appearance
+. **Platform Integration:** Follow platform-specific UI guidelines where necessary
+. **Accessibility:** Ensure UI is accessible on all platforms
+. **Theming:** Support theming while maintaining platform integration
 
 === Security Best Practices
 
-1. **Secure Storage:** Always use platform-specific secure storage for credentials
-2. **Certificate Validation:** Use platform-specific certificate stores
-3. **File Permissions:** Respect platform-specific file system permissions
-4. **Code Signing:** Code sign applications on all platforms that support it
+. **Secure Storage:** Always use platform-specific secure storage for credentials
+. **Certificate Validation:** Use platform-specific certificate stores
+. **File Permissions:** Respect platform-specific file system permissions
+. **Code Signing:** Code sign applications on all platforms that support it
 
 === Distribution Best Practices
 
-1. **Platform-Appropriate Formats:** Use platform-standard distribution formats
-2. **Installation Locations:** Follow platform conventions for installation locations
-3. **Data Directories:** Use platform-standard directories for user data
-4. **Code Signing:** Sign and notarize applications for security and trust
+. **Platform-Appropriate Formats:** Use platform-standard distribution formats
+. **Installation Locations:** Follow platform conventions for installation locations
+. **Data Directories:** Use platform-standard directories for user data
+. **Code Signing:** Sign and notarize applications for security and trust
 
 == Summary
 

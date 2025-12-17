@@ -64,18 +64,18 @@ This document specifies the user identity model and authentication system for Ph
 
 ==== Login Process
 
-1. **Client Request:**
+. **Client Request:**
    * POST `/api/v1/auth/login`
    * Body: `{ "username": "user", "password": "plaintext" }`
    * Headers: `Content-Type: application/json`
 
-2. **Server Validation:**
+. **Server Validation:**
    * Verify username exists and account is active
    * Check account lockout status (if locked, reject immediately)
    * Verify password hash matches stored hash
    * Check rate limiting (prevent brute force)
 
-3. **On Success:**
+. **On Success:**
    * Generate session token (JWT or opaque token)
    * Store session on server (user_id, token, expiry, IP address)
    * Update `last_login` timestamp
@@ -83,7 +83,7 @@ This document specifies the user identity model and authentication system for Ph
    * Log successful login
    * Return token to client
 
-4. **On Failure:**
+. **On Failure:**
    * Increment `failed_login_attempts`
    * If attempts >= 5, lock account for 30 minutes (`account_locked_until`)
    * Log failed login attempt
@@ -117,12 +117,12 @@ This document specifies the user identity model and authentication system for Ph
 
 **Two-Tier Expiry System:**
 
-1. **Regular Session Token:**
+. **Regular Session Token:**
    * **Expiry:** 24 hours from last activity
    * **Refresh:** Token can be refreshed if used within expiry window
    * **Use Case:** Normal daily usage
 
-2. **Persistent Session Token ("Remember Me"):**
+. **Persistent Session Token ("Remember Me"):**
    * **Expiry:** 30 days from last activity
    * **Refresh:** Token can be refreshed if used within expiry window
    * **Use Case:** User selects "Remember Me" checkbox on login
@@ -214,10 +214,10 @@ This document specifies the user identity model and authentication system for Ph
 === Log Rotation Implementation
 
 **Daily Rotation Algorithm:**
-1. At midnight UTC, close current log file
-2. Create new log file with date suffix
-3. Compress log files older than 7 days
-4. Delete compressed logs older than retention period (90 days active, 1 year archived)
+. At midnight UTC, close current log file
+. Create new log file with date suffix
+. Compress log files older than 7 days
+. Delete compressed logs older than retention period (90 days active, 1 year archived)
 
 **Compression:**
 * Use gzip or similar compression
@@ -279,7 +279,7 @@ Password reset allows users to regain access to their account when they have for
 
 **Password Reset Flow:**
 
-1. **User Requests Password Reset:**
+. **User Requests Password Reset:**
    * User provides username or email address
    * Server validates that user exists (but don't reveal if user doesn't exist)
    * Generate secure reset token (256-bit cryptographically secure random)
@@ -288,13 +288,13 @@ Password reset allows users to regain access to their account when they have for
    * Send password reset email with reset link/token
    * Return generic success message (don't reveal if user exists)
 
-2. **User Clicks Reset Link:**
+. **User Clicks Reset Link:**
    * User clicks link in email (contains reset token)
    * Client application opens password reset dialog
    * User enters new password
    * Client sends reset token and new password to server
 
-3. **Server Validates and Resets:**
+. **Server Validates and Resets:**
    * Validate reset token (check hash, expiry, not already used)
    * Validate new password meets requirements
    * Update password hash in database
@@ -552,16 +552,16 @@ Smartbook Team
 === Account Recovery
 
 **Password Reset Flow (Detailed):**
-1. User requests password reset via username/email (works even if account is locked)
-2. Server validates user exists (but returns generic message)
-3. Server generates secure 256-bit token, stores SHA-256 hash in database
-4. Email sent with reset link containing token (expires 24 hours)
-5. User clicks link, client opens password reset dialog
-6. User enters new password
-7. Server validates token (hash match, not expired, not used)
-8. Server validates new password meets requirements
-9. Server updates password hash, unlocks account (clears lockout), invalidates token
-10. User can now login with new password
+. User requests password reset via username/email (works even if account is locked)
+. Server validates user exists (but returns generic message)
+. Server generates secure 256-bit token, stores SHA-256 hash in database
+. Email sent with reset link containing token (expires 24 hours)
+. User clicks link, client opens password reset dialog
+. User enters new password
+. Server validates token (hash match, not expired, not used)
+. Server validates new password meets requirements
+. Server updates password hash, unlocks account (clears lockout), invalidates token
+. User can now login with new password
 
 **Account Recovery Questions (Alternative):**
 * Optional security questions for account recovery
@@ -598,12 +598,12 @@ Smartbook Team
 === Server-Side Session Management
 
 **Token Storage Options:**
-1. **Database (Recommended for Phase 2):**
+. **Database (Recommended for Phase 2):**
    * Store sessions in `sessions` table
    * Simple to implement, easy to query/revoke
    * Scales well for initial deployment
 
-2. **Redis (Future Scaling):**
+. **Redis (Future Scaling):**
    * In-memory session store
    * Better performance for high traffic
    * Automatic expiry support
