@@ -1,0 +1,510 @@
+= Build Message Inspection Guide
+:author: AI Assistant
+:revdate: 2025-12-17
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+
+== Overview
+
+This guide establishes the process for meticulously inspecting all build messages, including both errors and warnings. **Warnings are code smells that indicate potential software defects** and must be addressed, not ignored.
+
+== Build Inspection Principles
+
+=== Principle 1: Inspect Everything
+
+* **Never skip build output** - Read all messages from start to finish
+* **Errors are blockers** - Must be fixed before proceeding
+* **Warnings are defects** - Must be investigated and resolved
+* **No warnings are acceptable** - All warnings should be addressed
+
+=== Principle 2: Understand the Context
+
+* **Read the full error/warning message** - Don't just look for keywords
+* **Check line numbers and file paths** - Locate the exact issue
+* **Understand the compiler/linker** - Different tools have different message formats
+* **Check related messages** - One error can cause cascading failures
+
+=== Principle 3: Fix Systematically
+
+* **Fix one issue at a time** - Don't try to fix multiple issues simultaneously
+* **Verify the fix** - Rebuild to ensure the issue is resolved
+* **Check for new issues** - Fixing one issue may reveal others
+* **Commit atomically** - One fix per commit
+
+== Build Message Categories
+
+=== Errors (Must Fix)
+
+Errors prevent successful compilation or linking:
+
+* **Compilation errors:** Syntax errors, missing includes, type mismatches
+* **Linker errors:** Missing symbols, undefined references, duplicate symbols
+* **CMake errors:** Configuration failures, missing dependencies
+* **Runtime errors:** Application crashes during build/execution
+
+**Action:** Fix immediately. Build cannot succeed with errors.
+
+=== Warnings (Must Investigate)
+
+Warnings indicate potential problems:
+
+* **Compiler warnings:** Unused variables, type conversions, deprecated APIs
+* **Linker warnings:** Duplicate symbols, missing libraries
+* **CMake warnings:** Deprecated commands, policy violations
+* **Qt warnings:** Deprecated APIs, missing MOC files
+* **Static analysis warnings:** Potential memory leaks, null pointer dereferences
+
+**Action:** Investigate and fix. Warnings are code smells.
+
+=== Information Messages (Review)
+
+Informational messages may indicate issues:
+
+* **Deprecation notices:** APIs that will be removed
+* **Performance hints:** Inefficient code patterns
+* **Best practice suggestions:** Code style improvements
+
+**Action:** Review and address if relevant.
+
+== Build Inspection Process
+
+=== Step 1: Capture Full Build Output
+
+Always capture the complete build output:
+
+[source,bash]
+----
+# Capture full output to file
+make macos 2>&1 | tee build-output.log
+
+# Or redirect to file
+make macos > build-output.log 2>&1
+
+# Review the file
+less build-output.log
+----
+
+=== Step 2: Search for Error Indicators
+
+Search for all error patterns:
+
+[source,bash]
+----
+# Search for errors
+grep -i "error" build-output.log
+
+# Search for failures
+grep -i "fail" build-output.log
+
+# Search for fatal issues
+grep -i "fatal" build-output.log
+----
+
+=== Step 3: Search for Warning Indicators
+
+Search for all warning patterns:
+
+[source,bash]
+----
+# Search for warnings
+grep -i "warning" build-output.log
+
+# Search for deprecated
+grep -i "deprecated" build-output.log
+
+# Search for unused
+grep -i "unused" build-output.log
+
+# Search for unused variables specifically
+grep -i "unused.*variable" build-output.log
+----
+
+=== Step 4: Review Compiler-Specific Messages
+
+Different compilers have different message formats:
+
+==== GCC/Clang Warnings
+
+[source,bash]
+----
+# Common GCC/Clang warning patterns
+grep -E "warning:|note:|error:" build-output.log
+
+# Specific warning types
+grep -E "unused|deprecated|implicit|conversion" build-output.log
+----
+
+==== MSVC Warnings
+
+[source,bash]
+----
+# MSVC warning format: C####
+grep -E "warning C[0-9]+" build-output.log
+
+# MSVC error format: C####
+grep -E "error C[0-9]+" build-output.log
+----
+
+==== Qt-Specific Messages
+
+[source,bash]
+----
+# MOC warnings
+grep -i "moc" build-output.log
+
+# Qt deprecation warnings
+grep -i "qt.*deprecated" build-output.log
+
+# Q_OBJECT warnings
+grep -i "q_object" build-output.log
+----
+
+=== Step 5: Check for Hidden Issues
+
+Some issues may not be obvious:
+
+[source,bash]
+----
+# Check for undefined behavior
+grep -i "undefined" build-output.log
+
+# Check for memory issues
+grep -i "memory|leak|dereference" build-output.log
+
+# Check for type issues
+grep -i "cast|conversion|truncat" build-output.log
+----
+
+== Common Warning Types and Fixes
+
+=== Unused Variables
+
+**Warning:**
+[source,text]
+----
+warning: unused variable 'variableName' [-Wunused-variable]
+----
+
+**Fix:** Remove unused variable or mark with `Q_UNUSED(variableName)` if intentionally unused for future use.
+
+=== Unused Parameters
+
+**Warning:**
+[source,text]
+----
+warning: unused parameter 'paramName' [-Wunused-parameter]
+----
+
+**Fix:** Remove parameter name (keep type) or mark with `Q_UNUSED(paramName)`.
+
+=== Deprecated API Usage
+
+**Warning:**
+[source,text]
+----
+warning: 'oldFunction' is deprecated: use 'newFunction' instead
+----
+
+**Fix:** Replace deprecated API with recommended alternative.
+
+=== Implicit Type Conversion
+
+**Warning:**
+[source,text]
+----
+warning: implicit conversion loses integer precision
+----
+
+**Fix:** Add explicit cast or use appropriate type.
+
+=== Missing Return Statement
+
+**Warning:**
+[source,text]
+----
+warning: control reaches end of non-void function
+----
+
+**Fix:** Add return statement or mark function as `[[noreturn]]`.
+
+=== Uninitialized Variables
+
+**Warning:**
+[source,text]
+----
+warning: variable 'var' may be used uninitialized
+----
+
+**Fix:** Initialize variable before use.
+
+== Build Inspection Checklist
+
+For every build:
+
+[ ] **Capture full output** to file
+[ ] **Search for "error"** (case-insensitive)
+[ ] **Search for "warning"** (case-insensitive)
+[ ] **Search for "fail"** (case-insensitive)
+[ ] **Search for "deprecated"** (case-insensitive)
+[ ] **Search for "unused"** (case-insensitive)
+[ ] **Review all error messages** - understand context
+[ ] **Review all warning messages** - understand implications
+[ ] **Check line numbers** - locate exact issues
+[ ] **Check file paths** - verify correct files
+[ ] **Count total errors** - track progress
+[ ] **Count total warnings** - track progress
+[ ] **Document findings** - create issue list
+[ ] **Fix errors first** - blockers must be resolved
+[ ] **Fix warnings next** - code smells must be addressed
+[ ] **Rebuild and verify** - ensure fixes work
+[ ] **No warnings remaining** - zero tolerance
+
+== Automated Build Inspection
+
+=== Script for Build Inspection
+
+Create a script to automate inspection:
+
+[source,bash]
+#!/bin/bash
+# inspect-build.sh - Comprehensive build output inspection
+
+BUILD_LOG="build-output.log"
+
+echo "=== Build Inspection Report ==="
+echo ""
+
+# Count errors
+ERROR_COUNT=$(grep -ic "error" "$BUILD_LOG" 2>/dev/null || echo "0")
+echo "Errors found: $ERROR_COUNT"
+if [ "$ERROR_COUNT" -gt 0 ]; then
+    echo "ERROR LIST:"
+    grep -i "error" "$BUILD_LOG" | head -20
+    echo ""
+fi
+
+# Count warnings
+WARNING_COUNT=$(grep -ic "warning" "$BUILD_LOG" 2>/dev/null || echo "0")
+echo "Warnings found: $WARNING_COUNT"
+if [ "$WARNING_COUNT" -gt 0 ]; then
+    echo "WARNING LIST:"
+    grep -i "warning" "$BUILD_LOG" | head -20
+    echo ""
+fi
+
+# Check for specific warning types
+echo "=== Warning Categories ==="
+grep -ic "unused" "$BUILD_LOG" 2>/dev/null && echo "  - Unused variables/parameters"
+grep -ic "deprecated" "$BUILD_LOG" 2>/dev/null && echo "  - Deprecated API usage"
+grep -ic "implicit" "$BUILD_LOG" 2>/dev/null && echo "  - Implicit conversions"
+grep -ic "cast" "$BUILD_LOG" 2>/dev/null && echo "  - Type casts"
+
+echo ""
+echo "=== Summary ==="
+if [ "$ERROR_COUNT" -eq 0 ] && [ "$WARNING_COUNT" -eq 0 ]; then
+    echo "✓ Build clean - no errors or warnings"
+    exit 0
+else
+    echo "✗ Build has issues - review above"
+    exit 1
+fi
+----
+
+=== CMake Build Inspection
+
+CMake can be configured to treat warnings as errors:
+
+[source,cmake]
+----
+# Treat warnings as errors
+if(MSVC)
+    add_compile_options(/WX)  # MSVC: treat warnings as errors
+else()
+    add_compile_options(-Werror)  # GCC/Clang: treat warnings as errors
+endif()
+
+# Enable all warnings
+if(MSVC)
+    add_compile_options(/W4)  # MSVC: level 4 warnings
+else()
+    add_compile_options(-Wall -Wextra -Wpedantic)  # GCC/Clang: all warnings
+endif()
+----
+
+== Build Message Examples
+
+=== Example 1: Unused Variable Warning
+
+[source,text]
+----
+common/src/database/LocalDBManager.cpp:45:12: warning: unused variable 'temp' [-Wunused-variable]
+    QString temp = "test";
+           ^
+----
+
+**Action:** Remove variable or mark as `Q_UNUSED(temp)`.
+
+=== Example 2: Deprecated API Warning
+
+[source,text]
+----
+reader/src/LibraryManager.cpp:123:5: warning: 'oldMethod' is deprecated
+    oldMethod();
+    ^
+note: 'newMethod' should be used instead
+----
+
+**Action:** Replace `oldMethod()` with `newMethod()`.
+
+=== Example 3: Implicit Conversion Warning
+
+[source,text]
+----
+common/src/utils/PathUtils.cpp:67:23: warning: implicit conversion loses integer precision: 'long' to 'int' [-Wshorten-64-to-32]
+    int size = fileSize();
+              ^~~~~~~~~
+----
+
+**Action:** Use explicit cast: `int size = static_cast<int>(fileSize());`
+
+=== Example 4: Missing Include Error
+
+[source,text]
+----
+common/src/database/LocalDBManager.cpp:12:10: error: 'QSqlQuery' file not found
+#include <QSqlQuery>
+         ^
+----
+
+**Action:** Add correct include: `#include <QtSql/QSqlQuery>` or fix CMake to link Qt6::Sql.
+
+== Integration with Development Workflow
+
+=== Pre-Commit Checks
+
+Before committing:
+
+[source,bash]
+----
+# 1. Build with full output capture
+make clean
+make macos 2>&1 | tee build-check.log
+
+# 2. Inspect build output
+./inspect-build.sh build-check.log
+
+# 3. If errors or warnings found, fix them
+# 4. Rebuild and verify
+# 5. Only commit when build is clean
+----
+
+=== CI/CD Integration
+
+In continuous integration:
+
+[source,yaml]
+----
+# Example GitHub Actions
+- name: Build
+  run: |
+    make macos 2>&1 | tee build.log
+    
+- name: Check for errors
+  run: |
+    if grep -qi "error" build.log; then
+      echo "Build has errors!"
+      exit 1
+    fi
+    
+- name: Check for warnings
+  run: |
+    if grep -qi "warning" build.log; then
+      echo "Build has warnings - treating as errors!"
+      exit 1
+    fi
+----
+
+== Warning Suppression (When Appropriate)
+
+=== When Suppression is Acceptable
+
+Suppression should be rare and well-documented:
+
+* **Third-party library warnings** - Cannot fix, must suppress
+* **Platform-specific false positives** - Compiler bugs
+* **Intentional design decisions** - Well-documented exceptions
+
+=== How to Suppress
+
+[source,cpp]
+----
+// Suppress specific warning for third-party code
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#include <third_party_header.h>
+#pragma GCC diagnostic pop
+
+// Suppress for specific line (MSVC)
+#pragma warning(push)
+#pragma warning(disable: 4996)  // Deprecated function
+oldFunction();
+#pragma warning(pop)
+----
+
+**Always document why suppression is necessary.**
+
+== Tools for Build Inspection
+
+=== Static Analysis Tools
+
+* **clang-tidy** - C++ static analysis
+* **cppcheck** - C++ code analysis
+* **PVS-Studio** - Commercial static analysis
+* **Coverity** - Commercial static analysis
+
+=== Compiler-Specific Tools
+
+* **GCC:** `-fanalyzer` - Static analyzer
+* **Clang:** `-analyze` - Static analyzer
+* **MSVC:** `/analyze` - Code analysis
+
+== Best Practices
+
+=== 1. Zero Tolerance for Warnings
+
+* **All warnings must be addressed**
+* **No "acceptable" warnings**
+* **Warnings indicate potential defects**
+
+=== 2. Fix Immediately
+
+* **Don't accumulate warnings**
+* **Fix as you go**
+* **Clean builds are the goal**
+
+=== 3. Understand the Warning
+
+* **Read the full message**
+* **Understand the implications**
+* **Fix the root cause, not the symptom**
+
+=== 4. Document Suppressions
+
+* **If suppression is necessary, document why**
+* **Use comments to explain**
+* **Review suppressions periodically**
+
+=== 5. Regular Inspections
+
+* **Inspect every build**
+* **Don't skip "quick" builds**
+* **Automate where possible**
+
+== Revision History
+
+|===
+| Date | Version | Changes | Author
+| 2025-12-17 | 1.0 | Initial build inspection guide | AI Assistant
+|===
