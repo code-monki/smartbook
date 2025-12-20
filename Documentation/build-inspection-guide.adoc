@@ -243,23 +243,23 @@ warning: variable 'var' may be used uninitialized
 
 For every build:
 
-[ ] **Capture full output** to file
-[ ] **Search for "error"** (case-insensitive)
-[ ] **Search for "warning"** (case-insensitive)
-[ ] **Search for "fail"** (case-insensitive)
-[ ] **Search for "deprecated"** (case-insensitive)
-[ ] **Search for "unused"** (case-insensitive)
-[ ] **Review all error messages** - understand context
-[ ] **Review all warning messages** - understand implications
-[ ] **Check line numbers** - locate exact issues
-[ ] **Check file paths** - verify correct files
-[ ] **Count total errors** - track progress
-[ ] **Count total warnings** - track progress
-[ ] **Document findings** - create issue list
-[ ] **Fix errors first** - blockers must be resolved
-[ ] **Fix warnings next** - code smells must be addressed
-[ ] **Rebuild and verify** - ensure fixes work
-[ ] **No warnings remaining** - zero tolerance
+[ ] Capture full output to file
+[ ] Search for "error" (case-insensitive)
+[ ] Search for "warning" (case-insensitive)
+[ ] Search for "fail" (case-insensitive)
+[ ] Search for "deprecated" (case-insensitive)
+[ ] Search for "unused" (case-insensitive)
+[ ] Review all error messages - understand context
+[ ] Review all warning messages - understand implications
+[ ] Check line numbers - locate exact issues
+[ ] Check file paths - verify correct files
+[ ] Count total errors - track progress
+[ ] Count total warnings - track progress
+[ ] Document findings - create issue list
+[ ] Fix errors first - blockers must be resolved
+[ ] Fix warnings next - code smells must be addressed
+[ ] Rebuild and verify - ensure fixes work
+[ ] No warnings remaining - zero tolerance
 
 == Automated Build Inspection
 
@@ -268,12 +268,13 @@ For every build:
 Create a script to automate inspection:
 
 [source,bash]
+----
 #!/bin/bash
 # inspect-build.sh - Comprehensive build output inspection
 
 BUILD_LOG="build-output.log"
 
-echo "=== Build Inspection Report ==="
+echo "Build Inspection Report"
 echo ""
 
 # Count errors
@@ -295,19 +296,19 @@ if [ "$WARNING_COUNT" -gt 0 ]; then
 fi
 
 # Check for specific warning types
-echo "=== Warning Categories ==="
+echo "Warning Categories"
 grep -ic "unused" "$BUILD_LOG" 2>/dev/null && echo "  - Unused variables/parameters"
 grep -ic "deprecated" "$BUILD_LOG" 2>/dev/null && echo "  - Deprecated API usage"
 grep -ic "implicit" "$BUILD_LOG" 2>/dev/null && echo "  - Implicit conversions"
 grep -ic "cast" "$BUILD_LOG" 2>/dev/null && echo "  - Type casts"
 
 echo ""
-echo "=== Summary ==="
+echo "Summary"
 if [ "$ERROR_COUNT" -eq 0 ] && [ "$WARNING_COUNT" -eq 0 ]; then
-    echo "✓ Build clean - no errors or warnings"
+    echo "Build clean - no errors or warnings"
     exit 0
 else
-    echo "✗ Build has issues - review above"
+    echo "Build has issues - review above"
     exit 1
 fi
 ----
