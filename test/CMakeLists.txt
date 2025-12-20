@@ -62,13 +62,13 @@ else()
     endif()
 endif()
 
-# Find Qt6 Test
-find_package(Qt6 COMPONENTS Test)
-if(Qt6Test_FOUND)
-    message(STATUS "Qt6 Test found - unit tests enabled")
+# Find Qt6 Test and Sql
+find_package(Qt6 COMPONENTS Test Sql)
+if(Qt6Test_FOUND && Qt6Sql_FOUND)
+    message(STATUS "Qt6 Test and Sql found - unit tests enabled")
     set(QT_TEST_AVAILABLE TRUE)
 else()
-    message(WARNING "Qt6 Test not found - unit tests disabled")
+    message(WARNING "Qt6 Test or Sql not found - unit tests disabled")
     set(QT_TEST_AVAILABLE FALSE)
 endif()
 
