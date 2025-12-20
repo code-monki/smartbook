@@ -128,13 +128,13 @@ void TestManifestDeletion::testAtomicDeletion()
     // Begin transaction
     QVERIFY(m_dbManager->getDatabase().transaction());
     
-    // Delete from manifest
-    query.prepare("DELETE FROM Local_Library_Manifest WHERE cartridge_guid = ?");
+    // Delete from trust registry first (due to foreign key constraint)
+    query.prepare("DELETE FROM Local_Trust_Registry WHERE cartridge_guid = ?");
     query.addBindValue(entry.cartridgeGuid);
     QVERIFY(query.exec());
     
-    // Delete from trust registry
-    query.prepare("DELETE FROM Local_Trust_Registry WHERE cartridge_guid = ?");
+    // Delete from manifest
+    query.prepare("DELETE FROM Local_Library_Manifest WHERE cartridge_guid = ?");
     query.addBindValue(entry.cartridgeGuid);
     QVERIFY(query.exec());
     
