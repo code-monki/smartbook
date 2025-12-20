@@ -87,6 +87,7 @@ if(QT_TEST_AVAILABLE)
     # Common library unit tests
     add_executable(test_common_unit
         unit/test_localdbmanager.cpp
+        unit/test_manifestmanager.cpp
     )
     target_include_directories(test_common_unit PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
