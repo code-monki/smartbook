@@ -100,7 +100,7 @@ set(COMMON_SOURCES
     src/database/LocalDBManager.cpp
     src/database/CartridgeDBConnector.cpp
     src/security/SignatureVerifier.cpp
-    # src/security/TrustRegistry.cpp  # TODO: Implement TrustRegistry
+    src/security/TrustRegistry.cpp
     src/utils/PlatformUtils.cpp
     src/utils/PathUtils.cpp
     src/metadata/MetadataExtractor.cpp
@@ -112,7 +112,7 @@ set(COMMON_HEADERS
     include/smartbook/common/database/LocalDBManager.h
     include/smartbook/common/database/CartridgeDBConnector.h
     include/smartbook/common/security/SignatureVerifier.h
-    # include/smartbook/common/security/TrustRegistry.h  # TODO: Implement TrustRegistry
+    include/smartbook/common/security/TrustRegistry.h
     include/smartbook/common/utils/PlatformUtils.h
     include/smartbook/common/utils/PathUtils.h
     include/smartbook/common/metadata/MetadataExtractor.h

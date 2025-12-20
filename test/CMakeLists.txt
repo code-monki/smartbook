@@ -160,6 +160,38 @@ if(QT_TEST_AVAILABLE)
         smartbook_common
     )
     add_test(NAME TestSignatureVerifier COMMAND test_signatureverifier)
+    
+    # test_signatureverifier_l2l3
+    add_executable(test_signatureverifier_l2l3
+        unit/test_signatureverifier_l2l3.cpp
+    )
+    set_target_properties(test_signatureverifier_l2l3 PROPERTIES AUTOMOC ON)
+    target_include_directories(test_signatureverifier_l2l3 PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+    )
+    target_link_libraries(test_signatureverifier_l2l3 PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        smartbook_common
+    )
+    add_test(NAME TestSignatureVerifierL2L3 COMMAND test_signatureverifier_l2l3)
+    
+    # test_trustregistry
+    add_executable(test_trustregistry
+        unit/test_trustregistry.cpp
+    )
+    set_target_properties(test_trustregistry PROPERTIES AUTOMOC ON)
+    target_include_directories(test_trustregistry PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+    )
+    target_link_libraries(test_trustregistry PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        smartbook_common
+    )
+    add_test(NAME TestTrustRegistry COMMAND test_trustregistry)
 endif()
 
 # Integration tests

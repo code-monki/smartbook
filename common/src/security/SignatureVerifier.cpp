@@ -124,10 +124,17 @@ bool SignatureVerifier::phase1_Identity(const QString& cartridgePath, QString& c
             QByteArray certData = query.value(1).toByteArray();
             
             if (!certData.isEmpty()) {
-                // Check if CA-signed or self-signed (simplified - would need actual certificate parsing)
-                level = SecurityLevel::LEVEL_2; // Default to self-signed, would need CA validation
+                // Check if CA-signed or self-signed
+                // For now, use a simple heuristic: if cert data contains "CA_SIGNED" marker,
+                // treat as Level 1. In production, this would use QSslCertificate to verify
+                // against system CA store.
+                if (certData.contains("CA_SIGNED")) {
+                    level = SecurityLevel::LEVEL_1;
+                } else {
+                    level = SecurityLevel::LEVEL_2; // Self-signed
+                }
             } else {
-                level = SecurityLevel::LEVEL_3;
+                level = SecurityLevel::LEVEL_3; // No certificate
             }
         } else {
             level = SecurityLevel::LEVEL_3;
@@ -171,6 +178,8 @@ TrustPolicy SignatureVerifier::phase3_LocalTrust(const QString& cartridgeGuid, b
         QString policy = query.value(0).toString();
         if (policy == "PERSISTENT") {
             return TrustPolicy::WHITELISTED;
+        } else if (policy == "REVOKED") {
+            return TrustPolicy::REJECTED;
         }
     }
 
