@@ -51,6 +51,20 @@ public:
      * @return ManifestEntry (invalid if not found)
      */
     ManifestEntry getManifestEntry(const QString& cartridgeGuid);
+    
+    /**
+     * @brief Update existing manifest entry
+     * @param entry Manifest entry data (must have valid cartridgeGuid)
+     * @return true if update successful, false otherwise
+     */
+    bool updateManifestEntry(const ManifestEntry& entry);
+    
+    /**
+     * @brief Check if manifest entry exists
+     * @param cartridgeGuid Cartridge GUID to check
+     * @return true if entry exists, false otherwise
+     */
+    bool manifestEntryExists(const QString& cartridgeGuid);
 
 private:
     database::LocalDBManager* m_dbManager;

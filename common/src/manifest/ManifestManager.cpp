@@ -83,6 +83,67 @@ ManifestManager::ManifestEntry ManifestManager::getManifestEntry(const QString& 
     return entry;
 }
 
+bool ManifestManager::updateManifestEntry(const ManifestEntry& entry)
+{
+    if (!m_dbManager->isOpen()) {
+        qWarning() << "Database not open for manifest entry update";
+        return false;
+    }
+    
+    if (entry.cartridgeGuid.isEmpty()) {
+        qWarning() << "Cannot update manifest entry: empty cartridge GUID";
+        return false;
+    }
+    
+    QSqlQuery query(m_dbManager->getDatabase());
+    query.prepare(R"(
+        UPDATE Local_Library_Manifest 
+        SET cartridge_hash = ?, local_path = ?, title = ?, author = ?, 
+            publisher = ?, version = ?, publication_year = ?, cover_image_data = ?
+        WHERE cartridge_guid = ?
+    )");
+    
+    query.addBindValue(entry.cartridgeHash);
+    query.addBindValue(entry.localPath);
+    query.addBindValue(entry.title);
+    query.addBindValue(entry.author);
+    query.addBindValue(entry.publisher);
+    query.addBindValue(entry.version);
+    query.addBindValue(entry.publicationYear);
+    query.addBindValue(entry.coverImageData);
+    query.addBindValue(entry.cartridgeGuid);
+    
+    if (!query.exec()) {
+        qCritical() << "Failed to update manifest entry:" << query.lastError().text();
+        return false;
+    }
+    
+    // Check if any rows were affected
+    if (query.numRowsAffected() == 0) {
+        qWarning() << "No manifest entry found to update for GUID:" << entry.cartridgeGuid;
+        return false;
+    }
+    
+    return true;
+}
+
+bool ManifestManager::manifestEntryExists(const QString& cartridgeGuid)
+{
+    if (!m_dbManager->isOpen()) {
+        return false;
+    }
+    
+    QSqlQuery query(m_dbManager->getDatabase());
+    query.prepare("SELECT COUNT(*) FROM Local_Library_Manifest WHERE cartridge_guid = ?");
+    query.addBindValue(cartridgeGuid);
+    
+    if (query.exec() && query.next()) {
+        return query.value(0).toInt() > 0;
+    }
+    
+    return false;
+}
+
 } // namespace manifest
 } // namespace common
 } // namespace smartbook

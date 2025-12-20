@@ -85,17 +85,21 @@ void TestManifestUpdate::testManifestUpdateOnImport()
     entry2.publisher = "New Publisher";
     entry2.version = "2.0";
     
-    // For now, we'll test that we can update by checking if entry exists
-    // In a full implementation, ManifestManager would have an updateManifestEntry method
-    // For this test, we verify the concept that updates should be possible
+    // Update the manifest entry
+    bool updated = m_manifestManager->updateManifestEntry(entry2);
+    QVERIFY(updated);
     
-    // Verify we can retrieve the original entry
+    // Verify updated entry
     ManifestManager::ManifestEntry retrieved2 = m_manifestManager->getManifestEntry(guid);
     QVERIFY(retrieved2.isValid());
     QCOMPARE(retrieved2.cartridgeGuid, guid);
-    
-    // In a full implementation, we would call updateManifestEntry(entry2)
-    // and verify the updated values. For now, we verify the entry exists and is retrievable.
+    QCOMPARE(retrieved2.title, entry2.title);
+    QCOMPARE(retrieved2.author, entry2.author);
+    QCOMPARE(retrieved2.publicationYear, entry2.publicationYear);
+    QCOMPARE(retrieved2.localPath, entry2.localPath);
+    QCOMPARE(retrieved2.cartridgeHash, entry2.cartridgeHash);
+    QCOMPARE(retrieved2.publisher, entry2.publisher);
+    QCOMPARE(retrieved2.version, entry2.version);
 }
 
 QTEST_MAIN(TestManifestUpdate)
