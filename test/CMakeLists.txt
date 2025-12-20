@@ -72,13 +72,9 @@ else()
     set(QT_TEST_AVAILABLE FALSE)
 endif()
 
-# Find common library
-find_library(SMARTBOOK_COMMON_LIB
-    NAMES smartbook_common
-    PATHS ${CMAKE_BINARY_DIR}/../common/lib
-          ${CMAKE_BINARY_DIR}/../../common/lib
-          /usr/local/lib
-)
+# Find common library - use target from common subdirectory
+# The common library is built as a target, so we reference it directly
+# We need to ensure common is built first
 
 # Unit tests
 if(QT_TEST_AVAILABLE)
@@ -96,7 +92,7 @@ if(QT_TEST_AVAILABLE)
         Qt6::Test
         Qt6::Core
         Qt6::Sql
-        ${SMARTBOOK_COMMON_LIB}
+        smartbook_common
     )
     add_test(NAME CommonUnitTests COMMAND test_common_unit)
 endif()

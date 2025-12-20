@@ -98,7 +98,7 @@ void LibraryManager::onImportCartridge() {
         "Import functionality will be implemented.");
 }
 
-void LibraryManager::onDeleteCartridge(const QString& cartridgeGuid) {
+void LibraryManager::onDeleteCartridge(const QString& /* cartridgeGuid */) {
     int ret = QMessageBox::question(this, "Delete Cartridge",
         "Are you sure you want to delete this cartridge?",
         QMessageBox::Yes | QMessageBox::No);
