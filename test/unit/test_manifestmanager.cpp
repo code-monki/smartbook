@@ -1,30 +1,12 @@
 #include <QtTest>
 #include "smartbook/common/database/LocalDBManager.h"
+#include "smartbook/common/manifest/ManifestManager.h"
 #include <QTemporaryDir>
 #include <QUuid>
 #include <QDateTime>
 
 using namespace smartbook::common::database;
-
-// Forward declaration - ManifestManager will be implemented
-class ManifestManager {
-public:
-    struct ManifestEntry {
-        QString cartridgeGuid;
-        QByteArray cartridgeHash;
-        QString localPath;
-        QString title;
-        QString author;
-        QString publisher;
-        QString version;
-        QString publicationYear;
-        QByteArray coverImageData;
-        bool isValid() const { return !cartridgeGuid.isEmpty() && !title.isEmpty(); }
-    };
-
-    bool createManifestEntry(const ManifestEntry& entry);
-    ManifestEntry getManifestEntry(const QString& cartridgeGuid);
-};
+using namespace smartbook::common::manifest;
 
 class TestManifestManager : public QObject
 {
@@ -68,7 +50,7 @@ void TestManifestManager::cleanupTestCase()
 //     local_path, and the required publication_year
 void TestManifestManager::testManifestEntryCreation()
 {
-    ManifestManager manager;
+    ManifestManager manager(this);
     
     ManifestManager::ManifestEntry entry;
     entry.cartridgeGuid = QUuid::createUuid().toString(QUuid::WithoutBraces);

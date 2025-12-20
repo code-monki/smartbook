@@ -104,6 +104,7 @@ set(COMMON_SOURCES
     src/utils/PlatformUtils.cpp
     src/utils/PathUtils.cpp
     src/metadata/MetadataExtractor.cpp
+    src/manifest/ManifestManager.cpp
 )
 
 # Header files
@@ -115,6 +116,7 @@ set(COMMON_HEADERS
     include/smartbook/common/utils/PlatformUtils.h
     include/smartbook/common/utils/PathUtils.h
     include/smartbook/common/metadata/MetadataExtractor.h
+    include/smartbook/common/manifest/ManifestManager.h
 )
 
 # Create shared library
