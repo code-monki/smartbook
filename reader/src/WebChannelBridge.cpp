@@ -22,7 +22,7 @@ void WebChannelBridge::saveFormData(const QString& formId, const QString& /* dat
     emit formDataSaved(formId, true, QString());
 }
 
-void WebChannelBridge::loadFormData(const QString& formId, const QString& callback) {
+void WebChannelBridge::loadFormData(const QString& formId, const QString& /* callback */) {
     qDebug() << "loadFormData called:" << formId;
     // TODO: Implement form data loading
     emit formDataLoaded(formId, QString(), QString());
