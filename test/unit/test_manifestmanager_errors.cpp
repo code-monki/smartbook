@@ -60,9 +60,9 @@ void TestManifestErrors::testCreateWithEmptyGuid()
     entry.cartridgeHash = QByteArray::fromHex("a1b2c3d4e5f6");
     entry.localPath = "/path/to/book.sqlite";
     
-    // Should fail due to empty GUID (database constraint)
+    // Should fail due to empty GUID (validation or database constraint)
     bool result = m_manifestManager->createManifestEntry(entry);
-    QVERIFY(!result); // Should fail
+    QVERIFY(!result); // Should fail - either validation or database constraint
 }
 
 void TestManifestErrors::testCreateWithEmptyTitle()
@@ -75,9 +75,9 @@ void TestManifestErrors::testCreateWithEmptyTitle()
     entry.cartridgeHash = QByteArray::fromHex("a1b2c3d4e5f6");
     entry.localPath = "/path/to/book.sqlite";
     
-    // Should fail due to empty title (database constraint)
+    // Should fail due to empty title (validation or database constraint)
     bool result = m_manifestManager->createManifestEntry(entry);
-    QVERIFY(!result); // Should fail
+    QVERIFY(!result); // Should fail - either validation or database constraint
 }
 
 void TestManifestErrors::testUpdateNonExistentEntry()

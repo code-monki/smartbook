@@ -20,6 +20,22 @@ bool ManifestManager::createManifestEntry(const ManifestEntry& entry)
         return false;
     }
     
+    // Validate required fields
+    if (entry.cartridgeGuid.isEmpty()) {
+        qWarning() << "Cannot create manifest entry: empty cartridge GUID";
+        return false;
+    }
+    
+    if (entry.title.isEmpty()) {
+        qWarning() << "Cannot create manifest entry: empty title";
+        return false;
+    }
+    
+    if (entry.publicationYear.isEmpty()) {
+        qWarning() << "Cannot create manifest entry: empty publication year";
+        return false;
+    }
+    
     QSqlQuery query(m_dbManager->getDatabase());
     query.prepare(R"(
         INSERT INTO Local_Library_Manifest 
