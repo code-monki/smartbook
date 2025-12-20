@@ -1,0 +1,656 @@
+= Phase 1 Implementation Guide and Checklist
+:author: AI Assistant
+:revdate: 2025-12-17
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+
+== Executive Summary
+
+This document provides a comprehensive guide for Phase 1 implementation of the Smartbook project. Phase 1 focuses on creating the fundamental tools: the Reader Application for consumption and the Creator Tool for authoring the new SQLite-based Smartbook format.
+
+**Phase 1 Scope:**
+* Core security verification (L1/L2/L3 trust levels)
+* Data persistence (local databases, manifest, trust registry)
+* Basic Reader application (library management, content rendering)
+* Basic Creator Tool (content authoring, cartridge creation/export)
+* Multi-window architecture
+* Qt WebEngine integration
+
+**Key Deliverables:**
+* Functional Reader application with security verification
+* Functional Creator Tool for authoring cartridges
+* Complete test suite for Phase 1 requirements
+* Documentation of implementation decisions
+
+== Implementation Priorities
+
+The implementation should follow this priority order to ensure dependencies are met:
+
+. **Foundation Layer** (Weeks 1-2)
+   * Database schemas and initialization
+   * Common library infrastructure
+   * Build system verification
+
+. **Security Layer** (Weeks 3-4)
+   * Signature verification
+   * Trust management
+   * Security dialogs
+
+. **Persistence Layer** (Weeks 5-6)
+   * Manifest management
+   * Trust registry
+   * User data persistence
+
+. **Reader Core** (Weeks 7-9)
+   * Library Manager UI
+   * Reader View (content rendering)
+   * Import functionality
+   * Multi-window support
+
+. **Creator Tool Core** (Weeks 10-12)
+   * Content editor
+   * Cartridge creation
+   * Export and signing
+
+. **Testing & Integration** (Weeks 13-14)
+   * Test suite execution
+   * Integration testing
+   * Bug fixes and refinement
+
+== Phase 1 Requirements Summary
+
+=== Reader Application Requirements
+
+==== Security and Trust (FR-2.3.x, FR-2.4.x)
+* **FR-2.3.1:** Level 1 (Commercial Trust) - CA-signed certificates
+* **FR-2.3.2:** Level 2 (Self-Signed Trust) - Self-signed certificates
+* **FR-2.3.3:** Level 3 (No Signature) - Unsigned cartridges
+* **FR-2.4.1:** Persistent trust management
+* **FR-2.4.3:** Trust revocation
+* **FR-2.4.4:** Tampering detection
+
+**Test Cases:** T-SEC-01 through T-SEC-05
+
+==== Persistence and Multi-Window (FR-2.1.x)
+* **FR-2.1.1:** Multi-window capability with isolation
+* **FR-2.1.2:** Form data persistence
+* **FR-2.1.3:** Window state persistence
+* **FR-2.1.4:** Window state restoration
+* **FR-2.1.5:** Window minimize/restore
+
+**Test Cases:** T-PERS-02
+
+==== Content Rendering (FR-2.2.x)
+* **FR-2.2.1:** HTML/CSS rendering via Qt WebEngine
+* **FR-2.2.2:** Embedded application support
+* **FR-2.2.3:** Cartridge settings support
+* **FR-2.2.4:** Settings reset
+
+==== Library and Manifest Management (FR-2.5.x)
+* **FR-2.5.1:** Manifest creation
+* **FR-2.5.2:** Mandatory metadata storage
+* **FR-2.5.3:** Manifest update
+* **FR-2.5.4:** Registry storage
+* **FR-2.5.5:** Cartridge deletion
+* **FR-2.5.6:** Import mechanisms (drag-drop, file picker)
+* **FR-2.5.7:** Import storage location
+* **FR-2.5.8:** Import progress indication
+* **FR-2.5.9:** Duplicate detection
+* **FR-2.5.10:** Import validation
+* **FR-2.5.11:** Import completion
+
+**Test Cases:** T-PERS-01, T-PERS-03, T-UI-01, T-UI-02
+
+=== Creator Tool Requirements
+
+==== Content Authoring (FR-CT-3.1 through FR-CT-3.9)
+* **FR-CT-3.1:** HTML content authoring (WYSIWYG)
+* **FR-CT-3.2:** Rich text editing
+* **FR-CT-3.3:** Direct HTML editing
+* **FR-CT-3.4:** Standard edit operations
+* **FR-CT-3.5:** Preview functionality
+* **FR-CT-3.6:** Page selection
+* **FR-CT-3.7:** Page CRUD operations
+* **FR-CT-3.8:** Page ordering
+* **FR-CT-3.9:** Chapter organization
+
+**Test Cases:** T-CT-01 through T-CT-09
+
+==== Cartridge Creation and Export (FR-CT-3.10 through FR-CT-3.35)
+* **FR-CT-3.10:** CSS stylesheet attachment
+* **FR-CT-3.11:** Stylesheet editing
+* **FR-CT-3.13:** Custom JavaScript storage
+* **FR-CT-3.14:** Embedded application definition
+* **FR-CT-3.15:** JavaScript management
+* **FR-CT-3.16:** Form creation
+* **FR-CT-3.17:** Form builder interface
+* **FR-CT-3.18:** Form schema validation
+* **FR-CT-3.19:** Form integration
+* **FR-CT-3.20:** Document metadata
+* **FR-CT-3.21:** Cover image management
+* **FR-CT-3.22:** GUID generation
+* **FR-CT-3.23:** Schema version management
+* **FR-CT-3.24:** Asset management
+* **FR-CT-3.25:** Resource storage
+* **FR-CT-3.27:** New cartridge creation
+* **FR-CT-3.28:** Cartridge opening
+* **FR-CT-3.29:** Cartridge saving
+* **FR-CT-3.30:** Content validation
+* **FR-CT-3.31:** Hash calculation
+* **FR-CT-3.32:** Cartridge signing
+* **FR-CT-3.33:** Certificate management
+* **FR-CT-3.34:** Export process
+* **FR-CT-3.35:** Export validation
+
+**Test Cases:** T-CT-10 through T-CT-21, T-CT-22 through T-CT-26, T-CT-27 through T-CT-30
+
+== Architecture Overview
+
+=== Component Structure
+
+==== Common Library (`common/`)
+* `DatabaseManager` - SQLite database initialization and management
+* `CartridgeDBConnector` - Per-cartridge database connections
+* `SignatureVerifier` - Security verification (H1/H2 hash checking)
+* `TrustRegistry` - Trust decision persistence
+* `ManifestManager` - Library manifest operations
+* `WebChannelBridge` - JavaScript/C++ IPC bridge
+
+==== Reader Application (`reader/`)
+* `ReaderMainWindow` - Main application window
+* `LibraryManager` - Library view and management
+* `ReaderViewWindow` - Content rendering window
+* `ConsentDialog` - Security consent UI
+* `ImportDialog` - Cartridge import UI
+
+==== Creator Tool (`creator/`)
+* `CreatorMainWindow` - Main application window
+* `ContentEditor` - HTML content editor (Qt WebEngineView)
+* `FormBuilder` - Form definition builder
+* `CartridgeExporter` - Cartridge creation and signing
+* `MetadataEditor` - Document metadata management
+
+=== Database Schemas
+
+==== Local Application Database
+* `Local_Library_Manifest` - Cartridge metadata
+* `Local_Trust_Registry` - User trust decisions
+* `Local_User_Settings` - User preference overrides
+
+==== Cartridge Database (SQLite file)
+* `Metadata` - Document metadata
+* `Content_Pages` - HTML content pages
+* `Settings` - Author-defined rendering settings
+* `Embedded_Apps` - Embedded applications
+* `Forms` - Form definitions
+* `User_Data` - User form data
+* `Cartridge_Security` - Security data (H1, H2, signatures)
+* `Resources` - Asset storage
+
+**Reference:** See DDD Section 3 (Cartridge Schema) and Section 4 (Reader Local Persistence Schema)
+
+== Detailed Implementation Checklist
+
+=== Phase 1.1: Foundation and Infrastructure
+
+==== Build System and Project Structure
+[ ] Verify CMake build system configuration
+[ ] Verify Qt 6.x dependencies (Core, Widgets, WebEngine, WebChannel)
+[ ] Verify SQLite 3.51+ availability
+[ ] Set up project structure (common/, reader/, creator/, test/)
+[ ] Configure cross-platform build (Windows, macOS, Linux)
+[ ] Set up development environment and tooling
+[ ] Create initial git repository structure
+[ ] Document build process
+
+**Reference:** `build-process.adoc`, `implementation-status.adoc`
+
+==== Common Library - Database Infrastructure
+[ ] Implement `DatabaseManager` class
+  [ ] Local application database initialization
+  [ ] Schema creation for `Local_Library_Manifest`
+  [ ] Schema creation for `Local_Trust_Registry`
+  [ ] Schema creation for `Local_User_Settings`
+  [ ] Database connection management
+  [ ] Error handling and logging
+[ ] Implement `CartridgeDBConnector` class
+  [ ] Per-cartridge database connection
+  [ ] Connection isolation (per Reader View instance)
+  [ ] Database validation
+  [ ] Error handling
+
+**Reference:** DDD Section 4 (Reader Local Persistence Schema), SRS FR-2.1.1, FR-2.5.1
+
+**Test Cases:** T-PERS-02 (Multi-window isolation)
+
+=== Phase 1.2: Security Verification
+
+==== Signature Verification
+[ ] Implement `SignatureVerifier` class
+  [ ] H1 hash calculation (cartridge file hash)
+  [ ] H2 hash calculation (content hash)
+  [ ] Certificate validation (Qt QSslCertificate)
+  [ ] CA certificate verification (system certificate store)
+  [ ] Self-signed certificate handling
+  [ ] Expired certificate handling (downgrade to L2)
+  [ ] Tampering detection (H1 vs H2 comparison)
+  [ ] Security level determination (L1/L2/L3)
+[ ] Implement security verification workflow
+  [ ] Phase 1: File format validation
+  [ ] Phase 2: Certificate validation (L1)
+  [ ] Phase 3: H1/H2 hash verification
+  [ ] Phase 4: User consent (L2/L3)
+  [ ] Error handling and reporting
+
+**Reference:** DDD Section 6 (Security Verification), SRS FR-2.3.1, FR-2.3.2, FR-2.3.3, FR-2.4.4
+
+**Test Cases:** T-SEC-01 (L1 Commercial Trust), T-SEC-02 (L2/L3 Initial Consent), T-SEC-04 (Tampering Detection)
+
+==== Trust Management
+[ ] Implement `TrustRegistry` class
+  [ ] Trust decision storage (`Local_Trust_Registry` table)
+  [ ] Trust policy types (PERSISTENT, REVOKED, SESSION)
+  [ ] Trust lookup by `cartridge_guid`
+  [ ] Trust decision persistence
+  [ ] Trust revocation
+[ ] Implement trust workflow
+  [ ] Check existing trust decision
+  [ ] Skip consent dialog for PERSISTENT trust
+  [ ] Store user trust decision
+  [ ] Handle trust revocation
+
+**Reference:** DDD Section 6.3 (Verification Phase 3), SRS FR-2.4.1, FR-2.4.3
+
+**Test Cases:** T-SEC-03 (Persistent Trust), T-SEC-05 (Trust Revocation)
+
+==== Security UI
+[ ] Implement `ConsentDialog` class
+  [ ] Native modal dialog (Qt QMessageBox or custom)
+  [ ] Display app name and cartridge information
+  [ ] Three consent options (Always Trust, Trust This Session, Deny)
+  [ ] User choice handling
+  [ ] Integration with trust registry
+[ ] Implement security error dialogs
+  [ ] Tampering detection error
+  [ ] Invalid certificate error
+  [ ] File corruption error
+
+**Reference:** DDD Section 11.2.1 (Security Consent Dialog), SRS FR-2.3.2, FR-2.3.3
+
+**Test Cases:** T-SEC-02 (Initial Consent Dialog)
+
+=== Phase 1.3: Persistence and Manifest
+
+==== Manifest Management
+[ ] Implement `ManifestManager` class
+  [ ] Manifest entry creation
+  [ ] Metadata extraction from cartridge
+  [ ] Mandatory metadata storage (title, author, publication_year, etc.)
+  [ ] Cover image data storage
+  [ ] Manifest entry update
+  [ ] Manifest entry deletion
+  [ ] Duplicate detection (by `cartridge_guid`)
+  [ ] Manifest query operations
+[ ] Implement metadata extraction
+  [ ] Read `Metadata` table from cartridge
+  [ ] Extract title, author, publisher, publication_year
+  [ ] Extract cover image data
+  [ ] Calculate content hash (H2)
+  [ ] Store in `Local_Library_Manifest`
+
+**Reference:** DDD Section 7.1 (Import Algorithm), SRS FR-2.5.1, FR-2.5.2, FR-2.5.3
+
+**Test Cases:** T-PERS-01 (Manifest Creation)
+
+==== Import Functionality
+[ ] Implement import mechanisms
+  [ ] Drag-and-drop support
+  [ ] File picker dialog (native)
+  [ ] Multi-file selection
+[ ] Implement import validation
+  [ ] File format validation (SQLite database)
+  [ ] Schema validation (required tables)
+  [ ] `cartridge_guid` validation (UUID v4)
+  [ ] `schema_version` compatibility check
+  [ ] Error reporting
+[ ] Implement import workflow
+  [ ] Display progress dialog
+  [ ] Copy file to library directory
+  [ ] Extract metadata
+  [ ] Create manifest entry
+  [ ] Handle duplicates (Replace/Skip/Keep Both)
+  [ ] Refresh library view
+  [ ] Error summary display
+[ ] Implement import storage
+  [ ] Default library directory (OS-specific)
+  [ ] User-configurable library directory
+  [ ] Directory persistence across sessions
+
+**Reference:** DDD Section 7.1 (Import Algorithm), SRS FR-2.5.6 through FR-2.5.11
+
+**Test Cases:** T-PERS-01 (Import and Manifest Creation)
+
+==== Cartridge Deletion
+[ ] Implement deletion functionality
+  [ ] Delete cartridge file from file system
+  [ ] Remove manifest entry (atomic)
+  [ ] Remove trust registry entry (atomic)
+  [ ] Transaction safety
+  [ ] Error handling
+
+**Reference:** DDD Section 12.1 (Deletion Process), SRS FR-2.5.5
+
+**Test Cases:** T-PERS-03 (Atomic Deletion)
+
+=== Phase 1.4: Reader Application Core
+
+==== Library Manager UI
+[ ] Implement `LibraryManager` class
+  [ ] Library view widget
+  [ ] Dual view support (Bookshelf/List View)
+  [ ] View toggle functionality
+  [ ] Cartridge display (title, author, year, cover)
+  [ ] Context menu (Open, Delete, etc.)
+  [ ] Library refresh
+[ ] Implement Bookshelf View
+  [ ] Grid layout with cover images
+  [ ] Cover image display
+  [ ] Title overlay
+  [ ] Click to open
+[ ] Implement List View
+  [ ] Table with columns (Title, Author, Edition/Version, Year)
+  [ ] Data sourced from manifest
+  [ ] Sortable columns
+  [ ] Context menu
+[ ] Implement performance optimization
+  [ ] Lazy loading of cover images
+  [ ] Manifest-based metadata (no file parsing)
+  [ ] 500ms load time target (100+ cartridges)
+
+**Reference:** DDD Section 11.1 (UI Dual View), SRS FR-2.5.1, NFR-3.1
+
+**Test Cases:** T-UI-01 (Library Performance), T-UI-02 (Dual View)
+
+==== Reader View Window
+[ ] Implement `ReaderViewWindow` class
+  [ ] Qt WebEngineView integration
+  [ ] Content loading from cartridge
+  [ ] Multi-window support
+  [ ] Window state persistence
+  [ ] Window state restoration
+  [ ] Window minimize/restore
+[ ] Implement content rendering
+  [ ] Load HTML from `Content_Pages` table
+  [ ] Apply CSS stylesheets
+  [ ] Apply author-defined settings
+  [ ] Render embedded applications
+  [ ] Handle form rendering
+[ ] Implement WebChannel bridge
+  [ ] `SmartbookBridge` JavaScript API
+  [ ] `requestAppConsent()` method
+  [ ] Form data persistence API
+  [ ] Sandbox file API
+  [ ] Error handling
+
+**Reference:** DDD Section 5 (Qt WebEngine), Section 8 (Embedded Apps), Section 10 (Text Selection), SRS FR-2.1.1, FR-2.2.1, FR-2.2.2
+
+**Test Cases:** T-PERS-02 (Multi-window isolation)
+
+==== Settings Application
+[ ] Implement settings reading
+  [ ] Read `Settings` table from cartridge
+  [ ] Read `Local_User_Settings` for overrides
+  [ ] Apply settings priority (User override > Author default > App default)
+  [ ] Apply to content rendering
+[ ] Implement settings persistence
+  [ ] Store user preference overrides
+  [ ] Scoped per cartridge (`cartridge_guid`)
+  [ ] Persist across sessions
+
+**Reference:** DDD Section 3.5 (Settings Table), SRS FR-2.2.3, FR-2.6.1 through FR-2.6.5
+
+=== Phase 1.5: Creator Tool Core
+
+==== Content Editor
+[ ] Implement `ContentEditor` class
+  [ ] Qt WebEngineView for WYSIWYG editing
+  [ ] Rich text editing toolbar
+  [ ] Direct HTML editing mode
+  [ ] Standard edit operations (cut, copy, paste, undo, redo)
+  [ ] Preview functionality
+[ ] Implement page management
+  [ ] Page selection interface
+  [ ] Page CRUD operations
+  [ ] Page ordering (drag-and-drop)
+  [ ] Chapter organization
+[ ] Implement content storage
+  [ ] Save HTML to `Content_Pages` table
+  [ ] Update page order
+  [ ] Handle page deletion
+
+**Reference:** DDD Section 13 (Creator Tool), SRS FR-CT-3.1 through FR-CT-3.9
+
+**Test Cases:** T-CT-01 through T-CT-09
+
+==== Form Builder
+[ ] Implement `FormBuilder` class
+  [ ] Visual form builder interface
+  [ ] Form field creation (text, number, select, etc.)
+  [ ] Validation rule configuration
+  [ ] Form schema validation (JSON Schema)
+  [ ] Form definition storage
+[ ] Implement form integration
+  [ ] Form marker insertion in content
+  [ ] Form preview
+  [ ] Form definition JSON generation
+
+**Reference:** DDD Section 2.1 (Form Definition JSON Schema), SRS FR-CT-3.16 through FR-CT-3.19
+
+**Test Cases:** T-CT-27 through T-CT-30
+
+==== Metadata and Resource Management
+[ ] Implement `MetadataEditor` class
+  [ ] Metadata field editing (title, author, publisher, etc.)
+  [ ] Cover image import and management
+  [ ] GUID generation (UUID v4)
+  [ ] Schema version management
+[ ] Implement resource management
+  [ ] Asset import (images, files)
+  [ ] Resource storage in `Resources` table
+  [ ] Resource reference management
+
+**Reference:** DDD Section 3 (Cartridge Schema), SRS FR-CT-3.20 through FR-CT-3.26
+
+**Test Cases:** T-CT-22 through T-CT-26
+
+==== Cartridge Creation and Export
+[ ] Implement `CartridgeExporter` class
+  [ ] New cartridge creation (SQLite file)
+  [ ] Schema initialization
+  [ ] Content packaging
+  [ ] Metadata storage
+  [ ] Resource packaging
+[ ] Implement cartridge signing
+  [ ] H1 hash calculation (file hash)
+  [ ] H2 hash calculation (content hash)
+  [ ] Certificate selection
+  [ ] Signature creation (L1/L2/L3)
+  [ ] Security data storage
+[ ] Implement export validation
+  [ ] Content validation
+  [ ] Schema validation
+  [ ] Required metadata validation
+  [ ] Export error handling
+
+**Reference:** DDD Section 13 (Creator Tool), Section 6 (Security), SRS FR-CT-3.27 through FR-CT-3.35
+
+**Test Cases:** T-CT-10 through T-CT-21
+
+==== Certificate Management
+[ ] Implement certificate management UI
+  [ ] Certificate import
+  [ ] Self-signed certificate generation
+  [ ] Certificate selection interface
+  [ ] Certificate storage
+[ ] Implement certificate operations
+  [ ] Certificate validation
+  [ ] Certificate expiration checking
+  [ ] Certificate display
+
+**Reference:** DDD Section 6.2 (Certificate Validation), SRS FR-CT-3.33
+
+**Test Cases:** T-CT-19
+
+=== Phase 1.6: Testing and Integration
+
+==== Unit Testing
+[ ] Security verification tests
+  [ ] T-SEC-01: L1 Commercial Trust
+  [ ] T-SEC-02: L2/L3 Initial Consent
+  [ ] T-SEC-03: Persistent Trust
+  [ ] T-SEC-04: Tampering Detection
+  [ ] T-SEC-05: Trust Revocation
+[ ] Persistence tests
+  [ ] T-PERS-01: Manifest Creation
+  [ ] T-PERS-02: Multi-Window Isolation
+  [ ] T-PERS-03: Atomic Deletion
+[ ] UI tests
+  [ ] T-UI-01: Library Performance
+  [ ] T-UI-02: Dual View
+[ ] Creator Tool tests
+  [ ] T-CT-01 through T-CT-90 (as applicable for Phase 1)
+
+**Reference:** `test-plan.adoc`
+
+==== Integration Testing
+[ ] End-to-end import workflow
+[ ] End-to-end cartridge creation and export
+[ ] Security verification workflow
+[ ] Multi-window isolation
+[ ] Form data persistence
+[ ] Settings application
+
+==== Platform Testing
+[ ] Windows 10/11
+[ ] macOS (ARM64 and X86_64)
+[ ] Linux (Arch, Debian, Fedora, Ubuntu)
+
+**Reference:** `test-plan.adoc` T-PLAT-01 through T-PLAT-15
+
+==== Error Handling Testing
+[ ] File not found errors
+[ ] Invalid cartridge format
+[ ] Database connection errors
+[ ] Signature verification errors
+[ ] Import errors
+
+**Reference:** `test-plan.adoc` T-ERR-01 through T-ERR-49
+
+== Dependencies and Prerequisites
+
+=== External Dependencies
+* Qt 6.x (Core, Widgets, WebEngine, WebChannel, Network)
+* SQLite 3.51 or higher
+* C++17 or higher compiler
+* CMake 3.20 or higher
+
+=== Internal Dependencies
+* Common library must be completed before Reader/Creator development
+* Security layer must be completed before Reader View implementation
+* Manifest management must be completed before Library Manager UI
+* Content editor must be completed before Cartridge export
+
+== Documentation Requirements
+
+During implementation, document:
+[ ] Architecture decisions (ADR format)
+[ ] API design decisions
+[ ] Performance optimizations
+[ ] Known limitations
+[ ] Platform-specific considerations
+[ ] Error handling strategies
+
+**Reference:** `dev-journal/journal.adoc` for ADR format
+
+== Success Criteria
+
+Phase 1 is complete when:
+
+. All Phase 1 requirements (FR-2.1.x through FR-2.5.x, FR-CT-3.1 through FR-CT-3.35) are implemented
+. All Phase 1 test cases pass (T-SEC, T-PERS, T-UI, T-CT core tests)
+. Reader application can:
+  * Import cartridges via drag-drop or file picker
+  * Display library in Bookshelf and List views
+  * Open cartridges with security verification
+  * Handle L1/L2/L3 trust levels correctly
+  * Persist trust decisions
+  * Support multiple windows with isolation
+. Creator Tool can:
+  * Create new cartridges
+  * Edit HTML content
+  * Define forms
+  * Manage metadata and resources
+  * Export and sign cartridges (L1/L2/L3)
+. Application builds and runs on all target platforms
+. Documentation is updated with implementation details
+
+== Risk Mitigation
+
+=== Technical Risks
+* **Qt WebEngine complexity:** Start with basic rendering, incrementally add features
+* **Security verification:** Implement and test security layer early
+* **Multi-window isolation:** Test thoroughly with multiple cartridges
+* **Cross-platform issues:** Test on all platforms early and often
+
+=== Schedule Risks
+* **Scope creep:** Stick to Phase 1 requirements only
+* **Dependency delays:** Complete foundation layer before dependent components
+* **Testing time:** Allocate sufficient time for integration testing
+
+**Reference:** `risk-register-and-mitigation-plan.adoc`
+
+== Next Steps After Phase 1
+
+Once Phase 1 is complete, Phase 2 will add:
+* Remote library integration
+* User authentication
+* Multi-user support
+* Advanced Reader features (print, search, navigation, text selection)
+* Advanced Creator Tool features (templates, version history, etc.)
+
+**Reference:** `phase2-remote-library-integration.adoc`, `phase2-user-identity-and-authentication.adoc`
+
+== Appendix: Quick Reference
+
+=== Key Documents
+* `srs.adoc` - Requirements specification
+* `ddd.adoc` - Detailed design document
+* `hld.adoc` - High-level architecture
+* `test-plan.adoc` - Test cases and acceptance criteria
+* `requirements_traceability_matrix.adoc` - Requirement to test case mapping
+
+=== Key Classes and Components
+* `DatabaseManager` - Common library database management
+* `SignatureVerifier` - Security verification
+* `TrustRegistry` - Trust decision management
+* `ManifestManager` - Library manifest operations
+* `LibraryManager` - Reader library UI
+* `ReaderViewWindow` - Content rendering window
+* `ContentEditor` - Creator Tool content editor
+* `CartridgeExporter` - Cartridge creation and export
+
+=== Key Database Tables
+* `Local_Library_Manifest` - Cartridge metadata
+* `Local_Trust_Registry` - User trust decisions
+* `Metadata` - Document metadata (cartridge)
+* `Content_Pages` - HTML content (cartridge)
+* `Cartridge_Security` - Security data (cartridge)
+
+== Revision History
+
+|===
+| Date | Version | Changes | Author
+| 2025-12-17 | 1.0 | Initial Phase 1 implementation guide | AI Assistant
+|===
