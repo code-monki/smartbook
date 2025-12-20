@@ -6,7 +6,6 @@
 #include <QFile>
 #include <QSqlDatabase>
 #include <QSqlQuery>
-#include <QSslCertificate>
 #include <QDebug>
 
 using namespace smartbook::common::security;

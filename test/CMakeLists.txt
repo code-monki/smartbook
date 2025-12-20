@@ -157,7 +157,6 @@ if(QT_TEST_AVAILABLE)
         Qt6::Test
         Qt6::Core
         Qt6::Sql
-        Qt6::Network
         smartbook_common
     )
     add_test(NAME TestSignatureVerifier COMMAND test_signatureverifier)
