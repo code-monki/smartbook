@@ -85,6 +85,10 @@ if(QT_TEST_AVAILABLE)
         unit/test_localdbmanager.cpp
         unit/test_manifestmanager.cpp
     )
+    # Enable Qt MOC for test files
+    set_target_properties(test_common_unit PROPERTIES
+        AUTOMOC ON
+    )
     target_include_directories(test_common_unit PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
     )
