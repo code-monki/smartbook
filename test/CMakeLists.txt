@@ -259,6 +259,22 @@ if(QT_TEST_AVAILABLE)
     )
     add_test(NAME TestManifestPerformance COMMAND test_manifestmanager_performance)
     
+    # test_database_errors
+    add_executable(test_database_errors
+        unit/test_database_errors.cpp
+    )
+    set_target_properties(test_database_errors PROPERTIES AUTOMOC ON)
+    target_include_directories(test_database_errors PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+    )
+    target_link_libraries(test_database_errors PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        smartbook_common
+    )
+    add_test(NAME TestDatabaseErrors COMMAND test_database_errors)
+    
     # test_manifestmanager_errors
     add_executable(test_manifestmanager_errors
         unit/test_manifestmanager_errors.cpp
