@@ -65,6 +65,13 @@ public:
      * @return true if entry exists, false otherwise
      */
     bool manifestEntryExists(const QString& cartridgeGuid);
+    
+    /**
+     * @brief Delete manifest entry by cartridge GUID
+     * @param cartridgeGuid Cartridge GUID to delete
+     * @return true if deletion successful, false otherwise
+     */
+    bool deleteManifestEntry(const QString& cartridgeGuid);
 
 private:
     database::LocalDBManager* m_dbManager;

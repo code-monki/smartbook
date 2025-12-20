@@ -123,8 +123,7 @@ void TestManifestDeletion::testAtomicDeletion()
     QVERIFY(trustEntryExists(entry.cartridgeGuid));
     
     // Delete cartridge (atomic deletion from both tables)
-    // This should be implemented in ManifestManager or a separate deletion manager
-    // For now, we'll test the atomic transaction requirement
+    // Use transaction to ensure atomicity
     
     QSqlQuery query(m_dbManager->getDatabase());
     
@@ -140,13 +139,8 @@ void TestManifestDeletion::testAtomicDeletion()
     }
     QVERIFY(trustDeleted);
     
-    // Delete from manifest
-    query.prepare("DELETE FROM Local_Library_Manifest WHERE cartridge_guid = ?");
-    query.addBindValue(entry.cartridgeGuid);
-    bool manifestDeleted = query.exec();
-    if (!manifestDeleted) {
-        qWarning() << "Failed to delete from manifest:" << query.lastError().text();
-    }
+    // Delete from manifest using ManifestManager method
+    bool manifestDeleted = m_manifestManager->deleteManifestEntry(entry.cartridgeGuid);
     QVERIFY(manifestDeleted);
     
     // Commit transaction (atomic)
@@ -156,8 +150,9 @@ void TestManifestDeletion::testAtomicDeletion()
     QVERIFY(!manifestEntryExists(entry.cartridgeGuid));
     QVERIFY(!trustEntryExists(entry.cartridgeGuid));
     
-    // Verify cartridge file is deleted (this would be done by the deletion manager)
-    // For now, we just verify the database entries are gone atomically
+    // Verify cartridge file still exists (file deletion is separate operation)
+    // The atomic deletion only covers database entries
+    QVERIFY(QFile::exists(entry.localPath));
 }
 
 QTEST_MAIN(TestManifestDeletion)

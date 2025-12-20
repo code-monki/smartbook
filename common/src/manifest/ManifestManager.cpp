@@ -160,6 +160,36 @@ bool ManifestManager::manifestEntryExists(const QString& cartridgeGuid)
     return false;
 }
 
+bool ManifestManager::deleteManifestEntry(const QString& cartridgeGuid)
+{
+    if (!m_dbManager->isOpen()) {
+        qWarning() << "Database not open for manifest entry deletion";
+        return false;
+    }
+    
+    if (cartridgeGuid.isEmpty()) {
+        qWarning() << "Cannot delete manifest entry: empty cartridge GUID";
+        return false;
+    }
+    
+    QSqlQuery query(m_dbManager->getDatabase());
+    query.prepare("DELETE FROM Local_Library_Manifest WHERE cartridge_guid = ?");
+    query.addBindValue(cartridgeGuid);
+    
+    if (!query.exec()) {
+        qCritical() << "Failed to delete manifest entry:" << query.lastError().text();
+        return false;
+    }
+    
+    // Check if any rows were affected
+    if (query.numRowsAffected() == 0) {
+        qWarning() << "No manifest entry found to delete for GUID:" << cartridgeGuid;
+        return false;
+    }
+    
+    return true;
+}
+
 } // namespace manifest
 } // namespace common
 } // namespace smartbook

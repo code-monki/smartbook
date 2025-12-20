@@ -243,6 +243,22 @@ if(QT_TEST_AVAILABLE)
     )
     add_test(NAME TestManifestUpdate COMMAND test_manifestmanager_update)
     
+    # test_manifestmanager_performance
+    add_executable(test_manifestmanager_performance
+        unit/test_manifestmanager_performance.cpp
+    )
+    set_target_properties(test_manifestmanager_performance PROPERTIES AUTOMOC ON)
+    target_include_directories(test_manifestmanager_performance PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+    )
+    target_link_libraries(test_manifestmanager_performance PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        smartbook_common
+    )
+    add_test(NAME TestManifestPerformance COMMAND test_manifestmanager_performance)
+    
     # test_manifestmanager_errors
     add_executable(test_manifestmanager_errors
         unit/test_manifestmanager_errors.cpp
