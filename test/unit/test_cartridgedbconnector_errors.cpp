@@ -151,7 +151,8 @@ void TestCartridgeDBConnectorErrors::testMultipleOpenClose()
     bool opened1 = connector.openCartridge(path1);
     QVERIFY(opened1);
     QVERIFY(connector.isOpen());
-    QCOMPARE(connector.getCartridgeGuid(), guid1);
+    QString retrievedGuid1 = connector.getCartridgeGuid();
+    QCOMPARE(retrievedGuid1, guid1);
     
     // Save data to first cartridge
     QString formId = "TestForm";
@@ -166,7 +167,8 @@ void TestCartridgeDBConnectorErrors::testMultipleOpenClose()
     bool opened2 = connector.openCartridge(path2);
     QVERIFY(opened2);
     QVERIFY(connector.isOpen());
-    QCOMPARE(connector.getCartridgeGuid(), guid2);
+    QString retrievedGuid2 = connector.getCartridgeGuid();
+    QCOMPARE(retrievedGuid2, guid2);
     
     // Save different data to second cartridge
     QString data2 = R"({"cartridge": "2"})";
@@ -181,6 +183,8 @@ void TestCartridgeDBConnectorErrors::testMultipleOpenClose()
     connector.closeCartridge();
     bool reopened1 = connector.openCartridge(path1);
     QVERIFY(reopened1);
+    QString retrievedGuid1Again = connector.getCartridgeGuid();
+    QCOMPARE(retrievedGuid1Again, guid1); // Should get same GUID
     QString loaded1 = connector.loadFormData(formId);
     QCOMPARE(loaded1, data1); // Should still have original data
 }
