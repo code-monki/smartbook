@@ -24,6 +24,7 @@ endif()
 add_subdirectory(common)
 add_subdirectory(reader)
 add_subdirectory(creator)
+add_subdirectory(test)
 
 # Phase 2: Server (commented out for now)
 # add_subdirectory(server)
