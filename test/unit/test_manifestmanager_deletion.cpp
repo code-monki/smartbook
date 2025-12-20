@@ -5,6 +5,9 @@
 #include <QUuid>
 #include <QFile>
 #include <QSqlQuery>
+#include <QSqlError>
+#include <QDateTime>
+#include <QDebug>
 
 using namespace smartbook::common::database;
 using namespace smartbook::common::manifest;
@@ -131,12 +134,20 @@ void TestManifestDeletion::testAtomicDeletion()
     // Delete from trust registry first (due to foreign key constraint)
     query.prepare("DELETE FROM Local_Trust_Registry WHERE cartridge_guid = ?");
     query.addBindValue(entry.cartridgeGuid);
-    QVERIFY(query.exec());
+    bool trustDeleted = query.exec();
+    if (!trustDeleted) {
+        qWarning() << "Failed to delete from trust registry:" << query.lastError().text();
+    }
+    QVERIFY(trustDeleted);
     
     // Delete from manifest
     query.prepare("DELETE FROM Local_Library_Manifest WHERE cartridge_guid = ?");
     query.addBindValue(entry.cartridgeGuid);
-    QVERIFY(query.exec());
+    bool manifestDeleted = query.exec();
+    if (!manifestDeleted) {
+        qWarning() << "Failed to delete from manifest:" << query.lastError().text();
+    }
+    QVERIFY(manifestDeleted);
     
     // Commit transaction (atomic)
     QVERIFY(m_dbManager->getDatabase().commit());
