@@ -14,7 +14,7 @@ CartridgeExporter::CartridgeExporter(QObject* parent)
 {
 }
 
-bool CartridgeExporter::exportCartridge(const QString& cartridgePath, const QHash<QString, QVariant>& metadata) {
+bool CartridgeExporter::exportCartridge(const QString& cartridgePath, const QHash<QString, QVariant>& /* metadata */) {
     qDebug() << "Exporting cartridge to:" << cartridgePath;
     
     // Create cartridge database
