@@ -1,4 +1,5 @@
 #include "smartbook/common/security/SignatureVerifier.h"
+#include <QtSql/QSqlRecord>
 #include "smartbook/common/database/LocalDBManager.h"
 #include <QSqlDatabase>
 #include <QSqlQuery>
@@ -157,7 +158,7 @@ TrustPolicy SignatureVerifier::phase3_LocalTrust(const QString& cartridgeGuid, b
         return TrustPolicy::REJECTED;
     }
 
-    LocalDBManager& dbManager = LocalDBManager::getInstance();
+    database::LocalDBManager& dbManager = database::LocalDBManager::getInstance();
     if (!dbManager.isOpen()) {
         return TrustPolicy::CONSENT_REQUIRED;
     }
