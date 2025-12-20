@@ -1,0 +1,779 @@
+= Test-Driven Development (TDD) Implementation Guide
+:author: AI Assistant
+:revdate: 2025-12-17
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+
+== Overview
+
+This guide provides a Test-Driven Development (TDD) approach for Phase 1 implementation. TDD follows the Red-Green-Refactor cycle:
+
+. **Red:** Write a failing test
+. **Green:** Write minimal code to make the test pass
+. **Refactor:** Improve code while keeping tests green
+
+== TDD Workflow
+
+=== The TDD Cycle
+
+[source,text]
+----
+1. Write Test (Red)
+   ↓
+2. Run Test (Should Fail)
+   ↓
+3. Write Implementation (Green)
+   ↓
+4. Run Test (Should Pass)
+   ↓
+5. Refactor (Keep Green)
+   ↓
+6. Commit
+   ↓
+7. Repeat
+----
+
+=== Step-by-Step Process
+
+==== 1. Select a Test Case
+
+Start with the highest priority test case from `test-plan.adoc`:
+
+* **Priority 1:** Foundation tests (T-PERS-01, T-PERS-02)
+* **Priority 2:** Security tests (T-SEC-01 through T-SEC-05)
+* **Priority 3:** UI tests (T-UI-01, T-UI-02)
+* **Priority 4:** Creator Tool tests (T-CT-01 and up)
+
+==== 2. Write the Test First
+
+Create a unit test file following the pattern:
+
+[source,cpp]
+----
+#include <QtTest/QtTest>
+#include "smartbook/common/database/LocalDBManager.h"
+
+class TestLocalDBManager : public QObject
+{
+    Q_OBJECT
+
+private slots:
+    void testDatabaseInitialization();
+    void testSchemaCreation();
+    // ... more test methods
+};
+----
+
+==== 3. Write Minimal Implementation
+
+Write just enough code to make the test pass. Don't worry about perfection yet.
+
+==== 4. Refactor
+
+Once the test passes, refactor for:
+* Code clarity
+* Performance
+* Error handling
+* Documentation
+
+==== 5. Commit
+
+Commit with a descriptive message:
+
+[source,text]
+----
+test(common): Add LocalDBManager database initialization test
+
+Implements T-PERS-01 requirement for manifest creation.
+Tests database schema initialization and table creation.
+----
+
+== Test Framework: Qt Test
+
+=== Setup
+
+Qt Test is the recommended framework (already configured in `test/CMakeLists.txt`).
+
+**Key Features:**
+* Lightweight and fast
+* Integrated with Qt ecosystem
+* Good for unit and integration tests
+* Built-in test data support
+
+=== Test File Structure
+
+[source,cpp]
+----
+#include <QtTest/QtTest>
+#include <QCoreApplication>
+#include "smartbook/common/database/LocalDBManager.h"
+
+class TestLocalDBManager : public QObject
+{
+    Q_OBJECT
+
+public:
+    TestLocalDBManager() = default;
+
+private slots:
+    // Test initialization
+    void initTestCase();        // Called once before all tests
+    void init();                // Called before each test
+    void cleanup();             // Called after each test
+    void cleanupTestCase();     // Called once after all tests
+
+    // Test cases
+    void testDatabaseInitialization();
+    void testSchemaCreation();
+    void testManifestEntryCreation();
+    void testManifestQuery();
+};
+
+// Include the test implementation
+#include "test_localdbmanager.moc"
+
+QTEST_MAIN(TestLocalDBManager)
+----
+
+=== Test Macros
+
+[source,cpp]
+----
+// Assertions
+QVERIFY(condition);              // Fails if condition is false
+QVERIFY2(condition, message);    // With error message
+QCOMPARE(actual, expected);     // Compares two values
+QTEST(actual, expected);         // Compares with test data
+
+// String comparisons
+QCOMPARE(string1, string2);
+QVERIFY(string1.contains("text"));
+
+// Exception testing
+QVERIFY_EXCEPTION_THROWN(code, ExceptionType);
+----
+
+== Mapping Test Plan to Unit Tests
+
+=== Test Plan Structure
+
+Each test case in `test-plan.adoc` has:
+* **Test Case ID:** e.g., T-PERS-01
+* **Requirement Covered:** e.g., FR-2.5.1
+* **Test Steps:** Detailed steps
+* **Expected Result:** Acceptance criteria
+
+=== Unit Test Mapping Strategy
+
+==== Strategy 1: One Test Plan Case = Multiple Unit Tests
+
+A single test plan case may require multiple unit tests:
+
+**Example: T-PERS-01 (Manifest Creation)**
+
+[source,cpp]
+----
+void TestManifestManager::testManifestEntryCreation()
+{
+    // Test step 1: Import a new cartridge file
+    // Test step 2: Examine Local_Library_Manifest table
+    
+    ManifestManager manager;
+    QString cartridgePath = "test_cartridge.sqlite";
+    
+    // Create test cartridge
+    createTestCartridge(cartridgePath);
+    
+    // Import cartridge
+    bool result = manager.importCartridge(cartridgePath);
+    QVERIFY(result);
+    
+    // Verify manifest entry
+    ManifestEntry entry = manager.getManifestEntry(cartridgeGuid);
+    QVERIFY(entry.isValid());
+    QCOMPARE(entry.cartridgeGuid, expectedGuid);
+    QCOMPARE(entry.title, "Test Cartridge");
+    QVERIFY(!entry.publicationYear.isEmpty());
+}
+----
+
+==== Strategy 2: Test Plan Case = Integration Test
+
+Some test plan cases are integration tests that combine multiple components:
+
+**Example: T-SEC-02 (Initial Consent)**
+
+This requires:
+* Reader View Window
+* WebChannel Bridge
+* Consent Dialog
+* Trust Registry
+
+For TDD, break this into unit tests:
+* `TestSignatureVerifier::testL2CartridgeDetection()`
+* `TestConsentDialog::testDialogDisplay()`
+* `TestTrustRegistry::testTrustStorage()`
+
+Then create an integration test:
+* `TestSecurityWorkflow::testL2InitialConsent()`
+
+== TDD Implementation Order
+
+=== Phase 1.1: Foundation (Week 1-2)
+
+==== Database Infrastructure
+
+**Test 1: LocalDBManager - Database Initialization**
+
+[source,cpp]
+----
+void TestLocalDBManager::testDatabaseInitialization()
+{
+    LocalDBManager manager;
+    QString dbPath = ":memory:";  // In-memory for testing
+    
+    bool result = manager.initializeDatabase(dbPath);
+    QVERIFY(result);
+    QVERIFY(manager.isInitialized());
+}
+----
+
+**Test 2: LocalDBManager - Schema Creation**
+
+[source,cpp]
+----
+void TestLocalDBManager::testSchemaCreation()
+{
+    LocalDBManager manager;
+    manager.initializeDatabase(":memory:");
+    
+    bool result = manager.createSchema();
+    QVERIFY(result);
+    
+    // Verify tables exist
+    QVERIFY(manager.tableExists("Local_Library_Manifest"));
+    QVERIFY(manager.tableExists("Local_Trust_Registry"));
+    QVERIFY(manager.tableExists("Local_User_Settings"));
+}
+----
+
+**Test 3: ManifestManager - Entry Creation**
+
+[source,cpp]
+----
+void TestManifestManager::testManifestEntryCreation()
+{
+    // T-PERS-01: Manifest Creation
+    ManifestManager manager;
+    
+    ManifestEntry entry;
+    entry.cartridgeGuid = QUuid::createUuid().toString();
+    entry.title = "Test Book";
+    entry.author = "Test Author";
+    entry.publicationYear = "2025";
+    entry.localPath = "/path/to/cartridge.sqlite";
+    
+    bool result = manager.createManifestEntry(entry);
+    QVERIFY(result);
+    
+    // Verify entry exists
+    ManifestEntry retrieved = manager.getManifestEntry(entry.cartridgeGuid);
+    QVERIFY(retrieved.isValid());
+    QCOMPARE(retrieved.title, entry.title);
+}
+----
+
+=== Phase 1.2: Security (Week 3-4)
+
+==== Signature Verification
+
+**Test 1: SignatureVerifier - L1 Detection**
+
+[source,cpp]
+----
+void TestSignatureVerifier::testL1CartridgeDetection()
+{
+    // T-SEC-01: L1 Commercial Trust
+    SignatureVerifier verifier;
+    
+    QString cartridgePath = createTestL1Cartridge();
+    VerificationResult result = verifier.verify(cartridgePath);
+    
+    QCOMPARE(result.securityLevel, SecurityLevel::L1);
+    QVERIFY(result.isValid);
+    QVERIFY(result.certificate.isValid());
+}
+----
+
+**Test 2: SignatureVerifier - H1/H2 Hash Calculation**
+
+[source,cpp]
+----
+void TestSignatureVerifier::testHashCalculation()
+{
+    SignatureVerifier verifier;
+    QString cartridgePath = createTestCartridge();
+    
+    QByteArray h1 = verifier.calculateH1(cartridgePath);
+    QByteArray h2 = verifier.calculateH2(cartridgePath);
+    
+    QVERIFY(!h1.isEmpty());
+    QVERIFY(!h2.isEmpty());
+    QVERIFY(h1 != h2);  // H1 is file hash, H2 is content hash
+}
+----
+
+**Test 3: SignatureVerifier - Tampering Detection**
+
+[source,cpp]
+----
+void TestSignatureVerifier::testTamperingDetection()
+{
+    // T-SEC-04: Tampering Detection
+    SignatureVerifier verifier;
+    
+    QString cartridgePath = createTestCartridge();
+    VerificationResult initial = verifier.verify(cartridgePath);
+    QVERIFY(initial.isValid);
+    
+    // Tamper with cartridge
+    tamperCartridge(cartridgePath);
+    
+    VerificationResult afterTamper = verifier.verify(cartridgePath);
+    QVERIFY(!afterTamper.isValid);
+    QCOMPARE(afterTamper.error, VerificationError::TamperingDetected);
+}
+----
+
+==== Trust Registry
+
+**Test 1: TrustRegistry - Trust Storage**
+
+[source,cpp]
+----
+void TestTrustRegistry::testTrustStorage()
+{
+    // T-SEC-03: Persistent Trust
+    TrustRegistry registry;
+    
+    QString cartridgeGuid = QUuid::createUuid().toString();
+    bool result = registry.setTrustPolicy(
+        cartridgeGuid, 
+        TrustPolicy::PERSISTENT
+    );
+    
+    QVERIFY(result);
+    
+    TrustPolicy policy = registry.getTrustPolicy(cartridgeGuid);
+    QCOMPARE(policy, TrustPolicy::PERSISTENT);
+}
+----
+
+=== Phase 1.3: Persistence (Week 5-6)
+
+==== Import Functionality
+
+**Test 1: ImportManager - File Validation**
+
+[source,cpp]
+----
+void TestImportManager::testFileValidation()
+{
+    ImportManager manager;
+    
+    // Valid cartridge
+    QString validPath = createTestCartridge();
+    ValidationResult result = manager.validateCartridge(validPath);
+    QVERIFY(result.isValid);
+    QVERIFY(result.errors.isEmpty());
+    
+    // Invalid file
+    QString invalidPath = "/path/to/invalid.txt";
+    result = manager.validateCartridge(invalidPath);
+    QVERIFY(!result.isValid);
+    QVERIFY(!result.errors.isEmpty());
+}
+----
+
+**Test 2: ImportManager - Duplicate Detection**
+
+[source,cpp]
+----
+void TestImportManager::testDuplicateDetection()
+{
+    ImportManager manager;
+    QString cartridgePath = createTestCartridge();
+    QString cartridgeGuid = getCartridgeGuid(cartridgePath);
+    
+    // First import
+    bool result1 = manager.importCartridge(cartridgePath);
+    QVERIFY(result1);
+    
+    // Duplicate import
+    DuplicateResult duplicate = manager.checkDuplicate(cartridgeGuid);
+    QVERIFY(duplicate.isDuplicate);
+    QCOMPARE(duplicate.existingPath, cartridgePath);
+}
+----
+
+=== Phase 1.4: Reader Core (Week 7-9)
+
+==== Library Manager
+
+**Test 1: LibraryManager - Manifest Query**
+
+[source,cpp]
+----
+void TestLibraryManager::testManifestQuery()
+{
+    // T-UI-01: Library Performance
+    LibraryManager manager;
+    
+    // Create 100 test cartridges
+    for (int i = 0; i < 100; ++i) {
+        createTestCartridge(QString("cartridge_%1.sqlite").arg(i));
+    }
+    
+    QElapsedTimer timer;
+    timer.start();
+    
+    QList<ManifestEntry> entries = manager.getAllManifestEntries();
+    
+    qint64 elapsed = timer.elapsed();
+    QVERIFY(elapsed < 500);  // NFR-3.1: < 500ms
+    QCOMPARE(entries.size(), 100);
+}
+----
+
+== Test Data Management
+
+=== Test Fixtures
+
+Create reusable test data:
+
+[source,cpp]
+----
+class TestFixture
+{
+public:
+    static QString createTestCartridge(const QString& title = "Test Book");
+    static QString createTestL1Cartridge();
+    static QString createTestL2Cartridge();
+    static QString createTestL3Cartridge();
+    static void cleanupTestFiles();
+};
+----
+
+=== Temporary Files
+
+Use Qt's temporary file system:
+
+[source,cpp]
+----
+QTemporaryDir tempDir;
+QString cartridgePath = tempDir.path() + "/test_cartridge.sqlite";
+// Use cartridgePath for testing
+// Automatically cleaned up when tempDir goes out of scope
+----
+
+== Running Tests
+
+=== Build Tests
+
+[source,bash]
+----
+# Build test suite
+cd test
+cmake -B build -S .
+cmake --build build
+
+# Run all tests
+cd build
+ctest --output-on-failure
+
+# Run specific test
+./test/unit/test_localdbmanager
+----
+
+=== Makefile Targets
+
+[source,bash]
+----
+make test-build    # Build test suite
+make test-unit     # Run unit tests
+make test          # Build and run all tests
+----
+
+== TDD Best Practices
+
+=== 1. Start Small
+
+Begin with the simplest test that can fail:
+
+[source,cpp]
+----
+// Start here
+void TestLocalDBManager::testExists()
+{
+    LocalDBManager manager;
+    QVERIFY(true);  // Just verify test framework works
+}
+----
+
+=== 2. One Assertion Per Test (When Possible)
+
+Prefer focused tests:
+
+[source,cpp]
+----
+// Good: Focused test
+void TestManifestManager::testEntryCreation()
+{
+    // Test one thing: entry creation
+}
+
+// Also good: Related assertions
+void TestManifestManager::testEntryFields()
+{
+    // Test related thing: all fields are correct
+}
+----
+
+=== 3. Test Behavior, Not Implementation
+
+[source,cpp]
+----
+// Good: Test behavior
+void TestImportManager::testImportCreatesManifestEntry()
+{
+    // Test what happens, not how
+}
+
+// Avoid: Testing implementation details
+void TestImportManager::testImportCallsCreateManifestEntry()
+{
+    // Don't test internal method calls
+}
+----
+
+=== 4. Use Descriptive Test Names
+
+[source,cpp]
+----
+// Good
+void testManifestEntryCreationWithValidData();
+void testManifestEntryCreationFailsWithInvalidGuid();
+void testManifestEntryQueryReturnsCorrectEntry();
+
+// Avoid
+void test1();
+void testManifest();
+void testStuff();
+----
+
+=== 5. Keep Tests Fast
+
+[source,cpp]
+----
+// Use in-memory databases for unit tests
+QString dbPath = ":memory:";
+
+// Use temporary directories
+QTemporaryDir tempDir;
+
+// Mock external dependencies
+class MockFileSystem { ... };
+----
+
+=== 6. Test Edge Cases
+
+[source,cpp]
+----
+void TestManifestManager::testEmptyGuid()
+{
+    ManifestEntry entry;
+    entry.cartridgeGuid = "";
+    QVERIFY(!manager.createManifestEntry(entry));
+}
+
+void TestManifestManager::testVeryLongTitle()
+{
+    ManifestEntry entry;
+    entry.title = QString(10000, 'A');  // Very long title
+    // Test behavior with edge case
+}
+----
+
+== Integration with Test Plan
+
+=== Mapping Test Cases
+
+Create a mapping document or comments:
+
+[source,cpp]
+----
+// T-PERS-01: Manifest Creation
+// Requirement: FR-2.5.1
+// Test Plan: test-plan.adoc line 90-97
+void TestManifestManager::testManifestEntryCreation()
+{
+    // Implementation
+}
+----
+
+=== Test Coverage Tracking
+
+Track which test plan cases are covered:
+
+[source,text]
+----
+T-PERS-01: ✅ testManifestEntryCreation()
+T-PERS-02: ✅ testMultiWindowIsolation()
+T-SEC-01:  ✅ testL1CartridgeDetection()
+T-SEC-02:  ⏳ (Integration test pending)
+----
+
+== Example: Complete TDD Cycle
+
+=== Step 1: Write Failing Test
+
+[source,cpp]
+----
+void TestLocalDBManager::testSchemaCreation()
+{
+    LocalDBManager manager;
+    manager.initializeDatabase(":memory:");
+    
+    bool result = manager.createSchema();
+    QVERIFY(result);  // This will fail - method doesn't exist yet
+}
+----
+
+=== Step 2: Run Test (Red)
+
+[source,bash]
+----
+$ ./test/unit/test_localdbmanager
+FAIL!  : TestLocalDBManager::testSchemaCreation()
+   Loc: [test_localdbmanager.cpp(45)]
+   Message: 'manager.createSchema()' returned FALSE. ()
+----
+
+=== Step 3: Write Minimal Implementation (Green)
+
+[source,cpp]
+----
+bool LocalDBManager::createSchema()
+{
+    // Minimal implementation
+    return true;  // Just enough to pass
+}
+----
+
+=== Step 4: Run Test (Green)
+
+[source,bash]
+----
+$ ./test/unit/test_localdbmanager
+PASS   : TestLocalDBManager::testSchemaCreation()
+Totals: 1 passed, 0 failed, 0 skipped
+----
+
+=== Step 5: Add More Tests, Then Implement
+
+[source,cpp]
+----
+void TestLocalDBManager::testSchemaCreation()
+{
+    // ... existing test ...
+    
+    // Add verification
+    QVERIFY(manager.tableExists("Local_Library_Manifest"));
+}
+----
+
+Now implement the actual schema creation.
+
+=== Step 6: Refactor
+
+[source,cpp]
+----
+bool LocalDBManager::createSchema()
+{
+    // Refactored: actual implementation
+    QSqlQuery query(m_db);
+    
+    if (!query.exec("CREATE TABLE IF NOT EXISTS Local_Library_Manifest (...)")) {
+        return false;
+    }
+    
+    // ... more tables ...
+    
+    return true;
+}
+----
+
+=== Step 7: Commit
+
+[source,bash]
+----
+git add common/src/database/LocalDBManager.cpp
+git add test/unit/test_localdbmanager.cpp
+git commit -m "test(common): Add LocalDBManager schema creation
+
+Implements FR-2.5.1 requirement for manifest creation.
+Tests database schema initialization.
+
+- Add createSchema() method
+- Add testSchemaCreation() unit test
+- Verify table creation"
+----
+
+== TDD Checklist
+
+For each feature:
+
+[ ] Select test case from test-plan.adoc
+[ ] Write failing unit test
+[ ] Run test (verify it fails)
+[ ] Write minimal implementation
+[ ] Run test (verify it passes)
+[ ] Add more test cases (edge cases, error conditions)
+[ ] Refactor implementation
+[ ] Ensure all tests still pass
+[ ] Commit with descriptive message
+[ ] Update test coverage tracking
+
+== Next Steps
+
+1. **Start with Foundation Tests:**
+   * `test_localdbmanager.cpp` - Database initialization
+   * `test_manifestmanager.cpp` - Manifest operations
+
+2. **Add Security Tests:**
+   * `test_signatureverifier.cpp` - Security verification
+   * `test_trustregistry.cpp` - Trust management
+
+3. **Build Up Integration Tests:**
+   * Combine unit tests into integration tests
+   * Test complete workflows from test-plan.adoc
+
+4. **Maintain Test Coverage:**
+   * Track which test plan cases are covered
+   * Aim for 100% coverage of Phase 1 requirements
+
+== Resources
+
+* **Test Plan:** `test-plan.adoc` - All test cases with acceptance criteria
+* **Requirements:** `srs.adoc` - Functional requirements
+* **Design:** `ddd.adoc` - Implementation details
+* **Qt Test Documentation:** https://doc.qt.io/qt-6/qttest-index.html
+
+== Revision History
+
+|===
+| Date | Version | Changes | Author
+| 2025-12-17 | 1.0 | Initial TDD implementation guide | AI Assistant
+|===
