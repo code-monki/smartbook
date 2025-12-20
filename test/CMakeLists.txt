@@ -112,6 +112,22 @@ if(QT_TEST_AVAILABLE)
         smartbook_common
     )
     add_test(NAME TestManifestManager COMMAND test_manifestmanager)
+    
+    # test_cartridgedbconnector
+    add_executable(test_cartridgedbconnector
+        unit/test_cartridgedbconnector.cpp
+    )
+    set_target_properties(test_cartridgedbconnector PROPERTIES AUTOMOC ON)
+    target_include_directories(test_cartridgedbconnector PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+    )
+    target_link_libraries(test_cartridgedbconnector PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        smartbook_common
+    )
+    add_test(NAME TestCartridgeDBConnector COMMAND test_cartridgedbconnector)
 endif()
 
 # Integration tests

@@ -2,6 +2,7 @@
 #include <QSqlError>
 #include <QDebug>
 #include <QUuid>
+#include <QDateTime>
 
 namespace smartbook {
 namespace common {
@@ -124,6 +125,67 @@ void CartridgeDBConnector::configureConnection() {
     if (!query.exec("PRAGMA busy_timeout=5000")) {
         qWarning() << "Failed to set busy timeout:" << query.lastError().text();
     }
+    
+    // Create User_Data table if it doesn't exist
+    query.exec(R"(
+        CREATE TABLE IF NOT EXISTS User_Data (
+            data_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            form_id TEXT NOT NULL,
+            data_json TEXT NOT NULL,
+            saved_timestamp INTEGER NOT NULL,
+            UNIQUE(form_id)
+        )
+    )");
+}
+
+bool CartridgeDBConnector::saveFormData(const QString& formId, const QString& dataJson)
+{
+    if (!m_isOpen || !m_database.isOpen()) {
+        qWarning() << "Cannot save form data: cartridge not open";
+        return false;
+    }
+    
+    QSqlQuery query(m_database);
+    
+    // Use INSERT OR REPLACE to handle updates
+    query.prepare(R"(
+        INSERT OR REPLACE INTO User_Data (form_id, data_json, saved_timestamp)
+        VALUES (?, ?, ?)
+    )");
+    
+    query.addBindValue(formId);
+    query.addBindValue(dataJson);
+    query.addBindValue(QDateTime::currentSecsSinceEpoch());
+    
+    if (!query.exec()) {
+        qCritical() << "Failed to save form data:" << query.lastError().text();
+        return false;
+    }
+    
+    return true;
+}
+
+QString CartridgeDBConnector::loadFormData(const QString& formId)
+{
+    if (!m_isOpen || !m_database.isOpen()) {
+        qWarning() << "Cannot load form data: cartridge not open";
+        return QString();
+    }
+    
+    QSqlQuery query(m_database);
+    query.prepare("SELECT data_json FROM User_Data WHERE form_id = ?");
+    query.addBindValue(formId);
+    
+    if (!query.exec()) {
+        qWarning() << "Failed to load form data:" << query.lastError().text();
+        return QString();
+    }
+    
+    if (query.next()) {
+        return query.value(0).toString();
+    }
+    
+    return QString(); // Not found
 }
 
 } // namespace database

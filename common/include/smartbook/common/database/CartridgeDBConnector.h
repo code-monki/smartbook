@@ -36,6 +36,11 @@ public:
      * @brief Close the cartridge database connection
      */
     void closeConnection();
+    
+    /**
+     * @brief Close cartridge (alias for closeConnection for consistency)
+     */
+    void closeCartridge() { closeConnection(); }
 
     /**
      * @brief Check if cartridge is open
@@ -79,6 +84,21 @@ public:
      * @return Reference to the QSqlDatabase
      */
     QSqlDatabase& getDatabase();
+
+    /**
+     * @brief Save form data to User_Data table
+     * @param formId Form identifier
+     * @param dataJson JSON string containing form data
+     * @return true if saved successfully, false otherwise
+     */
+    bool saveFormData(const QString& formId, const QString& dataJson);
+
+    /**
+     * @brief Load form data from User_Data table
+     * @param formId Form identifier
+     * @return JSON string containing form data, or empty string if not found
+     */
+    QString loadFormData(const QString& formId);
 
 private:
     void configureConnection();
