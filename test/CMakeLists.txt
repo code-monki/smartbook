@@ -144,6 +144,23 @@ if(QT_TEST_AVAILABLE)
         smartbook_common
     )
     add_test(NAME TestManifestDeletion COMMAND test_manifestmanager_deletion)
+    
+    # test_signatureverifier
+    add_executable(test_signatureverifier
+        unit/test_signatureverifier.cpp
+    )
+    set_target_properties(test_signatureverifier PROPERTIES AUTOMOC ON)
+    target_include_directories(test_signatureverifier PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+    )
+    target_link_libraries(test_signatureverifier PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        Qt6::Network
+        smartbook_common
+    )
+    add_test(NAME TestSignatureVerifier COMMAND test_signatureverifier)
 endif()
 
 # Integration tests
