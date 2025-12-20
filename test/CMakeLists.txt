@@ -64,7 +64,7 @@ endif()
 
 # Find Qt6 Test and Sql
 find_package(Qt6 COMPONENTS Test Sql)
-if(Qt6Test_FOUND && Qt6Sql_FOUND)
+if(Qt6Test_FOUND AND Qt6Sql_FOUND)
     message(STATUS "Qt6 Test and Sql found - unit tests enabled")
     set(QT_TEST_AVAILABLE TRUE)
 else()
