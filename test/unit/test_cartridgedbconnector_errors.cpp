@@ -49,9 +49,14 @@ void TestCartridgeDBConnectorErrors::cleanupTestCase()
 
 QString TestCartridgeDBConnectorErrors::createValidCartridge(const QString& guid)
 {
-    QString path = m_tempDir->filePath("valid_cartridge.sqlite");
+    // Use unique filename per GUID to avoid conflicts
+    QString filename = QString("cartridge_%1.sqlite").arg(guid.left(8));
+    QString path = m_tempDir->filePath(filename);
     
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "ValidCartridge");
+    // Use unique connection name per cartridge
+    QString connectionName = QString("ValidCartridge_%1").arg(guid.left(8));
+    
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", connectionName);
     db.setDatabaseName(path);
     
     if (!db.open()) {
@@ -77,7 +82,7 @@ QString TestCartridgeDBConnectorErrors::createValidCartridge(const QString& guid
     query.exec();
     
     db.close();
-    QSqlDatabase::removeDatabase("ValidCartridge");
+    QSqlDatabase::removeDatabase(connectionName);
     
     return path;
 }
@@ -181,12 +186,21 @@ void TestCartridgeDBConnectorErrors::testMultipleOpenClose()
     
     // Reopen first cartridge and verify its data is preserved
     connector.closeCartridge();
+    QVERIFY(!connector.isOpen());
+    
     bool reopened1 = connector.openCartridge(path1);
     QVERIFY(reopened1);
+    QVERIFY(connector.isOpen());
+    
+    // Verify we get the correct GUID from the first cartridge
     QString retrievedGuid1Again = connector.getCartridgeGuid();
-    QCOMPARE(retrievedGuid1Again, guid1); // Should get same GUID
+    QVERIFY(!retrievedGuid1Again.isEmpty());
+    // The GUID should match what we stored in the first cartridge
+    QCOMPARE(retrievedGuid1Again, guid1);
+    
+    // Verify data isolation - first cartridge should still have its original data
     QString loaded1 = connector.loadFormData(formId);
-    QCOMPARE(loaded1, data1); // Should still have original data
+    QCOMPARE(loaded1, data1); // Should still have original data, not data2
 }
 
 QTEST_MAIN(TestCartridgeDBConnectorErrors)
