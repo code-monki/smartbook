@@ -80,25 +80,38 @@ endif()
 if(QT_TEST_AVAILABLE)
     enable_testing()
     
-    # Common library unit tests
-    add_executable(test_common_unit
+    # Common library unit tests - separate executables for each test file
+    # test_localdbmanager
+    add_executable(test_localdbmanager
         unit/test_localdbmanager.cpp
-        unit/test_manifestmanager.cpp
     )
-    # Enable Qt MOC for test files
-    set_target_properties(test_common_unit PROPERTIES
-        AUTOMOC ON
-    )
-    target_include_directories(test_common_unit PRIVATE
+    set_target_properties(test_localdbmanager PROPERTIES AUTOMOC ON)
+    target_include_directories(test_localdbmanager PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
     )
-    target_link_libraries(test_common_unit PRIVATE
+    target_link_libraries(test_localdbmanager PRIVATE
         Qt6::Test
         Qt6::Core
         Qt6::Sql
         smartbook_common
     )
-    add_test(NAME CommonUnitTests COMMAND test_common_unit)
+    add_test(NAME TestLocalDBManager COMMAND test_localdbmanager)
+    
+    # test_manifestmanager
+    add_executable(test_manifestmanager
+        unit/test_manifestmanager.cpp
+    )
+    set_target_properties(test_manifestmanager PROPERTIES AUTOMOC ON)
+    target_include_directories(test_manifestmanager PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+    )
+    target_link_libraries(test_manifestmanager PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        smartbook_common
+    )
+    add_test(NAME TestManifestManager COMMAND test_manifestmanager)
 endif()
 
 # Integration tests
