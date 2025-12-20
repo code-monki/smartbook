@@ -93,7 +93,58 @@ QString TestSignatureVerifier::createL1Cartridge(const QString& guid)
     // For L1, we need a CA-signed certificate
     // In a real implementation, this would be a valid CA-signed certificate
     // For testing, we'll create a placeholder that indicates L1 level
+    
+    // Create minimal content tables so H2 hash can be calculated
+    query.exec(R"(
+        CREATE TABLE IF NOT EXISTS Content_Pages (
+            page_id INTEGER PRIMARY KEY,
+            content_html TEXT
+        )
+    )");
+    query.exec("INSERT INTO Content_Pages (page_id, content_html) VALUES (1, '<p>Test content</p>')");
+    
+    query.exec(R"(
+        CREATE TABLE IF NOT EXISTS Content_Themes (
+            theme_id TEXT PRIMARY KEY,
+            theme_config_json TEXT
+        )
+    )");
+    
+    query.exec(R"(
+        CREATE TABLE IF NOT EXISTS Embedded_Apps (
+            app_id TEXT PRIMARY KEY,
+            app_name TEXT
+        )
+    )");
+    
+    query.exec(R"(
+        CREATE TABLE IF NOT EXISTS Form_Definitions (
+            form_id TEXT PRIMARY KEY,
+            form_json TEXT
+        )
+    )");
+    
+    query.exec(R"(
+        CREATE TABLE IF NOT EXISTS Settings (
+            setting_key TEXT PRIMARY KEY,
+            setting_value TEXT
+        )
+    )");
+    
+    query.exec(R"(
+        CREATE TABLE IF NOT EXISTS Cartridge_Security (
+            security_id INTEGER PRIMARY KEY,
+            hash_digest BLOB,
+            certificate_data BLOB,
+            signature_data BLOB
+        )
+    )");
+    
+    // Calculate H2 hash from the content we just created
+    // For testing, we'll calculate it after creating content
+    // But for now, we'll use a placeholder and skip integrity check in test
     QByteArray certData = "CA_SIGNED_CERTIFICATE_PLACEHOLDER";
+    // Use a placeholder hash - the test will need to handle this
     QByteArray hashData = QByteArray::fromHex("a1b2c3d4e5f6");
     
     query.prepare("INSERT INTO Cartridge_Security (hash_digest, certificate_data) VALUES (?, ?)");
@@ -210,14 +261,32 @@ void TestSignatureVerifier::testL1CommercialTrust()
     QVERIFY(!cartridgePath.isEmpty());
     QVERIFY(QFile::exists(cartridgePath));
     
+    // Calculate actual H2 hash from the cartridge we created
+    QByteArray h2Hash = verifier.calculateContentHash(cartridgePath);
+    QVERIFY(!h2Hash.isEmpty());
+    
+    // Update the cartridge with the correct H1 hash (should match H2 for non-tampered)
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "UpdateH1");
+    db.setDatabaseName(cartridgePath);
+    if (db.open()) {
+        QSqlQuery updateQuery(db);
+        updateQuery.prepare("UPDATE Cartridge_Security SET hash_digest = ?");
+        updateQuery.addBindValue(h2Hash);
+        updateQuery.exec();
+        db.close();
+    }
+    QSqlDatabase::removeDatabase("UpdateH1");
+    
     // Verify cartridge - should detect L1 level
     VerificationResult result = verifier.verifyCartridge(cartridgePath, guid);
     
     // For L1 cartridges, the effective policy should be WHITELISTED
     // This means requestAppConsent() would return TRUE immediately
     QCOMPARE(result.securityLevel, SecurityLevel::LEVEL_1);
-    QCOMPARE(result.effectivePolicy, TrustPolicy::WHITELISTED);
     QVERIFY(!result.isTampered);
+    
+    // Verify the policy is WHITELISTED (L1 should bypass consent)
+    QCOMPARE(result.effectivePolicy, TrustPolicy::WHITELISTED);
 }
 
 QTEST_MAIN(TestSignatureVerifier)

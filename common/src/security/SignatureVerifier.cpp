@@ -156,6 +156,12 @@ bool SignatureVerifier::phase2_Integrity(const QString& cartridgePath, const QBy
         return false;
     }
 
+    // If H1 is empty (no security table for L3), then not tampered
+    if (h1Hash.isEmpty()) {
+        isTampered = false;
+        return true;
+    }
+
     isTampered = (h1Hash != h2Hash);
     return true;
 }

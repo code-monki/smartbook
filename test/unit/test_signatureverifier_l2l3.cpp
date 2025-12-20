@@ -78,6 +78,43 @@ QString TestSignatureVerifierL2L3::createL2Cartridge(const QString& guid)
     query.addBindValue("2025");
     query.exec();
     
+    // Create minimal content tables for H2 calculation
+    query.exec(R"(
+        CREATE TABLE IF NOT EXISTS Content_Pages (
+            page_id INTEGER PRIMARY KEY,
+            content_html TEXT
+        )
+    )");
+    query.exec("INSERT INTO Content_Pages (page_id, content_html) VALUES (1, '<p>L2 content</p>')");
+    
+    query.exec(R"(
+        CREATE TABLE IF NOT EXISTS Content_Themes (
+            theme_id TEXT PRIMARY KEY,
+            theme_config_json TEXT
+        )
+    )");
+    
+    query.exec(R"(
+        CREATE TABLE IF NOT EXISTS Embedded_Apps (
+            app_id TEXT PRIMARY KEY,
+            app_name TEXT
+        )
+    )");
+    
+    query.exec(R"(
+        CREATE TABLE IF NOT EXISTS Form_Definitions (
+            form_id TEXT PRIMARY KEY,
+            form_json TEXT
+        )
+    )");
+    
+    query.exec(R"(
+        CREATE TABLE IF NOT EXISTS Settings (
+            setting_key TEXT PRIMARY KEY,
+            setting_value TEXT
+        )
+    )");
+    
     query.exec(R"(
         CREATE TABLE IF NOT EXISTS Cartridge_Security (
             security_id INTEGER PRIMARY KEY,
@@ -88,6 +125,7 @@ QString TestSignatureVerifierL2L3::createL2Cartridge(const QString& guid)
     )");
     
     // L2 has self-signed certificate (no CA_SIGNED marker)
+    // Hash will be updated after H2 calculation
     QByteArray certData = "SELF_SIGNED_CERTIFICATE_PLACEHOLDER";
     QByteArray hashData = QByteArray::fromHex("b2c3d4e5f6a1");
     
@@ -131,6 +169,43 @@ QString TestSignatureVerifierL2L3::createL3Cartridge(const QString& guid)
     query.addBindValue("2025");
     query.exec();
     
+    // Create minimal content tables for H2 calculation
+    query.exec(R"(
+        CREATE TABLE IF NOT EXISTS Content_Pages (
+            page_id INTEGER PRIMARY KEY,
+            content_html TEXT
+        )
+    )");
+    query.exec("INSERT INTO Content_Pages (page_id, content_html) VALUES (1, '<p>L3 content</p>')");
+    
+    query.exec(R"(
+        CREATE TABLE IF NOT EXISTS Content_Themes (
+            theme_id TEXT PRIMARY KEY,
+            theme_config_json TEXT
+        )
+    )");
+    
+    query.exec(R"(
+        CREATE TABLE IF NOT EXISTS Embedded_Apps (
+            app_id TEXT PRIMARY KEY,
+            app_name TEXT
+        )
+    )");
+    
+    query.exec(R"(
+        CREATE TABLE IF NOT EXISTS Form_Definitions (
+            form_id TEXT PRIMARY KEY,
+            form_json TEXT
+        )
+    )");
+    
+    query.exec(R"(
+        CREATE TABLE IF NOT EXISTS Settings (
+            setting_key TEXT PRIMARY KEY,
+            setting_value TEXT
+        )
+    )");
+    
     // L3 has no security table (unsigned)
     
     db.close();
@@ -152,13 +227,28 @@ void TestSignatureVerifierL2L3::testL2InitialConsent()
     QVERIFY(!cartridgePath.isEmpty());
     QVERIFY(QFile::exists(cartridgePath));
     
+    // Calculate H2 and update H1 to match (for non-tampered test)
+    QByteArray h2Hash = verifier.calculateContentHash(cartridgePath);
+    QVERIFY(!h2Hash.isEmpty());
+    
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "UpdateL2H1");
+    db.setDatabaseName(cartridgePath);
+    if (db.open()) {
+        QSqlQuery updateQuery(db);
+        updateQuery.prepare("UPDATE Cartridge_Security SET hash_digest = ?");
+        updateQuery.addBindValue(h2Hash);
+        updateQuery.exec();
+        db.close();
+    }
+    QSqlDatabase::removeDatabase("UpdateL2H1");
+    
     // Verify cartridge - should detect L2 level and require consent
     VerificationResult result = verifier.verifyCartridge(cartridgePath, guid);
     
     // For L2 cartridges, the effective policy should be CONSENT_REQUIRED
     QCOMPARE(result.securityLevel, SecurityLevel::LEVEL_2);
-    QCOMPARE(result.effectivePolicy, TrustPolicy::CONSENT_REQUIRED);
     QVERIFY(!result.isTampered);
+    QCOMPARE(result.effectivePolicy, TrustPolicy::CONSENT_REQUIRED);
 }
 
 void TestSignatureVerifierL2L3::testL3InitialConsent()
@@ -170,13 +260,16 @@ void TestSignatureVerifierL2L3::testL3InitialConsent()
     QVERIFY(!cartridgePath.isEmpty());
     QVERIFY(QFile::exists(cartridgePath));
     
+    // L3 has no H1 hash (no security table), so H2 calculation should work
+    // and isTampered should be false (no H1 to compare against)
+    
     // Verify cartridge - should detect L3 level and require consent
     VerificationResult result = verifier.verifyCartridge(cartridgePath, guid);
     
     // For L3 cartridges, the effective policy should be CONSENT_REQUIRED
     QCOMPARE(result.securityLevel, SecurityLevel::LEVEL_3);
+    QVERIFY(!result.isTampered); // L3 has no H1, so can't be tampered
     QCOMPARE(result.effectivePolicy, TrustPolicy::CONSENT_REQUIRED);
-    QVERIFY(!result.isTampered);
 }
 
 QTEST_MAIN(TestSignatureVerifierL2L3)
