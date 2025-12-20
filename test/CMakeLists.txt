@@ -194,6 +194,39 @@ if(QT_TEST_AVAILABLE)
     )
     add_test(NAME TestTrustRegistry COMMAND test_trustregistry)
     
+    # test_signatureverifier_tampering
+    add_executable(test_signatureverifier_tampering
+        unit/test_signatureverifier_tampering.cpp
+    )
+    set_target_properties(test_signatureverifier_tampering PROPERTIES AUTOMOC ON)
+    target_include_directories(test_signatureverifier_tampering PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/unit
+    )
+    target_link_libraries(test_signatureverifier_tampering PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        smartbook_common
+    )
+    add_test(NAME TestSignatureVerifierTampering COMMAND test_signatureverifier_tampering)
+    
+    # test_manifestmanager_update
+    add_executable(test_manifestmanager_update
+        unit/test_manifestmanager_update.cpp
+    )
+    set_target_properties(test_manifestmanager_update PROPERTIES AUTOMOC ON)
+    target_include_directories(test_manifestmanager_update PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+    )
+    target_link_libraries(test_manifestmanager_update PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        smartbook_common
+    )
+    add_test(NAME TestManifestUpdate COMMAND test_manifestmanager_update)
+    
     # Test helpers library (shared by multiple test executables)
     add_library(test_helpers STATIC
         unit/test_helpers.cpp
