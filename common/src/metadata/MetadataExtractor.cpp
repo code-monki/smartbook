@@ -1,4 +1,5 @@
 #include "smartbook/common/metadata/MetadataExtractor.h"
+#include <QDir>
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QFileInfo>
