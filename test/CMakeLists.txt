@@ -184,6 +184,7 @@ if(QT_TEST_AVAILABLE)
     set_target_properties(test_trustregistry PROPERTIES AUTOMOC ON)
     target_include_directories(test_trustregistry PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/unit
     )
     target_link_libraries(test_trustregistry PRIVATE
         Qt6::Test
@@ -192,6 +193,18 @@ if(QT_TEST_AVAILABLE)
         smartbook_common
     )
     add_test(NAME TestTrustRegistry COMMAND test_trustregistry)
+    
+    # Test helpers library (shared by multiple test executables)
+    add_library(test_helpers STATIC
+        unit/test_helpers.cpp
+    )
+    target_include_directories(test_helpers PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/unit
+    )
+    target_link_libraries(test_helpers PRIVATE
+        Qt6::Core
+        Qt6::Sql
+    )
 endif()
 
 # Integration tests
