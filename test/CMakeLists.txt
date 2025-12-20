@@ -128,6 +128,22 @@ if(QT_TEST_AVAILABLE)
         smartbook_common
     )
     add_test(NAME TestCartridgeDBConnector COMMAND test_cartridgedbconnector)
+    
+    # test_manifestmanager_deletion
+    add_executable(test_manifestmanager_deletion
+        unit/test_manifestmanager_deletion.cpp
+    )
+    set_target_properties(test_manifestmanager_deletion PROPERTIES AUTOMOC ON)
+    target_include_directories(test_manifestmanager_deletion PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+    )
+    target_link_libraries(test_manifestmanager_deletion PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        smartbook_common
+    )
+    add_test(NAME TestManifestDeletion COMMAND test_manifestmanager_deletion)
 endif()
 
 # Integration tests
