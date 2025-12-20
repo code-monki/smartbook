@@ -1,4 +1,5 @@
 #include "test_helpers.h"
+#include <QSqlError>
 #include <QDebug>
 
 namespace TestHelpers {
