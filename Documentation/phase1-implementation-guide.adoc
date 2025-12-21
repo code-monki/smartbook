@@ -451,15 +451,15 @@ The implementation should follow this priority order to ensure dependencies are 
 **Test Cases:** T-CT-27 through T-CT-30
 
 ==== Metadata and Resource Management
-[ ] Implement `MetadataEditor` class
-  [ ] Metadata field editing (title, author, publisher, etc.)
-  [ ] Cover image import and management
-  [ ] GUID generation (UUID v4)
-  [ ] Schema version management
-[ ] Implement resource management
-  [ ] Asset import (images, files)
-  [ ] Resource storage in `Resources` table
-  [ ] Resource reference management
+[x] Implement `MetadataEditor` class
+  [x] Metadata field editing (title, author, publisher, etc.)
+  [x] Cover image import and management
+  [x] GUID generation (UUID v4)
+  [x] Schema version management
+[x] Implement resource management
+  [x] Asset import (images, files)
+  [x] Resource storage in `Resources` table
+  [x] Resource reference management
 
 **Reference:** DDD Section 3 (Cartridge Schema), SRS FR-CT-3.20 through FR-CT-3.26
 
