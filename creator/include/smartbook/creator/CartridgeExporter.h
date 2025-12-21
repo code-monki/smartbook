@@ -37,6 +37,14 @@ public:
     bool signCartridge(const QString& cartridgePath, const QString& certificatePath,
                       const QString& privateKeyPath, int securityLevel);
 
+    /**
+     * @brief Package content pages from source cartridge to target cartridge
+     * @param sourceCartridgePath Path to source cartridge (where content is)
+     * @param targetCartridgePath Path to target cartridge (where to copy)
+     * @return true if packaging successful, false otherwise
+     */
+    bool packageContentPages(const QString& sourceCartridgePath, const QString& targetCartridgePath);
+
 signals:
     void exportProgress(int percentage);
     void exportComplete(bool success, const QString& errorMessage);
