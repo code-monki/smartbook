@@ -144,6 +144,7 @@ test-results/
 *.test
 
 # Documentation build artifacts
+Documentation/*.html
 Documentation/html/
 Documentation/pdf/
 Documentation/_build/
