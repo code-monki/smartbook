@@ -98,9 +98,10 @@ void TestDatabaseErrors::testInvalidPathHandling()
     QString invalidPath = "/nonexistent/path/database.sqlite";
     
     // Should handle gracefully - either create directory or return false
-    bool initialized = dbManager.initializeConnection(invalidPath);
     // May succeed if parent directory can be created, or fail if not
     // The key is that it doesn't crash
+    dbManager.initializeConnection(invalidPath);
+    // Test passes if no crash occurs - actual result depends on system permissions
 }
 
 void TestDatabaseErrors::testConcurrentAccess()
