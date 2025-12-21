@@ -1,0 +1,98 @@
+= ISBN/ISSN Lookup Options - Free APIs
+:author: AI Assistant
+:revdate: 2025-12-17
+:doctype: article
+:toc: left
+:toclevels: 2
+:sectnums:
+
+== Overview
+
+This document summarizes free, no-cost options for retrieving ISBN and ISSN information for use in the Smartbook Creator Tool.
+
+== ISBN Lookup Options
+
+=== Open Library API (Recommended)
+
+* **URL:** `https://openlibrary.org/api/volumes/brief/isbn/{ISBN}.json`
+* **Cost:** Free, no API key required
+* **Data Provided:** Title, author, publisher, publication date, cover images, description
+* **Documentation:** https://openlibrary.org/dev/docs/api/read[Open Library API Documentation]
+* **Example:**
++
+[source,text]
+----
+GET https://openlibrary.org/api/volumes/brief/isbn/9780140328721.json
+----
+* **Limitations:** Rate limits may apply (check documentation)
+
+=== ISBN Validation API
+
+* **URL:** `https://aaapis.com/api/v1/validate/isbn/`
+* **Cost:** Free tier available
+* **Data Provided:** ISBN validation and basic metadata
+* **Documentation:** https://aaapis.com/validate-isbn-api/[ISBN Validation API]
+* **Note:** Primarily for validation, may have limited metadata
+
+=== ISBN Ranges API
+
+* **URL:** `https://isbnbarcode.org/api/isbn-ranges.json`
+* **Cost:** Free
+* **Data Provided:** ISBN range data for validation and hyphenation
+* **Documentation:** https://isbnbarcode.org/blog/free-isbn-ranges-api[ISBN Ranges API]
+* **Note:** For validation/hyphenation, not metadata lookup
+
+== ISSN Lookup Options
+
+=== ISSN Python Package / Official ISSN API
+
+* **Package:** `issn` (Python)
+* **API:** Uses official ISSN API
+* **Cost:** Free
+* **Data Provided:** Publication details based on ISSN
+* **Documentation:** https://pypi.org/project/issn/[ISSN Python Package]
+* **Note:** Python package, may need to wrap in C++/Qt or use HTTP directly
+
+=== ISSN Portal (Web-based)
+
+* **URL:** https://portal.issn.org/[ISSN Portal]
+* **Cost:** Free for basic lookups
+* **Data Provided:** Publication metadata, title, publisher, dates
+* **Note:** May require web scraping or checking for API availability
+
+== Implementation Recommendations
+
+=== For Creator Tool Integration
+
+. **Primary Choice: Open Library API for ISBN**
+   * Most comprehensive free option
+   * Good metadata coverage
+   * No API key required
+   * Well-documented
+
+. **ISSN Lookup:**
+   * Investigate official ISSN API endpoints
+   * Consider Python wrapper if needed
+   * May need to implement HTTP client in Qt/C++
+
+. **Implementation Approach:**
+   * Add "Lookup ISBN" / "Lookup ISSN" buttons in Metadata Editor
+   * Make HTTP requests to APIs (Qt QNetworkAccessManager)
+   * Parse JSON responses
+   * Populate metadata fields (title, author, publisher, publication_year)
+   * Allow manual editing after lookup
+   * Handle errors gracefully (invalid ISBN/ISSN, network errors, API unavailable)
+
+. **Error Handling:**
+   * Validate ISBN/ISSN format before lookup
+   * Handle network timeouts
+   * Handle API rate limits
+   * Handle missing/invalid responses
+   * Provide user feedback on lookup status
+
+== Notes
+
+* All APIs are subject to rate limits and availability
+* Consider caching lookup results locally
+* Provide fallback to manual entry if APIs are unavailable
+* ISBN/ISSN lookup should be optional, not required

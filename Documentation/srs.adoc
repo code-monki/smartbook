@@ -1058,6 +1058,85 @@ Both applications are documented in a single SRS document as they are tightly co
 
 * **FR-SERIES-10.12 (Grouping Performance):** Series, edition, and custom collection views SHALL load and display within performance requirements (NFR-3.1: < 500ms for library display). Grouping operations SHALL rely on manifest data and local grouping tables, not cartridge file parsing.
 
+== Magazine Collection Support Requirements (FR-MAG)
+
+=== Content Type Distinction
+
+* **FR-MAG-11.1 (Content Type Metadata):** The cartridge `Metadata` table SHALL support a `content_type` field that distinguishes between "book" and "magazine" content types. The content type SHALL be set at cartridge creation and SHALL determine the organizational structure and TOC generation method.
+
+* **FR-MAG-11.2 (Book Structure):** For cartridges with `content_type = "book"`, the content SHALL be organized as a linear sequence of pages with optional chapter grouping using the `chapter_title` field in `Content_Pages`. The TOC SHALL be generated from chapters and page headings as specified in FR-2.8.2.
+
+* **FR-MAG-11.3 (Magazine Structure):** For cartridges with `content_type = "magazine"`, the content SHALL be organized hierarchically as: Cartridge → Issues → Articles → Pages. The TOC SHALL be generated from issues grouped by publication year in chronological order, with articles listed within each issue.
+
+=== Issue Management
+
+* **FR-MAG-11.4 (Issue Table):** The cartridge database SHALL include an `Issues` table that stores issue metadata including: issue identifier, issue number, publication date, issue title, and optional cover image reference.
+
+* **FR-MAG-11.5 (Issue Creation):** The Creator Tool SHALL provide functionality to create and manage issues within magazine cartridges, including setting issue number, publication date, and issue title.
+
+* **FR-MAG-11.6 (Issue Ordering):** Issues SHALL be ordered chronologically by publication date. The Reader SHALL display issues in chronological order, grouped by publication year.
+
+* **FR-MAG-11.7 (Issue Metadata):** Each issue SHALL support optional metadata including: ISSN (International Standard Serial Number), volume number, issue number, publication date, and issue-specific cover image.
+
+=== Article Management
+
+* **FR-MAG-11.8 (Article Table):** The cartridge database SHALL include an `Articles` table that stores article metadata including: article identifier, article title, author(s), department/category, issue reference, article order within issue, and optional article abstract.
+
+* **FR-MAG-11.9 (Article Creation):** The Creator Tool SHALL provide functionality to create and manage articles within issues, including setting article title, author(s), department/category, and article order.
+
+* **FR-MAG-11.10 (Article-Page Association):** The `Content_Pages` table SHALL support an optional `article_id` foreign key that links pages to articles. For magazine cartridges, pages SHALL be associated with articles. For book cartridges, `article_id` SHALL be NULL.
+
+* **FR-MAG-11.11 (Article Ordering):** Articles within an issue SHALL be ordered by the `article_order` field in the `Articles` table. The Reader SHALL display articles in order within each issue.
+
+* **FR-MAG-11.12 (Article Metadata):** Each article SHALL support metadata including: title, author(s), department/category, article order, optional abstract, and optional keywords/tags.
+
+=== Magazine Table of Contents
+
+* **FR-MAG-11.13 (Magazine TOC Structure):** For magazine cartridges, the table of contents SHALL be organized as: Publication Year → Issues (chronological) → Articles → Pages. The TOC SHALL group issues by publication year and display issues in chronological order within each year.
+
+* **FR-MAG-11.14 (Magazine TOC Generation):** The Reader SHALL generate the magazine TOC by:
+  a. Querying `Issues` table, grouping by publication year
+  b. For each year, ordering issues chronologically by publication date
+  c. For each issue, querying `Articles` table ordered by `article_order`
+  d. For each article, listing associated pages from `Content_Pages` where `article_id` matches
+
+* **FR-MAG-11.15 (Magazine TOC Display):** The magazine TOC SHALL display:
+  a. Publication years as top-level nodes (collapsible/expandable)
+  b. Issues within each year (chronological order)
+  c. Articles within each issue (ordered by `article_order`)
+  d. Pages within each article (ordered by `page_order`)
+  e. Click navigation to any level (year → issue → article → page)
+
+=== Magazine Navigation
+
+* **FR-MAG-11.16 (Browse by Issue):** The Reader SHALL support browsing magazine content by issue, allowing users to navigate directly to a specific issue and view all articles within that issue.
+
+* **FR-MAG-11.17 (Browse by Article):** The Reader SHALL support browsing magazine content by article, allowing users to navigate directly to a specific article and view all pages within that article.
+
+* **FR-MAG-11.18 (Browse by Department):** The Reader SHALL support browsing magazine content by department/category, allowing users to view all articles within a specific department across all issues.
+
+* **FR-MAG-11.19 (Issue Navigation):** The Reader SHALL provide navigation controls to move between issues (previous issue, next issue) and between articles within an issue (previous article, next article).
+
+=== Creator Tool Magazine Support
+
+* **FR-MAG-11.20 (Content Type Selection):** The Creator Tool SHALL allow users to select content type ("book" or "magazine") when creating a new cartridge. The content type SHALL be stored in the `Metadata.content_type` field.
+
+* **FR-MAG-11.21 (Issue Management UI):** The Creator Tool SHALL provide a user interface for managing issues in magazine cartridges, including: creating issues, editing issue metadata, deleting issues, and reordering issues.
+
+* **FR-MAG-11.22 (Article Management UI):** The Creator Tool SHALL provide a user interface for managing articles in magazine cartridges, including: creating articles, editing article metadata, associating articles with issues, deleting articles, and reordering articles within issues.
+
+* **FR-MAG-11.23 (Page-Article Association):** The Creator Tool SHALL provide functionality to associate pages with articles in magazine cartridges. When creating or editing pages in a magazine cartridge, users SHALL be able to select which article the page belongs to.
+
+* **FR-MAG-11.24 (Magazine TOC Preview):** The Creator Tool SHALL provide a preview of the magazine TOC structure, showing how issues, articles, and pages will be organized and displayed in the Reader.
+
+=== ISBN/ISSN Support
+
+* **FR-MAG-11.25 (ISBN Support):** The Creator Tool SHALL support entering and storing ISBN (International Standard Book Number) for book cartridges in the `Metadata` table. ISBN SHALL be optional and SHALL be validated for format correctness.
+
+* **FR-MAG-11.26 (ISSN Support):** The Creator Tool SHALL support entering and storing ISSN (International Standard Serial Number) for magazine cartridges in the `Issues` table. ISSN SHALL be optional and SHALL be validated for format correctness.
+
+* **FR-MAG-11.27 (ISBN/ISSN Lookup):** The Creator Tool SHALL provide optional functionality to lookup book/article metadata using ISBN/ISSN from free public APIs (e.g., Open Library API for ISBN, ISSN API for ISSN). Lookup results SHALL populate relevant metadata fields but SHALL allow manual editing.
+
 == Data Structures (Reference)
 
 This section references the detailed definition of the project's data structures, which are fully defined in the Detailed Design Document (DDD).

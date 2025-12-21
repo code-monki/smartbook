@@ -52,6 +52,11 @@ The following tables define the structure of the Smartbook Cartridge (`.sqlite` 
 | `tags_json` | TEXT | | JSON array of descriptive tags/subjects.
 | `cover_image_path` | TEXT | | Relative path to the front cover image file.
 | `schema_version` | TEXT | NOT NULL | Smartbook Format Specification version (e.g., "1.0").
+| `content_type` | TEXT | NOT NULL, DEFAULT "book" | Content type: "book" or "magazine". Determines organizational structure and TOC generation method.
+| `isbn` | TEXT | | ISBN (International Standard Book Number) for book cartridges. Optional, validated for format.
+| `series_name` | TEXT | | Series name for grouping related cartridges (e.g., "Lensman Series").
+| `edition_name` | TEXT | | Edition name for grouping variant cartridges (e.g., "D&D 5th Edition").
+| `series_order` | INTEGER | | Order within series for proper sequencing.
 |===
 
 === `Content_Pages` Table
@@ -62,7 +67,8 @@ The following tables define the structure of the Smartbook Cartridge (`.sqlite` 
 
 | `page_id` | INTEGER | PRIMARY KEY | Unique ID for the page.
 | `page_order` | INTEGER | NOT NULL, UNIQUE | Order of the page in the book structure.
-| `chapter_title` | TEXT | | Title of the chapter/section this page belongs to.
+| `chapter_title` | TEXT | | Title of the chapter/section this page belongs to. Used for book cartridges.
+| `article_id` | TEXT | | Foreign key to `Articles.article_id`. Used for magazine cartridges to associate pages with articles. NULL for book cartridges.
 | `html_content` | TEXT | NOT NULL | The primary HTML body content.
 | `associated_css` | TEXT | | Inline CSS or reference to a style sheet. This CSS controls the **structure** of the page (layout, positioning, spacing, margins, borders, display properties, etc.). Color and font styling is controlled by content themes (see `Content_Themes` table).
 |===
@@ -214,6 +220,43 @@ The following tables define the structure of the Smartbook Cartridge (`.sqlite` 
 | `certificate_data` | BLOB | | The X.509 certificate (DER or PEM format) used for signing. Required for Level 1 (CA-signed) and Level 2 (self-signed) cartridges.
 |===
 
+=== `Issues` Table
+
+[cols="2, ^1, ^3, 4"]
+|===
+^.^| Column Name ^.^| SQLite Type ^.^| Constraints ^.^| Description
+
+| `issue_id` | TEXT | PRIMARY KEY | Unique identifier for the issue (e.g., "2025-01" or UUID).
+| `issue_number` | TEXT | NOT NULL | Issue number or identifier (e.g., "Volume 1, Issue 1" or "January 2025").
+| `publication_date` | TEXT | NOT NULL | Publication date in ISO 8601 format (YYYY-MM-DD) for chronological ordering.
+| `issue_title` | TEXT | | Optional issue title or theme.
+| `issn` | TEXT | | ISSN (International Standard Serial Number) for the magazine. Optional, validated for format.
+| `cover_image_path` | TEXT | | Optional reference to issue-specific cover image (resource_id in Resources table).
+| `volume_number` | INTEGER | | Optional volume number for multi-volume magazines.
+| `metadata_json` | TEXT | | Optional JSON object containing additional issue metadata.
+|===
+
+**Purpose:** Stores issue metadata for magazine cartridges. Issues are organized chronologically by publication date and grouped by publication year in the TOC.
+
+=== `Articles` Table
+
+[cols="2, ^1, ^3, 4"]
+|===
+^.^| Column Name ^.^| SQLite Type ^.^| Constraints ^.^| Description
+
+| `article_id` | TEXT | PRIMARY KEY | Unique identifier for the article (UUID v4 recommended).
+| `issue_id` | TEXT | NOT NULL | Foreign key to `Issues.issue_id`. Links article to its issue.
+| `article_title` | TEXT | NOT NULL | Title of the article.
+| `author` | TEXT | | Author name(s) for the article. May be comma-separated for multiple authors.
+| `department` | TEXT | | Department or category (e.g., "Technology", "Politics", "Arts").
+| `article_order` | INTEGER | NOT NULL | Order of the article within its issue. Determines display order.
+| `abstract` | TEXT | | Optional article abstract or summary.
+| `keywords_json` | TEXT | | Optional JSON array of keywords or tags for the article.
+| `metadata_json` | TEXT | | Optional JSON object containing additional article metadata.
+|===
+
+**Purpose:** Stores article metadata for magazine cartridges. Articles are organized within issues and ordered by `article_order`. Pages are linked to articles via `Content_Pages.article_id`.
+
 === `Navigation_Structure` Table
 
 [cols="2, ^1, ^3, 4"]
@@ -225,12 +268,14 @@ The following tables define the structure of the Smartbook Cartridge (`.sqlite` 
 | `group_order` | INTEGER | NOT NULL | Display order of the navigation group (lower numbers appear first).
 | `item_label` | TEXT | NOT NULL | Display label for the menu item.
 | `item_order` | INTEGER | NOT NULL | Display order of the item within its group.
-| `target_type` | TEXT | NOT NULL | Type of navigation target: `page_id`, `anchor_id`, `page_and_anchor`, `custom_handler`.
+| `target_type` | TEXT | NOT NULL | Type of navigation target: `page_id`, `anchor_id`, `page_and_anchor`, `custom_handler`, `issue_id`, `article_id`.
 | `target_value` | TEXT | NOT NULL | Navigation target value:
   * For `page_id`: The page_id to navigate to
   * For `anchor_id`: The anchor ID (assumes current page)
   * For `page_and_anchor`: Format "page_id#anchor_id"
   * For `custom_handler`: Custom JavaScript handler identifier
+  * For `issue_id`: The issue_id to navigate to (magazine cartridges)
+  * For `article_id`: The article_id to navigate to (magazine cartridges)
 | `parent_item_id` | INTEGER | | Optional parent item ID for hierarchical navigation (sub-menus). NULL for top-level items.
 | `metadata_json` | TEXT | | Optional JSON object containing additional metadata (e.g., icon path, tooltip, filter criteria for Browse navigation).
 |===
@@ -1272,6 +1317,10 @@ This section defines how content navigation, table of contents, bookmarking, and
 
 **TOC Generation Algorithm:**
 
+The TOC generation method depends on the `content_type` field in the `Metadata` table:
+
+**For Book Cartridges (`content_type = "book"`):**
+
 . **Primary Structure (Chapters):**
    a. Query `SELECT DISTINCT chapter_title, MIN(page_order) as first_page_order FROM Content_Pages WHERE chapter_title IS NOT NULL GROUP BY chapter_title ORDER BY first_page_order`
    b. For each chapter, query pages: `SELECT page_id, page_order FROM Content_Pages WHERE chapter_title = ? ORDER BY page_order`
@@ -1282,6 +1331,25 @@ This section defines how content navigation, table of contents, bookmarking, and
    b. Extract heading text and ID (or generate ID if missing)
    c. Create nested structure based on heading hierarchy
    d. Apply depth limit (default: 2 levels, configurable 1-3)
+
+**For Magazine Cartridges (`content_type = "magazine"`):**
+
+. **Primary Structure (Publication Years):**
+   a. Query `SELECT DISTINCT strftime('%Y', publication_date) as year FROM Issues ORDER BY year DESC`
+   b. For each year, create TOC entry: `{ "type": "year", "title": year, "children": [...] }`
+
+. **Secondary Structure (Issues within Year):**
+   a. For each year, query `SELECT issue_id, issue_number, issue_title, publication_date FROM Issues WHERE strftime('%Y', publication_date) = ? ORDER BY publication_date ASC`
+   b. For each issue, create TOC entry: `{ "type": "issue", "title": issue_number, "issue_id": issue_id, "children": [...] }`
+
+. **Tertiary Structure (Articles within Issue):**
+   a. For each issue, query `SELECT article_id, article_title, article_order FROM Articles WHERE issue_id = ? ORDER BY article_order ASC`
+   b. For each article, query pages: `SELECT page_id, page_order FROM Content_Pages WHERE article_id = ? ORDER BY page_order`
+   c. Create TOC entry: `{ "type": "article", "title": article_title, "article_id": article_id, "page_id": first_page_id, "children": [...] }`
+
+. **Quaternary Structure (Pages within Article):**
+   a. For each article, list pages ordered by `page_order`
+   b. Parse HTML content for heading elements to create nested structure (optional, same as book headings)
 
 . **TOC Structure:**
 [source,json]
