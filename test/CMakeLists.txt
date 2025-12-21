@@ -435,6 +435,58 @@ if(QT_TEST_AVAILABLE)
     )
     add_test(NAME TestContentEditorPageManagerIntegration COMMAND test_contenteditor_pagemanager_integration)
     
+    # test_formbuilder
+    add_executable(test_formbuilder
+        unit/test_formbuilder.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/src/FormBuilder.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/src/FormManager.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/include/smartbook/creator/FormBuilder.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/include/smartbook/creator/FormManager.h
+    )
+    set_target_properties(test_formbuilder PROPERTIES AUTOMOC ON)
+    target_include_directories(test_formbuilder PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/include
+    )
+    target_link_libraries(test_formbuilder PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        Qt6::Gui
+        Qt6::Widgets
+        smartbook_common
+    )
+    add_test(NAME TestFormBuilder COMMAND test_formbuilder)
+    
+    # test_contenteditor_form_integration
+    add_executable(test_contenteditor_form_integration
+        unit/test_contenteditor_form_integration.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/src/ContentEditor.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/src/FormBuilder.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/src/FormManager.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/src/PageManager.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/include/smartbook/creator/ContentEditor.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/include/smartbook/creator/FormBuilder.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/include/smartbook/creator/FormManager.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/include/smartbook/creator/PageManager.h
+    )
+    set_target_properties(test_contenteditor_form_integration PROPERTIES AUTOMOC ON)
+    target_include_directories(test_contenteditor_form_integration PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/include
+    )
+    target_link_libraries(test_contenteditor_form_integration PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        Qt6::Gui
+        Qt6::Widgets
+        Qt6::WebEngine
+        Qt6::WebChannel
+        smartbook_common
+    )
+    add_test(NAME TestContentEditorFormIntegration COMMAND test_contenteditor_form_integration)
+    
     # test_manifestmanager_errors
     add_executable(test_manifestmanager_errors
         unit/test_manifestmanager_errors.cpp

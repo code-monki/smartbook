@@ -297,6 +297,30 @@ void ContentEditor::setupEditorHTML() {
             document.execCommand('redo', false, null);
             notifyContentChanged();
         };
+        
+        window.insertFormMarker = function(formId) {
+            var markerHtml = '<div data-smartbook-form="' + formId + '"></div>';
+            var selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                var range = selection.getRangeAt(0);
+                range.deleteContents();
+                var div = document.createElement('div');
+                div.innerHTML = markerHtml;
+                var fragment = document.createDocumentFragment();
+                while (div.firstChild) {
+                    fragment.appendChild(div.firstChild);
+                }
+                range.insertNode(fragment);
+                notifyContentChanged();
+            } else {
+                // Insert at end if no selection
+                var editor = document.getElementById('editor');
+                if (editor) {
+                    editor.innerHTML += markerHtml;
+                    notifyContentChanged();
+                }
+            }
+        };
     </script>
 </body>
 </html>)";
@@ -459,6 +483,19 @@ bool ContentEditor::saveToPage(PageManager* pageManager, int pageId) {
     
     QString content = getContentForSave();
     return pageManager->updatePageContent(pageId, content);
+}
+
+bool ContentEditor::insertFormMarker(const QString& formId) {
+    if (formId.isEmpty()) {
+        qWarning() << "Cannot insert form marker: formId is empty";
+        return false;
+    }
+    
+    QString marker = QString(R"(<div data-smartbook-form="%1"></div>)").arg(formId);
+    QString script = QString("insertFormMarker('%1');").arg(marker);
+    executeJavaScript(script);
+    emit contentChanged();
+    return true;
 }
 
 } // namespace creator

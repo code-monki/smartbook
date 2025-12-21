@@ -435,16 +435,16 @@ The implementation should follow this priority order to ensure dependencies are 
 **Test Cases:** T-CT-01 through T-CT-09
 
 ==== Form Builder
-[ ] Implement `FormBuilder` class
-  [ ] Visual form builder interface
-  [ ] Form field creation (text, number, select, etc.)
-  [ ] Validation rule configuration
-  [ ] Form schema validation (JSON Schema)
-  [ ] Form definition storage
-[ ] Implement form integration
-  [ ] Form marker insertion in content
-  [ ] Form preview
-  [ ] Form definition JSON generation
+[x] Implement `FormBuilder` class
+  [x] Visual form builder interface
+  [x] Form field creation (text, number, select, etc.)
+  [x] Validation rule configuration
+  [x] Form schema validation (JSON Schema)
+  [x] Form definition storage
+[x] Implement form integration
+  [x] Form marker insertion in content
+  [x] Form preview
+  [x] Form definition JSON generation
 
 **Reference:** DDD Section 2.1 (Form Definition JSON Schema), SRS FR-CT-3.16 through FR-CT-3.19
 

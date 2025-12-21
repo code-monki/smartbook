@@ -58,6 +58,13 @@ public:
      * @return true if saved successfully
      */
     bool saveToPage(PageManager* pageManager, int pageId);
+    
+    /**
+     * @brief Insert form marker into content at cursor position
+     * @param formId Form identifier
+     * @return true if inserted successfully
+     */
+    bool insertFormMarker(const QString& formId);
 
     /**
      * @brief Toggle HTML editing mode

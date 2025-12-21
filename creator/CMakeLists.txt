@@ -89,6 +89,7 @@ set(CREATOR_SOURCES
     src/ContentEditor.cpp
     src/PageManager.cpp
     src/FormBuilder.cpp
+    src/FormManager.cpp
     src/CartridgeExporter.cpp
     # src/ui/MainWindow.cpp  # TODO: Implement MainWindow UI
     # src/ui/ContentEditorView.cpp  # TODO: Implement ContentEditorView
@@ -102,6 +103,7 @@ set(CREATOR_HEADERS
     include/smartbook/creator/ContentEditor.h
     include/smartbook/creator/PageManager.h
     include/smartbook/creator/FormBuilder.h
+    include/smartbook/creator/FormManager.h
     include/smartbook/creator/CartridgeExporter.h
     include/smartbook/creator/ui/MainWindow.h
     include/smartbook/creator/ui/ContentEditorView.h
