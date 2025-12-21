@@ -2,7 +2,10 @@
 #include "smartbook/reader/ui/ReaderView.h"
 #include "smartbook/reader/WebChannelBridge.h"
 #include "smartbook/common/database/CartridgeDBConnector.h"
+#include "smartbook/common/database/LocalDBManager.h"
+#include "smartbook/common/manifest/ManifestManager.h"
 #include <QCloseEvent>
+#include <QSqlQuery>
 #include <QDebug>
 #include <QApplication>
 
@@ -37,12 +40,42 @@ void ReaderViewWindow::setupUI() {
 }
 
 void ReaderViewWindow::loadCartridge() {
-    // TODO: Implement cartridge loading with security verification
-    // 1. Verify cartridge signature
+    // Get cartridge path from manifest
+    common::database::LocalDBManager& dbManager = 
+        common::database::LocalDBManager::getInstance();
+    
+    if (!dbManager.isOpen()) {
+        emit onError("Local database not open");
+        return;
+    }
+    
+    // Query manifest for cartridge path
+    QSqlQuery query(dbManager.getDatabase());
+    query.prepare("SELECT local_path FROM Local_Library_Manifest WHERE cartridge_guid = ?");
+    query.addBindValue(m_cartridgeGuid);
+    
+    if (!query.exec() || !query.next()) {
+        emit onError("Cartridge not found in manifest: " + m_cartridgeGuid);
+        return;
+    }
+    
+    QString cartridgePath = query.value(0).toString();
+    
+    if (cartridgePath.isEmpty()) {
+        emit onError("Cartridge path is empty for: " + m_cartridgeGuid);
+        return;
+    }
+    
+    // TODO: Implement security verification
+    // 1. Verify cartridge signature (SignatureVerifier)
     // 2. Check trust registry
-    // 3. Show consent dialog if needed
+    // 3. Show consent dialog if needed (L2/L3 cartridges)
     // 4. Load content
-    qDebug() << "Loading cartridge:" << m_cartridgeGuid;
+    
+    // For now, load content directly (with cartridge GUID for settings)
+    if (m_readerView) {
+        m_readerView->loadCartridge(cartridgePath, m_cartridgeGuid);
+    }
 }
 
 void ReaderViewWindow::onContentLoaded() {

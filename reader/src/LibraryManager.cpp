@@ -7,6 +7,8 @@
 #include <QAction>
 #include <QStatusBar>
 #include <QMessageBox>
+#include <QSqlQuery>
+#include <QSqlError>
 #include <QDebug>
 
 namespace smartbook {
@@ -78,6 +80,48 @@ void LibraryManager::loadLibrary() {
     if (m_libraryView) {
         m_libraryView->refreshLibrary();
     }
+}
+
+QList<CartridgeInfo> LibraryManager::loadLibraryData()
+{
+    QList<CartridgeInfo> cartridges;
+    
+    common::database::LocalDBManager& dbManager = common::database::LocalDBManager::getInstance();
+    if (!dbManager.isOpen()) {
+        qWarning() << "Database not open for library load";
+        return cartridges;
+    }
+    
+    QSqlQuery query(dbManager.getDatabase());
+    query.prepare(R"(
+        SELECT cartridge_guid, title, author, publication_year, 
+               publisher, version, local_path, cover_image_data
+        FROM Local_Library_Manifest
+        ORDER BY title
+    )");
+    
+    if (!query.exec()) {
+        qWarning() << "Failed to load library:" << query.lastError().text();
+        return cartridges;
+    }
+    
+    while (query.next()) {
+        CartridgeInfo info;
+        info.cartridgeGuid = query.value(0).toString();
+        info.title = query.value(1).toString();
+        info.author = query.value(2).toString();
+        info.publicationYear = query.value(3).toString();
+        info.publisher = query.value(4).toString();
+        info.version = query.value(5).toString();
+        info.localPath = query.value(6).toString();
+        info.coverImageData = query.value(7).toByteArray();
+        
+        if (info.isValid()) {
+            cartridges.append(info);
+        }
+    }
+    
+    return cartridges;
 }
 
 void LibraryManager::openCartridge(const QString& cartridgeGuid) {

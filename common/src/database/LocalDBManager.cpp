@@ -175,6 +175,24 @@ bool LocalDBManager::createSchema() {
         return false;
     }
 
+    // Create Local_User_Settings table
+    QString userSettingsTable = R"(
+        CREATE TABLE IF NOT EXISTS Local_User_Settings (
+            settings_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cartridge_guid TEXT NOT NULL,
+            setting_key TEXT NOT NULL,
+            setting_value TEXT NOT NULL,
+            timestamp INTEGER NOT NULL,
+            FOREIGN KEY (cartridge_guid) REFERENCES Local_Library_Manifest(cartridge_guid),
+            UNIQUE(cartridge_guid, setting_key)
+        )
+    )";
+
+    if (!query.exec(userSettingsTable)) {
+        qCritical() << "Failed to create Local_User_Settings table:" << query.lastError().text();
+        return false;
+    }
+
     // Create indexes for performance
     query.exec("CREATE INDEX IF NOT EXISTS idx_manifest_guid ON Local_Library_Manifest(cartridge_guid)");
     query.exec("CREATE INDEX IF NOT EXISTS idx_trust_guid ON Local_Trust_Registry(cartridge_guid)");
@@ -182,6 +200,7 @@ bool LocalDBManager::createSchema() {
     query.exec("CREATE INDEX IF NOT EXISTS idx_members_group ON Local_Cartridge_Group_Members(group_id, cartridge_guid)");
     query.exec("CREATE INDEX IF NOT EXISTS idx_manifest_series ON Local_Library_Manifest(series_name)");
     query.exec("CREATE INDEX IF NOT EXISTS idx_manifest_edition ON Local_Library_Manifest(edition_name)");
+    query.exec("CREATE INDEX IF NOT EXISTS idx_user_settings_guid ON Local_User_Settings(cartridge_guid, setting_key)");
 
     return true;
 }

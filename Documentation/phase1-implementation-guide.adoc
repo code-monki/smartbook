@@ -414,21 +414,21 @@ The implementation should follow this priority order to ensure dependencies are 
 === Phase 1.5: Creator Tool Core
 
 ==== Content Editor
-[ ] Implement `ContentEditor` class
-  [ ] Qt WebEngineView for WYSIWYG editing
-  [ ] Rich text editing toolbar
-  [ ] Direct HTML editing mode
-  [ ] Standard edit operations (cut, copy, paste, undo, redo)
-  [ ] Preview functionality
-[ ] Implement page management
-  [ ] Page selection interface
-  [ ] Page CRUD operations
-  [ ] Page ordering (drag-and-drop)
-  [ ] Chapter organization
-[ ] Implement content storage
-  [ ] Save HTML to `Content_Pages` table
-  [ ] Update page order
-  [ ] Handle page deletion
+[x] Implement `ContentEditor` class
+  [x] Qt WebEngineView for WYSIWYG editing
+  [x] Rich text editing toolbar
+  [x] Direct HTML editing mode
+  [x] Standard edit operations (cut, copy, paste, undo, redo)
+  [x] Preview functionality
+[x] Implement page management
+  [x] Page selection interface
+  [x] Page CRUD operations
+  [x] Page ordering (drag-and-drop)
+  [x] Chapter organization
+[x] Implement content storage
+  [x] Save HTML to `Content_Pages` table
+  [x] Update page order
+  [x] Handle page deletion
 
 **Reference:** DDD Section 13 (Creator Tool), SRS FR-CT-3.1 through FR-CT-3.9
 

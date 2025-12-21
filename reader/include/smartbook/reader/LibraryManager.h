@@ -3,6 +3,9 @@
 
 #include <QMainWindow>
 #include <QWidget>
+#include <QList>
+#include <QString>
+#include <QByteArray>
 #include <memory>
 
 namespace smartbook {
@@ -10,6 +13,22 @@ namespace reader {
 
 class LibraryView;
 class ReaderViewWindow;
+
+/**
+ * @brief Cartridge information for library display
+ */
+struct CartridgeInfo {
+    QString cartridgeGuid;
+    QString title;
+    QString author;
+    QString publicationYear;
+    QString publisher;
+    QString version;
+    QString localPath;
+    QByteArray coverImageData;
+    
+    bool isValid() const { return !cartridgeGuid.isEmpty() && !title.isEmpty(); }
+};
 
 /**
  * @brief Main Library Manager window
@@ -29,6 +48,12 @@ public:
      * @param cartridgeGuid GUID of the cartridge to open
      */
     void openCartridge(const QString& cartridgeGuid);
+
+    /**
+     * @brief Load library from manifest
+     * @return List of cartridge metadata for display
+     */
+    QList<CartridgeInfo> loadLibraryData();
 
 private slots:
     void onImportCartridge();

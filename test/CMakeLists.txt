@@ -63,7 +63,18 @@ else()
 endif()
 
 # Find Qt6 Test and Sql
-find_package(Qt6 COMPONENTS Test Sql)
+find_package(Qt6 COMPONENTS Test Sql Gui Widgets)
+# Qt6WebEngine is a meta-package; find individual components if meta-package not available
+find_package(Qt6 COMPONENTS WebEngine QUIET)
+if(NOT Qt6WebEngine_FOUND)
+    # Fallback to individual WebEngine components
+    find_package(Qt6 REQUIRED COMPONENTS WebEngineCore WebEngineWidgets)
+    # Create alias for compatibility
+    if(TARGET Qt6::WebEngineCore AND TARGET Qt6::WebEngineWidgets)
+        add_library(Qt6::WebEngine INTERFACE IMPORTED)
+        target_link_libraries(Qt6::WebEngine INTERFACE Qt6::WebEngineCore Qt6::WebEngineWidgets)
+    endif()
+endif()
 if(Qt6Test_FOUND AND Qt6Sql_FOUND)
     message(STATUS "Qt6 Test and Sql found - unit tests enabled")
     set(QT_TEST_AVAILABLE TRUE)
@@ -274,6 +285,155 @@ if(QT_TEST_AVAILABLE)
         smartbook_common
     )
     add_test(NAME TestDatabaseErrors COMMAND test_database_errors)
+    
+    # test_librarymanager_performance
+    add_executable(test_librarymanager_performance
+        unit/test_librarymanager_performance.cpp
+    )
+    set_target_properties(test_librarymanager_performance PROPERTIES AUTOMOC ON)
+    target_include_directories(test_librarymanager_performance PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+    )
+    target_link_libraries(test_librarymanager_performance PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        smartbook_common
+    )
+    add_test(NAME TestLibraryManagerPerformance COMMAND test_librarymanager_performance)
+    
+    # test_libraryview_dualview
+    add_executable(test_libraryview_dualview
+        unit/test_libraryview_dualview.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/LibraryView.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/LibraryView.h
+    )
+    set_target_properties(test_libraryview_dualview PROPERTIES AUTOMOC ON)
+    target_include_directories(test_libraryview_dualview PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include
+    )
+    target_link_libraries(test_libraryview_dualview PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        Qt6::Gui
+        Qt6::Widgets
+        smartbook_common
+    )
+    add_test(NAME TestLibraryViewDualView COMMAND test_libraryview_dualview)
+    
+    # test_readerview_content
+    add_executable(test_readerview_content
+        unit/test_readerview_content.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ReaderView.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/WebChannelBridge.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ReaderView.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/WebChannelBridge.h
+    )
+    set_target_properties(test_readerview_content PROPERTIES AUTOMOC ON)
+    target_include_directories(test_readerview_content PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include
+    )
+    target_link_libraries(test_readerview_content PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        Qt6::Gui
+        Qt6::Widgets
+        Qt6::WebEngine
+        Qt6::WebChannel
+        smartbook_common
+    )
+    add_test(NAME TestReaderViewContent COMMAND test_readerview_content)
+    
+    # test_settings_manager
+    add_executable(test_settings_manager
+        unit/test_settings_manager.cpp
+    )
+    set_target_properties(test_settings_manager PROPERTIES AUTOMOC ON)
+    target_include_directories(test_settings_manager PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+    )
+    target_link_libraries(test_settings_manager PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        Qt6::Gui
+        Qt6::Widgets
+        smartbook_common
+    )
+    add_test(NAME TestSettingsManager COMMAND test_settings_manager)
+    
+    # test_contenteditor
+    add_executable(test_contenteditor
+        unit/test_contenteditor.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/src/ContentEditor.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/include/smartbook/creator/ContentEditor.h
+    )
+    set_target_properties(test_contenteditor PROPERTIES AUTOMOC ON)
+    target_include_directories(test_contenteditor PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/include
+    )
+    target_link_libraries(test_contenteditor PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        Qt6::Gui
+        Qt6::Widgets
+        Qt6::WebEngine
+        Qt6::WebChannel
+        smartbook_common
+    )
+    add_test(NAME TestContentEditor COMMAND test_contenteditor)
+    
+    # test_pagemanager
+    add_executable(test_pagemanager
+        unit/test_pagemanager.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/src/PageManager.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/include/smartbook/creator/PageManager.h
+    )
+    set_target_properties(test_pagemanager PROPERTIES AUTOMOC ON)
+    target_include_directories(test_pagemanager PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/include
+    )
+    target_link_libraries(test_pagemanager PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        Qt6::Gui
+        Qt6::Widgets
+        smartbook_common
+    )
+    add_test(NAME TestPageManager COMMAND test_pagemanager)
+    
+    # test_contenteditor_pagemanager_integration
+    add_executable(test_contenteditor_pagemanager_integration
+        unit/test_contenteditor_pagemanager_integration.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/src/ContentEditor.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/src/PageManager.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/include/smartbook/creator/ContentEditor.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/include/smartbook/creator/PageManager.h
+    )
+    set_target_properties(test_contenteditor_pagemanager_integration PROPERTIES AUTOMOC ON)
+    target_include_directories(test_contenteditor_pagemanager_integration PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/include
+    )
+    target_link_libraries(test_contenteditor_pagemanager_integration PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        Qt6::Gui
+        Qt6::Widgets
+        Qt6::WebEngine
+        Qt6::WebChannel
+        smartbook_common
+    )
+    add_test(NAME TestContentEditorPageManagerIntegration COMMAND test_contenteditor_pagemanager_integration)
     
     # test_manifestmanager_errors
     add_executable(test_manifestmanager_errors
