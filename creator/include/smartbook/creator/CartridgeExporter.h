@@ -45,6 +45,14 @@ public:
      */
     bool packageContentPages(const QString& sourceCartridgePath, const QString& targetCartridgePath);
 
+    /**
+     * @brief Package metadata from source cartridge to target cartridge
+     * @param sourceCartridgePath Path to source cartridge (where metadata is)
+     * @param targetCartridgePath Path to target cartridge (where to copy)
+     * @return true if packaging successful, false otherwise
+     */
+    bool packageMetadata(const QString& sourceCartridgePath, const QString& targetCartridgePath);
+
 signals:
     void exportProgress(int percentage);
     void exportComplete(bool success, const QString& errorMessage);

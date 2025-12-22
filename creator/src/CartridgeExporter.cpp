@@ -24,9 +24,15 @@ bool CartridgeExporter::exportCartridge(const QString& cartridgePath, const QHas
         return false;
     }
 
-    // Package content pages from source (same path) to target
+    // Package metadata from source (same path) to target
     // Note: In a real workflow, source might be a working file and target is the export
     // For now, we assume they're the same (exporting the current cartridge)
+    if (!packageMetadata(cartridgePath, cartridgePath)) {
+        qWarning() << "Failed to package metadata, but continuing export";
+        // Don't fail export if metadata packaging fails - might be a new cartridge
+    }
+
+    // Package content pages from source (same path) to target
     if (!packageContentPages(cartridgePath, cartridgePath)) {
         qWarning() << "Failed to package content pages, but continuing export";
         // Don't fail export if content packaging fails - might be a new cartridge
@@ -72,6 +78,8 @@ bool CartridgeExporter::createCartridgeSchema(const QString& cartridgePath) {
             tags_json TEXT,
             cover_image_path TEXT,
             schema_version TEXT NOT NULL,
+            content_type TEXT NOT NULL DEFAULT 'book',
+            isbn TEXT,
             series_name TEXT,
             edition_name TEXT,
             series_order INTEGER
@@ -323,6 +331,141 @@ bool CartridgeExporter::packageContentPages(const QString& sourceCartridgePath, 
     sourceConnector.closeCartridge();
     
     return success;
+}
+
+bool CartridgeExporter::packageMetadata(const QString& sourceCartridgePath, const QString& targetCartridgePath) {
+    // If source and target are the same, metadata is already in place
+    if (sourceCartridgePath == targetCartridgePath) {
+        qDebug() << "Source and target are the same, metadata already in place";
+        return true;
+    }
+    
+    // Open source cartridge
+    common::database::CartridgeDBConnector sourceConnector;
+    if (!sourceConnector.openCartridge(sourceCartridgePath)) {
+        qWarning() << "Failed to open source cartridge for metadata packaging:" << sourceCartridgePath;
+        return false;
+    }
+    
+    // Open target cartridge
+    QSqlDatabase targetDb = QSqlDatabase::addDatabase("QSQLITE", "CartridgeTarget");
+    targetDb.setDatabaseName(targetCartridgePath);
+    
+    if (!targetDb.open()) {
+        qCritical() << "Failed to open target cartridge for metadata packaging:" << targetDb.lastError().text();
+        sourceConnector.closeCartridge();
+        return false;
+    }
+    
+    // Read metadata from source
+    QSqlQuery sourceQuery(sourceConnector.getDatabase());
+    sourceQuery.prepare(R"(
+        SELECT cartridge_guid, title, author, publisher, version, publication_year,
+               tags_json, cover_image_path, schema_version, content_type, isbn,
+               series_name, edition_name, series_order
+        FROM Metadata
+        LIMIT 1
+    )");
+    
+    if (!sourceQuery.exec() || !sourceQuery.next()) {
+        qWarning() << "Failed to read metadata from source:" << sourceQuery.lastError().text();
+        targetDb.close();
+        QSqlDatabase::removeDatabase("CartridgeTarget");
+        sourceConnector.closeCartridge();
+        return false;
+    }
+    
+    // Extract all metadata fields
+    QString cartridgeGuid = sourceQuery.value(0).toString();
+    QString title = sourceQuery.value(1).toString();
+    QString author = sourceQuery.value(2).toString();
+    QString publisher = sourceQuery.value(3).toString();
+    QString version = sourceQuery.value(4).toString();
+    QString publicationYear = sourceQuery.value(5).toString();
+    QString tagsJson = sourceQuery.value(6).toString();
+    QString coverImagePath = sourceQuery.value(7).toString();
+    QString schemaVersion = sourceQuery.value(8).toString();
+    QString contentType = sourceQuery.value(9).toString();
+    QString isbn = sourceQuery.value(10).toString();
+    QString seriesName = sourceQuery.value(11).toString();
+    QString editionName = sourceQuery.value(12).toString();
+    QVariant seriesOrder = sourceQuery.value(13);
+    
+    // Check if metadata already exists in target
+    QSqlQuery checkQuery(targetDb);
+    checkQuery.prepare("SELECT COUNT(*) FROM Metadata WHERE cartridge_guid = ?");
+    checkQuery.addBindValue(cartridgeGuid);
+    checkQuery.exec();
+    checkQuery.next();
+    bool exists = checkQuery.value(0).toInt() > 0;
+    
+    // Insert or update metadata in target
+    QSqlQuery targetQuery(targetDb);
+    
+    if (exists) {
+        // Update existing metadata
+        targetQuery.prepare(R"(
+            UPDATE Metadata SET
+                title = ?, author = ?, publisher = ?, version = ?,
+                publication_year = ?, tags_json = ?, cover_image_path = ?,
+                schema_version = ?, content_type = ?, isbn = ?,
+                series_name = ?, edition_name = ?, series_order = ?
+            WHERE cartridge_guid = ?
+        )");
+        targetQuery.addBindValue(title);
+        targetQuery.addBindValue(author);
+        targetQuery.addBindValue(publisher);
+        targetQuery.addBindValue(version);
+        targetQuery.addBindValue(publicationYear);
+        targetQuery.addBindValue(tagsJson);
+        targetQuery.addBindValue(coverImagePath);
+        targetQuery.addBindValue(schemaVersion);
+        targetQuery.addBindValue(contentType.isEmpty() ? "book" : contentType); // Default to "book" if empty
+        targetQuery.addBindValue(isbn.isEmpty() ? QVariant() : isbn);
+        targetQuery.addBindValue(seriesName.isEmpty() ? QVariant() : seriesName);
+        targetQuery.addBindValue(editionName.isEmpty() ? QVariant() : editionName);
+        targetQuery.addBindValue(seriesOrder.isNull() ? QVariant() : seriesOrder);
+        targetQuery.addBindValue(cartridgeGuid);
+    } else {
+        // Insert new metadata
+        targetQuery.prepare(R"(
+            INSERT INTO Metadata (
+                cartridge_guid, title, author, publisher, version,
+                publication_year, tags_json, cover_image_path, schema_version,
+                content_type, isbn, series_name, edition_name, series_order
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        )");
+        targetQuery.addBindValue(cartridgeGuid);
+        targetQuery.addBindValue(title);
+        targetQuery.addBindValue(author);
+        targetQuery.addBindValue(publisher);
+        targetQuery.addBindValue(version);
+        targetQuery.addBindValue(publicationYear);
+        targetQuery.addBindValue(tagsJson);
+        targetQuery.addBindValue(coverImagePath);
+        targetQuery.addBindValue(schemaVersion);
+        targetQuery.addBindValue(contentType.isEmpty() ? "book" : contentType); // Default to "book" if empty
+        targetQuery.addBindValue(isbn.isEmpty() ? QVariant() : isbn);
+        targetQuery.addBindValue(seriesName.isEmpty() ? QVariant() : seriesName);
+        targetQuery.addBindValue(editionName.isEmpty() ? QVariant() : editionName);
+        targetQuery.addBindValue(seriesOrder.isNull() ? QVariant() : seriesOrder);
+    }
+    
+    if (!targetQuery.exec()) {
+        qWarning() << "Failed to insert/update metadata:" << targetQuery.lastError().text();
+        targetDb.close();
+        QSqlDatabase::removeDatabase("CartridgeTarget");
+        sourceConnector.closeCartridge();
+        return false;
+    }
+    
+    qDebug() << "Packaged metadata successfully";
+    
+    targetDb.close();
+    QSqlDatabase::removeDatabase("CartridgeTarget");
+    sourceConnector.closeCartridge();
+    
+    return true;
 }
 
 QByteArray CartridgeExporter::calculateContentHash(const QString& cartridgePath) {
