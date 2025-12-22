@@ -32,6 +32,12 @@ bool CartridgeExporter::exportCartridge(const QString& cartridgePath, const QHas
         // Don't fail export if metadata packaging fails - might be a new cartridge
     }
 
+    // Package resources from source (same path) to target
+    if (!packageResources(cartridgePath, cartridgePath)) {
+        qWarning() << "Failed to package resources, but continuing export";
+        // Don't fail export if resource packaging fails - might be a new cartridge
+    }
+
     // Package content pages from source (same path) to target
     if (!packageContentPages(cartridgePath, cartridgePath)) {
         qWarning() << "Failed to package content pages, but continuing export";
@@ -466,6 +472,87 @@ bool CartridgeExporter::packageMetadata(const QString& sourceCartridgePath, cons
     sourceConnector.closeCartridge();
     
     return true;
+}
+
+bool CartridgeExporter::packageResources(const QString& sourceCartridgePath, const QString& targetCartridgePath) {
+    // If source and target are the same, resources are already in place
+    if (sourceCartridgePath == targetCartridgePath) {
+        qDebug() << "Source and target are the same, resources already in place";
+        return true;
+    }
+    
+    // Open source cartridge
+    common::database::CartridgeDBConnector sourceConnector;
+    if (!sourceConnector.openCartridge(sourceCartridgePath)) {
+        qWarning() << "Failed to open source cartridge for resource packaging:" << sourceCartridgePath;
+        return false;
+    }
+    
+    // Open target cartridge
+    QSqlDatabase targetDb = QSqlDatabase::addDatabase("QSQLITE", "CartridgeTarget");
+    targetDb.setDatabaseName(targetCartridgePath);
+    
+    if (!targetDb.open()) {
+        qCritical() << "Failed to open target cartridge for resource packaging:" << targetDb.lastError().text();
+        sourceConnector.closeCartridge();
+        return false;
+    }
+    
+    // Read resources from source
+    QSqlQuery sourceQuery(sourceConnector.getDatabase());
+    sourceQuery.prepare("SELECT resource_id, resource_path, resource_type, resource_data, mime_type "
+                        "FROM Resources "
+                        "ORDER BY resource_id");
+    
+    if (!sourceQuery.exec()) {
+        qWarning() << "Failed to read resources from source:" << sourceQuery.lastError().text();
+        targetDb.close();
+        QSqlDatabase::removeDatabase("CartridgeTarget");
+        sourceConnector.closeCartridge();
+        return false;
+    }
+    
+    // Insert resources into target
+    QSqlQuery targetQuery(targetDb);
+    targetQuery.prepare(R"(
+        INSERT OR REPLACE INTO Resources (resource_id, resource_path, resource_type, resource_data, mime_type)
+        VALUES (?, ?, ?, ?, ?)
+    )");
+    
+    int resourceCount = 0;
+    bool success = true;
+    
+    while (sourceQuery.next()) {
+        QString resourceId = sourceQuery.value(0).toString();
+        QString resourcePath = sourceQuery.value(1).toString();
+        QString resourceType = sourceQuery.value(2).toString();
+        QByteArray resourceData = sourceQuery.value(3).toByteArray();
+        QString mimeType = sourceQuery.value(4).toString();
+        
+        targetQuery.addBindValue(resourceId);
+        targetQuery.addBindValue(resourcePath);
+        targetQuery.addBindValue(resourceType);
+        targetQuery.addBindValue(resourceData);
+        targetQuery.addBindValue(mimeType);
+        
+        if (!targetQuery.exec()) {
+            qWarning() << "Failed to insert resource:" << targetQuery.lastError().text();
+            success = false;
+            break;
+        }
+        
+        resourceCount++;
+    }
+    
+    if (success) {
+        qDebug() << "Packaged" << resourceCount << "resources";
+    }
+    
+    targetDb.close();
+    QSqlDatabase::removeDatabase("CartridgeTarget");
+    sourceConnector.closeCartridge();
+    
+    return success;
 }
 
 QByteArray CartridgeExporter::calculateContentHash(const QString& cartridgePath) {
