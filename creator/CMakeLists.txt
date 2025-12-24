@@ -117,6 +117,7 @@ set(CREATOR_HEADERS
     include/smartbook/creator/ui/ContentEditorView.h
     include/smartbook/creator/ui/FormBuilderDialog.h
     include/smartbook/creator/ui/PageListView.h
+    include/smartbook/creator/ui/CertificateManagerDialog.h
 )
 
 # Create executable
