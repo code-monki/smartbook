@@ -68,6 +68,7 @@ signals:
 private:
     bool createCartridgeSchema(const QString& cartridgePath);
     QByteArray calculateContentHash(const QString& cartridgePath);
+    QByteArray signHashWithPrivateKey(const QByteArray& hash, const QSslKey& privateKey);
 };
 
 } // namespace creator
