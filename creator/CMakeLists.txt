@@ -74,6 +74,12 @@ if(NOT Qt6WebEngine_FOUND)
     endif()
 endif()
 
+# Find OpenSSL for cryptographic signing
+find_package(OpenSSL REQUIRED)
+if(NOT OpenSSL_FOUND)
+    message(FATAL_ERROR "OpenSSL is required for cartridge signing functionality")
+endif()
+
 # Enable Qt MOC
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -131,6 +137,8 @@ target_link_libraries(smartbook-creator PRIVATE
     Qt6::WebEngine
     Qt6::WebChannel
     Qt6::Sql
+    OpenSSL::SSL
+    OpenSSL::Crypto
     smartbook_common
 )
 

@@ -11,7 +11,16 @@
 #include <QFileInfo>
 #include <QSslCertificate>
 #include <QSslKey>
+#include <QMetaType>
 #include <QDebug>
+
+// OpenSSL for cryptographic signing
+#include <openssl/evp.h>
+#include <openssl/pem.h>
+#include <openssl/rsa.h>
+#include <openssl/err.h>
+#include <openssl/bio.h>
+#include <cstring>
 
 namespace smartbook {
 namespace creator {
@@ -225,18 +234,8 @@ bool CartridgeExporter::signCartridge(const QString& cartridgePath, const QStrin
 }
 
 QByteArray CartridgeExporter::signHashWithPrivateKey(const QByteArray& hash, const QSslKey& privateKey) {
-    // Digital signature creation using private key
-    // This implementation requires OpenSSL EVP API for actual signing
-    // 
-    // For Phase 1, we implement the structure but actual signing requires:
-    // 1. OpenSSL to be linked (libssl, libcrypto)
-    // 2. Access to QSslKey's underlying EVP_PKEY handle
-    // 3. EVP_PKEY_sign_init, EVP_PKEY_CTX_set_rsa_padding, EVP_PKEY_sign calls
-    //
-    // TODO: Complete OpenSSL EVP integration for production signing
-    // 
-    // For now, we return a placeholder signature that indicates the structure is in place
-    // The actual cryptographic signing will be implemented when OpenSSL is properly integrated
+    // Digital signature creation using OpenSSL EVP API
+    // Signs the provided hash using the private key with RSA PKCS#1 padding and SHA-256
     
     if (privateKey.isNull() || hash.isEmpty()) {
         qWarning() << "Invalid private key or hash for signing";
@@ -249,21 +248,121 @@ QByteArray CartridgeExporter::signHashWithPrivateKey(const QByteArray& hash, con
         return QByteArray();
     }
     
-    // Placeholder: In production, this would use OpenSSL EVP API:
-    // 1. Get EVP_PKEY from QSslKey handle
-    // 2. Create EVP_PKEY_CTX
-    // 3. Initialize signing context
-    // 4. Set RSA padding (PKCS1) and hash algorithm (SHA-256)
-    // 5. Sign the hash
-    // 6. Return signature bytes
+    // Verify hash size (SHA-256 produces 32 bytes)
+    if (hash.size() != 32) {
+        qWarning() << "Hash size must be 32 bytes (SHA-256), got:" << hash.size();
+        return QByteArray();
+    }
     
-    qWarning() << "Digital signature creation requires OpenSSL EVP API integration";
-    qWarning() << "Returning placeholder - actual signing needs OpenSSL integration";
+    // Get private key data from QSslKey
+    // QSslKey doesn't directly expose EVP_PKEY, so we need to parse the key data
+    // Try PEM format first (most common)
+    QByteArray keyData = privateKey.toPem();
+    bool isPem = !keyData.isEmpty();
     
-    // Return a placeholder signature (32 bytes of zeros) for now
-    // This allows the structure to be tested, but actual verification will fail
-    // until proper OpenSSL signing is implemented
-    return QByteArray(256, 0); // Placeholder signature (typical RSA signature size)
+    if (!isPem) {
+        // Try DER format
+        keyData = privateKey.toDer();
+        if (keyData.isEmpty()) {
+            qWarning() << "Failed to extract key data from QSslKey";
+            return QByteArray();
+        }
+    }
+    
+    // Parse private key using OpenSSL BIO
+    BIO* bio = BIO_new_mem_buf(keyData.constData(), keyData.size());
+    if (!bio) {
+        qWarning() << "Failed to create BIO for key parsing";
+        return QByteArray();
+    }
+    
+    EVP_PKEY* evpKey = nullptr;
+    
+    // Try PEM format first
+    if (isPem) {
+        evpKey = PEM_read_bio_PrivateKey(bio, nullptr, nullptr, nullptr);
+    } else {
+        // Try DER format
+        evpKey = d2i_PrivateKey_bio(bio, nullptr);
+    }
+    
+    BIO_free(bio);
+    
+    if (!evpKey) {
+        qWarning() << "Failed to parse private key:" << ERR_error_string(ERR_get_error(), nullptr);
+        return QByteArray();
+    }
+    
+    // Create signing context
+    EVP_PKEY_CTX* ctx = EVP_PKEY_CTX_new(evpKey, nullptr);
+    if (!ctx) {
+        qWarning() << "Failed to create EVP_PKEY_CTX";
+        EVP_PKEY_free(evpKey);
+        return QByteArray();
+    }
+    
+    // Initialize signing
+    if (EVP_PKEY_sign_init(ctx) <= 0) {
+        qWarning() << "Failed to initialize signing:" << ERR_error_string(ERR_get_error(), nullptr);
+        EVP_PKEY_CTX_free(ctx);
+        EVP_PKEY_free(evpKey);
+        return QByteArray();
+    }
+    
+    // Set RSA padding to PKCS#1
+    if (EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_PADDING) <= 0) {
+        qWarning() << "Failed to set RSA padding:" << ERR_error_string(ERR_get_error(), nullptr);
+        EVP_PKEY_CTX_free(ctx);
+        EVP_PKEY_free(evpKey);
+        return QByteArray();
+    }
+    
+    // Set hash algorithm to SHA-256
+    if (EVP_PKEY_CTX_set_signature_md(ctx, EVP_sha256()) <= 0) {
+        qWarning() << "Failed to set signature hash algorithm:" << ERR_error_string(ERR_get_error(), nullptr);
+        EVP_PKEY_CTX_free(ctx);
+        EVP_PKEY_free(evpKey);
+        return QByteArray();
+    }
+    
+    // Determine signature length
+    size_t siglen = 0;
+    if (EVP_PKEY_sign(ctx, nullptr, &siglen, reinterpret_cast<const unsigned char*>(hash.constData()), hash.size()) <= 0) {
+        qWarning() << "Failed to determine signature length:" << ERR_error_string(ERR_get_error(), nullptr);
+        EVP_PKEY_CTX_free(ctx);
+        EVP_PKEY_free(evpKey);
+        return QByteArray();
+    }
+    
+    // Allocate signature buffer
+    unsigned char* sig = static_cast<unsigned char*>(OPENSSL_malloc(siglen));
+    if (!sig) {
+        qWarning() << "Failed to allocate signature buffer";
+        EVP_PKEY_CTX_free(ctx);
+        EVP_PKEY_free(evpKey);
+        return QByteArray();
+    }
+    
+    // Perform signing
+    if (EVP_PKEY_sign(ctx, sig, &siglen, reinterpret_cast<const unsigned char*>(hash.constData()), hash.size()) <= 0) {
+        qWarning() << "Failed to sign hash:" << ERR_error_string(ERR_get_error(), nullptr);
+        OPENSSL_free(sig);
+        EVP_PKEY_CTX_free(ctx);
+        EVP_PKEY_free(evpKey);
+        return QByteArray();
+    }
+    
+    // Copy signature to QByteArray
+    QByteArray signature(reinterpret_cast<const char*>(sig), static_cast<int>(siglen));
+    
+    // Cleanup
+    OPENSSL_free(sig);
+    EVP_PKEY_CTX_free(ctx);
+    EVP_PKEY_free(evpKey);
+    
+    qDebug() << "Successfully signed hash, signature size:" << signature.size() << "bytes";
+    
+    return signature;
 }
 
 bool CartridgeExporter::createCartridgeSchema(const QString& cartridgePath) {
@@ -841,15 +940,15 @@ QByteArray CartridgeExporter::calculateContentHash(const QString& cartridgePath)
                 if (value.isNull()) {
                     rowData.append('\0'); // NULL marker
                 } else {
-                    QVariant::Type type = value.type();
-                    if (type == QVariant::String || type == QVariant::ByteArray) {
+                    QMetaType type = value.metaType();
+                    if (type.id() == QMetaType::QString || type.id() == QMetaType::QByteArray) {
                         // TEXT or BLOB: UTF-8 for text, raw bytes for BLOB
-                        if (type == QVariant::String) {
+                        if (type.id() == QMetaType::QString) {
                             rowData.append(value.toString().toUtf8());
                         } else {
                             rowData.append(value.toByteArray());
                         }
-                    } else if (type == QVariant::Int || type == QVariant::LongLong) {
+                    } else if (type.id() == QMetaType::Int || type.id() == QMetaType::LongLong) {
                         // INTEGER: 8-byte big-endian
                         qint64 intValue = value.toLongLong();
                         QByteArray intBytes(8, 0);

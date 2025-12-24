@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QObject>
+#include <QSslKey>
 
 namespace smartbook {
 namespace creator {
