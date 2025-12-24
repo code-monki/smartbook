@@ -97,6 +97,7 @@ set(CREATOR_SOURCES
     src/FormBuilder.cpp
     src/FormManager.cpp
     src/CartridgeExporter.cpp
+    src/CertificateManager.cpp
     # src/ui/MainWindow.cpp  # TODO: Implement MainWindow UI
     # src/ui/ContentEditorView.cpp  # TODO: Implement ContentEditorView
     src/ui/FormBuilderDialog.cpp
@@ -111,6 +112,7 @@ set(CREATOR_HEADERS
     include/smartbook/creator/FormBuilder.h
     include/smartbook/creator/FormManager.h
     include/smartbook/creator/CartridgeExporter.h
+    include/smartbook/creator/CertificateManager.h
     include/smartbook/creator/ui/MainWindow.h
     include/smartbook/creator/ui/ContentEditorView.h
     include/smartbook/creator/ui/FormBuilderDialog.h
