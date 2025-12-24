@@ -70,6 +70,14 @@ private:
     bool createCartridgeSchema(const QString& cartridgePath);
     QByteArray calculateContentHash(const QString& cartridgePath);
     QByteArray signHashWithPrivateKey(const QByteArray& hash, const QSslKey& privateKey);
+    
+    // Validation methods
+    bool validateExport(const QString& cartridgePath, QString& errorMessage);
+    bool validateRequiredMetadata(const QString& cartridgePath, QString& errorMessage);
+    bool validateSchema(const QString& cartridgePath, QString& errorMessage);
+    bool validateContent(const QString& cartridgePath, QString& errorMessage);
+    bool validateExportedFile(const QString& cartridgePath, QString& errorMessage);
+    bool isValidUuidV4(const QString& uuid);
 };
 
 } // namespace creator

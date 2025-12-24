@@ -12,6 +12,8 @@
 #include <QSslCertificate>
 #include <QSslKey>
 #include <QMetaType>
+#include <QUuid>
+#include <QRegularExpression>
 #include <QDebug>
 
 // OpenSSL for cryptographic signing
@@ -33,11 +35,16 @@ CartridgeExporter::CartridgeExporter(QObject* parent)
 bool CartridgeExporter::exportCartridge(const QString& cartridgePath, const QHash<QString, QVariant>& /* metadata */) {
     qDebug() << "Exporting cartridge to:" << cartridgePath;
     
+    emit exportProgress(10);
+    
     // Create cartridge database
     if (!createCartridgeSchema(cartridgePath)) {
-        emit exportComplete(false, "Failed to create cartridge schema");
+        QString error = "Failed to create cartridge schema";
+        emit exportComplete(false, error);
         return false;
     }
+
+    emit exportProgress(20);
 
     // Package metadata from source (same path) to target
     // Note: In a real workflow, source might be a working file and target is the export
@@ -47,16 +54,42 @@ bool CartridgeExporter::exportCartridge(const QString& cartridgePath, const QHas
         // Don't fail export if metadata packaging fails - might be a new cartridge
     }
 
+    emit exportProgress(40);
+
     // Package resources from source (same path) to target
     if (!packageResources(cartridgePath, cartridgePath)) {
         qWarning() << "Failed to package resources, but continuing export";
         // Don't fail export if resource packaging fails - might be a new cartridge
     }
 
+    emit exportProgress(60);
+
     // Package content pages from source (same path) to target
     if (!packageContentPages(cartridgePath, cartridgePath)) {
         qWarning() << "Failed to package content pages, but continuing export";
         // Don't fail export if content packaging fails - might be a new cartridge
+    }
+    
+    emit exportProgress(80);
+    
+    // Validate export before completing
+    QString validationError;
+    if (!validateExport(cartridgePath, validationError)) {
+        QString error = QString("Export validation failed: %1").arg(validationError);
+        qCritical() << error;
+        emit exportComplete(false, error);
+        return false;
+    }
+    
+    emit exportProgress(90);
+    
+    // Final validation: verify exported file can be opened
+    QString fileValidationError;
+    if (!validateExportedFile(cartridgePath, fileValidationError)) {
+        QString error = QString("Exported file validation failed: %1").arg(fileValidationError);
+        qCritical() << error;
+        emit exportComplete(false, error);
+        return false;
     }
     
     emit exportProgress(100);
@@ -989,6 +1022,308 @@ QByteArray CartridgeExporter::calculateContentHash(const QString& cartridgePath)
     QSqlDatabase::removeDatabase("HashCalc");
     
     return finalHash.result();
+}
+
+bool CartridgeExporter::validateExport(const QString& cartridgePath, QString& errorMessage) {
+    // Run all validation checks
+    if (!validateRequiredMetadata(cartridgePath, errorMessage)) {
+        return false;
+    }
+    
+    if (!validateSchema(cartridgePath, errorMessage)) {
+        return false;
+    }
+    
+    if (!validateContent(cartridgePath, errorMessage)) {
+        return false;
+    }
+    
+    return true;
+}
+
+bool CartridgeExporter::validateRequiredMetadata(const QString& cartridgePath, QString& errorMessage) {
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "ValidateMetadata");
+    db.setDatabaseName(cartridgePath);
+    
+    if (!db.open()) {
+        errorMessage = QString("Failed to open cartridge for validation: %1").arg(db.lastError().text());
+        return false;
+    }
+    
+    QSqlQuery query(db);
+    
+    // Check if Metadata table exists
+    if (!query.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='Metadata'")) {
+        errorMessage = "Metadata table does not exist";
+        db.close();
+        QSqlDatabase::removeDatabase("ValidateMetadata");
+        return false;
+    }
+    
+    if (!query.next()) {
+        errorMessage = "Metadata table does not exist";
+        db.close();
+        QSqlDatabase::removeDatabase("ValidateMetadata");
+        return false;
+    }
+    
+    // Read metadata
+    query.prepare("SELECT cartridge_guid, title, author, schema_version, publication_year, version FROM Metadata LIMIT 1");
+    if (!query.exec() || !query.next()) {
+        errorMessage = "No metadata found in cartridge";
+        db.close();
+        QSqlDatabase::removeDatabase("ValidateMetadata");
+        return false;
+    }
+    
+    QString cartridgeGuid = query.value(0).toString();
+    QString title = query.value(1).toString();
+    QString author = query.value(2).toString();
+    QString schemaVersion = query.value(3).toString();
+    QString publicationYear = query.value(4).toString();
+    QString version = query.value(5).toString();
+    
+    // Validate required fields
+    if (cartridgeGuid.isEmpty()) {
+        errorMessage = "Required metadata field missing: cartridge_guid";
+        db.close();
+        QSqlDatabase::removeDatabase("ValidateMetadata");
+        return false;
+    }
+    
+    if (!isValidUuidV4(cartridgeGuid)) {
+        errorMessage = QString("Invalid cartridge_guid format (must be UUID v4): %1").arg(cartridgeGuid);
+        db.close();
+        QSqlDatabase::removeDatabase("ValidateMetadata");
+        return false;
+    }
+    
+    if (title.isEmpty()) {
+        errorMessage = "Required metadata field missing: title";
+        db.close();
+        QSqlDatabase::removeDatabase("ValidateMetadata");
+        return false;
+    }
+    
+    if (author.isEmpty()) {
+        errorMessage = "Required metadata field missing: author";
+        db.close();
+        QSqlDatabase::removeDatabase("ValidateMetadata");
+        return false;
+    }
+    
+    if (schemaVersion.isEmpty()) {
+        errorMessage = "Required metadata field missing: schema_version";
+        db.close();
+        QSqlDatabase::removeDatabase("ValidateMetadata");
+        return false;
+    }
+    
+    if (publicationYear.isEmpty()) {
+        errorMessage = "Required metadata field missing: publication_year";
+        db.close();
+        QSqlDatabase::removeDatabase("ValidateMetadata");
+        return false;
+    }
+    
+    if (version.isEmpty()) {
+        errorMessage = "Required metadata field missing: version";
+        db.close();
+        QSqlDatabase::removeDatabase("ValidateMetadata");
+        return false;
+    }
+    
+    db.close();
+    QSqlDatabase::removeDatabase("ValidateMetadata");
+    
+    return true;
+}
+
+bool CartridgeExporter::validateSchema(const QString& cartridgePath, QString& errorMessage) {
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "ValidateSchema");
+    db.setDatabaseName(cartridgePath);
+    
+    if (!db.open()) {
+        errorMessage = QString("Failed to open cartridge for schema validation: %1").arg(db.lastError().text());
+        return false;
+    }
+    
+    QSqlQuery query(db);
+    
+    // Required tables
+    QStringList requiredTables = {
+        "Metadata",
+        "Content_Pages"
+    };
+    
+    // Check each required table exists
+    for (const QString& tableName : requiredTables) {
+        query.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=?");
+        query.addBindValue(tableName);
+        
+        if (!query.exec() || !query.next()) {
+            errorMessage = QString("Required table missing: %1").arg(tableName);
+            db.close();
+            QSqlDatabase::removeDatabase("ValidateSchema");
+            return false;
+        }
+    }
+    
+    // Verify Metadata table has required columns
+    query.prepare("PRAGMA table_info(Metadata)");
+    if (!query.exec()) {
+        errorMessage = "Failed to read Metadata table structure";
+        db.close();
+        QSqlDatabase::removeDatabase("ValidateSchema");
+        return false;
+    }
+    
+    QStringList requiredColumns = {
+        "cartridge_guid",
+        "title",
+        "author",
+        "schema_version",
+        "publication_year",
+        "version"
+    };
+    
+    QStringList foundColumns;
+    while (query.next()) {
+        foundColumns.append(query.value(1).toString()); // Column name is at index 1
+    }
+    
+    for (const QString& columnName : requiredColumns) {
+        if (!foundColumns.contains(columnName)) {
+            errorMessage = QString("Required column missing in Metadata table: %1").arg(columnName);
+            db.close();
+            QSqlDatabase::removeDatabase("ValidateSchema");
+            return false;
+        }
+    }
+    
+    db.close();
+    QSqlDatabase::removeDatabase("ValidateSchema");
+    
+    return true;
+}
+
+bool CartridgeExporter::validateContent(const QString& cartridgePath, QString& errorMessage) {
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "ValidateContent");
+    db.setDatabaseName(cartridgePath);
+    
+    if (!db.open()) {
+        errorMessage = QString("Failed to open cartridge for content validation: %1").arg(db.lastError().text());
+        return false;
+    }
+    
+    QSqlQuery query(db);
+    
+    // Check if Resources table exists (optional, but if it exists, validate references)
+    query.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='Resources'");
+    bool hasResourcesTable = query.exec() && query.next();
+    
+    if (hasResourcesTable) {
+        // Get cover_image_path from Metadata
+        query.prepare("SELECT cover_image_path FROM Metadata LIMIT 1");
+        if (query.exec() && query.next()) {
+            QString coverImagePath = query.value(0).toString();
+            
+            // If cover_image_path is set and is a resource_id, verify it exists
+            if (!coverImagePath.isEmpty()) {
+                // Check if it's a resource_id (not a file path)
+                // Resource IDs are typically UUIDs or short identifiers
+                // If it contains a path separator, it's likely a file path (old format)
+                // Otherwise, check if it exists in Resources table
+                if (!coverImagePath.contains('/') && !coverImagePath.contains('\\')) {
+                    // Likely a resource_id, check if it exists
+                    query.prepare("SELECT resource_id FROM Resources WHERE resource_id = ?");
+                    query.addBindValue(coverImagePath);
+                    
+                    if (!query.exec() || !query.next()) {
+                        errorMessage = QString("Referenced cover image resource not found: %1").arg(coverImagePath);
+                        db.close();
+                        QSqlDatabase::removeDatabase("ValidateContent");
+                        return false;
+                    }
+                }
+            }
+        }
+        
+        // Check Content_Pages for referenced resources in HTML/CSS
+        // This is a simplified check - in production, you might want to parse HTML
+        // to find all resource references
+        query.prepare("SELECT html_content, associated_css FROM Content_Pages");
+        if (query.exec()) {
+            // For now, we'll just verify the table structure is valid
+            // Full HTML parsing for resource references could be added later
+        }
+    }
+    
+    // Validate Content_Pages structure
+    query.prepare("SELECT COUNT(*) FROM Content_Pages");
+    if (!query.exec()) {
+        // Content_Pages table might be empty, which is OK for a new cartridge
+        // Just verify the table exists (already checked in validateSchema)
+    }
+    
+    db.close();
+    QSqlDatabase::removeDatabase("ValidateContent");
+    
+    return true;
+}
+
+bool CartridgeExporter::validateExportedFile(const QString& cartridgePath, QString& errorMessage) {
+    // Verify file exists
+    if (!QFile::exists(cartridgePath)) {
+        errorMessage = "Exported cartridge file does not exist";
+        return false;
+    }
+    
+    // Try to open as SQLite database
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "ValidateExportedFile");
+    db.setDatabaseName(cartridgePath);
+    
+    if (!db.open()) {
+        errorMessage = QString("Failed to open exported cartridge file: %1").arg(db.lastError().text());
+        return false;
+    }
+    
+    // Run SQLite integrity check
+    QSqlQuery query(db);
+    query.prepare("PRAGMA quick_check");
+    
+    if (!query.exec()) {
+        errorMessage = QString("Failed to run integrity check: %1").arg(query.lastError().text());
+        db.close();
+        QSqlDatabase::removeDatabase("ValidateExportedFile");
+        return false;
+    }
+    
+    if (query.next()) {
+        QString result = query.value(0).toString();
+        if (result != "ok") {
+            errorMessage = QString("Cartridge integrity check failed: %1").arg(result);
+            db.close();
+            QSqlDatabase::removeDatabase("ValidateExportedFile");
+            return false;
+        }
+    }
+    
+    db.close();
+    QSqlDatabase::removeDatabase("ValidateExportedFile");
+    
+    return true;
+}
+
+bool CartridgeExporter::isValidUuidV4(const QString& uuid) {
+    // UUID v4 format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+    // where x is any hexadecimal digit and y is one of 8, 9, A, or B
+    QRegularExpression uuidV4Pattern(
+        "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+    );
+    
+    QRegularExpressionMatch match = uuidV4Pattern.match(uuid);
+    return match.hasMatch();
 }
 
 } // namespace creator
