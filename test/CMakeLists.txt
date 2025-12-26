@@ -522,6 +522,47 @@ if(QT_TEST_AVAILABLE)
     )
     add_test(NAME TestManifestErrors COMMAND test_manifestmanager_errors)
     
+    # test_metadataextractor
+    add_executable(test_metadataextractor
+        unit/test_metadataextractor.cpp
+    )
+    set_target_properties(test_metadataextractor PROPERTIES AUTOMOC ON)
+    target_include_directories(test_metadataextractor PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+    )
+    target_link_libraries(test_metadataextractor PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        smartbook_common
+    )
+    add_test(NAME TestMetadataExtractor COMMAND test_metadataextractor)
+    
+    # test_importmanager
+    add_executable(test_importmanager
+        unit/test_importmanager.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ImportManager.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ImportDialog.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ImportManager.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ImportDialog.h
+    )
+    set_target_properties(test_importmanager PROPERTIES AUTOMOC ON)
+    target_include_directories(test_importmanager PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/unit
+    )
+    target_link_libraries(test_importmanager PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        Qt6::Gui
+        Qt6::Widgets
+        smartbook_common
+        test_helpers
+    )
+    add_test(NAME TestImportManager COMMAND test_importmanager)
+    
     # Test helpers library (shared by multiple test executables)
     add_library(test_helpers STATIC
         unit/test_helpers.cpp

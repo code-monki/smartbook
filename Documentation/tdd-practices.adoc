@@ -1,0 +1,504 @@
+= Test-Driven Development (TDD) Practices for SmartBook Project
+:author: AI Assistant
+:revdate: 2025-12-26
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+
+== Overview
+
+This document defines the Test-Driven Development (TDD) practices and standards for the SmartBook project. All developers MUST follow these practices to ensure code quality, maintainability, and reliability.
+
+== Core TDD Principles
+
+=== Red-Green-Refactor Cycle
+
+The fundamental TDD cycle consists of three phases:
+
+1. **Red:** Write a failing test that describes the desired behavior
+2. **Green:** Write the minimum code necessary to make the test pass
+3. **Refactor:** Improve the code while keeping tests passing
+
+=== Test-First Development
+
+**RULE:** Tests MUST be written BEFORE implementation code.
+
+*   Write tests first to define the expected behavior
+*   Tests serve as executable specifications
+*   Tests guide the design and API of the code
+*   Implementation is driven by test requirements
+
+=== Test Coverage Requirements
+
+*   **Unit Tests:** All public methods and critical paths MUST have unit tests
+*   **Integration Tests:** All workflows and component interactions MUST have integration tests
+*   **Test Cases:** All test cases from `test-plan.adoc` MUST be implemented
+*   **Coverage Target:** Minimum 80% code coverage for all new code
+
+== TDD Workflow
+
+=== Step 1: Write Test First
+
+Before implementing any feature:
+
+1. Identify the requirement (from SRS, DDD, or test plan)
+2. Write a test that describes the expected behavior
+3. Name the test using the test case ID (e.g., `testT_PERS_01_ManifestCreation`)
+4. Ensure the test fails for the right reason (Red phase)
+
+**Example:**
+
+[source,cpp]
+----
+// T-PERS-01: Manifest Creation
+// Requirement: FR-2.5.1
+void TestManifestManager::testManifestEntryCreation()
+{
+    ManifestManager manager(this);
+    
+    ManifestManager::ManifestEntry entry;
+    entry.cartridgeGuid = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    entry.title = "Test Book";
+    entry.publicationYear = "2025";
+    
+    bool result = manager.createManifestEntry(entry);
+    QVERIFY(result);
+    
+    ManifestManager::ManifestEntry retrieved = manager.getManifestEntry(entry.cartridgeGuid);
+    QVERIFY(retrieved.isValid());
+    QCOMPARE(retrieved.title, entry.title);
+}
+----
+
+=== Step 2: Implement Minimum Code
+
+Write the minimum code necessary to make the test pass:
+
+1. Implement only what the test requires
+2. Don't add extra features not covered by tests
+3. Keep implementation simple and focused
+4. Ensure the test passes (Green phase)
+
+=== Step 3: Refactor
+
+After the test passes:
+
+1. Improve code structure and readability
+2. Remove duplication
+3. Optimize performance if needed
+4. Ensure all tests still pass
+5. Maintain or improve test coverage
+
+=== Step 4: Commit
+
+Follow atomic commit practices:
+
+1. Commit test file first (if separate commit is appropriate)
+2. Commit implementation with passing tests
+3. Include test case ID in commit message
+4. Example: `test(persistence): Add T-PERS-01 manifest creation test`
+
+== Test Organization
+
+=== Test File Structure
+
+Tests are organized by component and functionality:
+
+*   **Location:** `test/unit/` for unit tests
+*   **Naming:** `test_<componentname>.cpp` (e.g., `test_manifestmanager.cpp`)
+*   **Test Class:** `Test<ComponentName>` (e.g., `TestManifestManager`)
+
+=== Test Case Naming
+
+Test methods MUST follow this naming convention:
+
+*   Format: `test<TestCaseID>_<Description>()`
+*   Example: `testT_PERS_01_ManifestCreation()`
+*   Include test case ID in comment: `// T-PERS-01: Manifest Creation`
+
+=== Test Documentation
+
+Each test MUST include:
+
+*   Test case ID (e.g., `T-PERS-01`)
+*   Requirement covered (e.g., `FR-2.5.1`)
+*   Reference to test plan (e.g., `test-plan.adoc lines 90-97`)
+*   Acceptance criteria (AC) in comments
+
+**Example:**
+
+[source,cpp]
+----
+// T-PERS-01: Manifest Creation
+// Requirement: FR-2.5.1
+// Test Plan: test-plan.adoc lines 90-97
+// AC: A new entry exists containing the correct cartridge_guid,
+//     cartridge_hash (H2), local_path, and the required publication_year
+void TestManifestManager::testManifestEntryCreation()
+{
+    // Test implementation...
+}
+----
+
+== Test Categories
+
+=== Unit Tests
+
+**Purpose:** Test individual components in isolation
+
+*   Test single classes or functions
+*   Mock external dependencies
+*   Fast execution (< 1 second per test)
+*   No file system or database dependencies (use in-memory or temporary)
+
+**Example Components:**
+*   `ManifestManager`
+*   `SignatureVerifier`
+*   `MetadataExtractor`
+*   `SearchSnippetGenerator`
+
+=== Integration Tests
+
+**Purpose:** Test component interactions and workflows
+
+*   Test multiple components working together
+*   Use real dependencies (databases, file system)
+*   Test complete workflows (e.g., import → manifest → open)
+*   May be slower than unit tests
+
+**Example Workflows:**
+*   Import workflow (file picker → validation → copy → manifest)
+*   Security verification workflow (verification → trust → consent)
+*   Cartridge loading workflow (open → security → content → display)
+
+=== Error Handling Tests
+
+**Purpose:** Test error conditions and edge cases
+
+*   Test invalid inputs
+*   Test failure scenarios
+*   Test error messages and recovery
+*   Test boundary conditions
+
+**Example:**
+*   `test_manifestmanager_errors.cpp`
+*   `test_cartridgedbconnector_errors.cpp`
+
+=== Performance Tests
+
+**Purpose:** Test performance and scalability
+
+*   Test bulk operations
+*   Test query performance
+*   Test memory usage
+*   Test response times
+
+**Example:**
+*   `test_manifestmanager_performance.cpp`
+*   `test_librarymanager_performance.cpp`
+
+== Test Implementation Standards
+
+=== Test Setup and Teardown
+
+Use Qt Test framework conventions:
+
+*   `initTestCase()`: Setup before all tests
+*   `cleanupTestCase()`: Cleanup after all tests
+*   `init()`: Setup before each test (optional)
+*   `cleanup()`: Cleanup after each test (optional)
+
+**Example:**
+
+[source,cpp]
+----
+class TestManifestManager : public QObject
+{
+    Q_OBJECT
+
+private slots:
+    void initTestCase();
+    void cleanupTestCase();
+    void testManifestEntryCreation();
+
+private:
+    QTemporaryDir* m_tempDir;
+    QString m_testDbPath;
+    LocalDBManager* m_dbManager;
+};
+
+void TestManifestManager::initTestCase()
+{
+    m_tempDir = new QTemporaryDir();
+    QVERIFY(m_tempDir->isValid());
+    m_testDbPath = m_tempDir->filePath("test_local_reader.sqlite");
+    
+    m_dbManager = &LocalDBManager::getInstance();
+    bool initialized = m_dbManager->initializeConnection(m_testDbPath);
+    QVERIFY(initialized);
+}
+
+void TestManifestManager::cleanupTestCase()
+{
+    if (m_dbManager && m_dbManager->isOpen()) {
+        m_dbManager->closeConnection();
+    }
+    delete m_tempDir;
+}
+----
+
+=== Assertions
+
+Use appropriate Qt Test assertions:
+
+*   `QVERIFY(condition)`: General assertion
+*   `QCOMPARE(actual, expected)`: Value comparison
+*   `QVERIFY2(condition, message)`: Assertion with message
+*   `QEXPECT_FAIL()`: Expected failure (for known issues)
+
+=== Test Data
+
+*   Use temporary directories/files for file system tests
+*   Use in-memory databases when possible
+*   Create test fixtures for reusable test data
+*   Clean up test data in `cleanupTestCase()`
+
+=== Mocking and Stubs
+
+*   Use Qt's test framework for simple mocks
+*   Create test helpers for common test scenarios
+*   Use `test_helpers.h` for shared test utilities
+*   Avoid complex mocking frameworks (keep it simple)
+
+== CMake Integration
+
+=== Adding New Tests
+
+When adding a new test file:
+
+1. Create test file in `test/unit/`
+2. Add executable to `test/CMakeLists.txt`:
+
+[source,cmake]
+----
+# test_componentname
+add_executable(test_componentname
+    unit/test_componentname.cpp
+)
+set_target_properties(test_componentname PROPERTIES AUTOMOC ON)
+target_include_directories(test_componentname PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+)
+target_link_libraries(test_componentname PRIVATE
+    Qt6::Test
+    Qt6::Core
+    Qt6::Sql
+    smartbook_common
+)
+add_test(NAME TestComponentName COMMAND test_componentname)
+----
+
+3. For reader/creator components, include source files:
+
+[source,cmake]
+----
+add_executable(test_importmanager
+    unit/test_importmanager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ImportManager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ImportDialog.cpp
+)
+----
+
+=== Running Tests
+
+*   Build tests: `cmake --build build --target test_<name>`
+*   Run single test: `./build/test/test_<name>`
+*   Run all tests: `ctest --test-dir build`
+*   Run with verbose output: `ctest --test-dir build --verbose`
+
+== Test Plan Integration
+
+=== Test Case Traceability
+
+All tests MUST be traceable to:
+
+*   **Test Plan:** `test-plan.adoc` test case IDs (e.g., T-PERS-01)
+*   **Requirements:** SRS functional requirements (e.g., FR-2.5.1)
+*   **Design:** DDD acceptance criteria (AC)
+
+=== Test Case Coverage
+
+Track test case implementation status:
+
+*   Mark test cases as implemented in `phase1-implementation-guide.adoc`
+*   Update test plan with implementation status
+*   Document any deviations or limitations
+
+== Common TDD Patterns
+
+=== Testing Private Methods
+
+**Rule:** Test private methods indirectly through public methods.
+
+*   If a private method is complex, test it via public API
+*   If testing private methods directly is necessary, use friend classes or test helpers
+*   Prefer refactoring to make methods testable through public API
+
+=== Testing UI Components
+
+**Rule:** Test UI logic separately from UI rendering.
+
+*   Test business logic in model/view classes
+*   Use Qt Test for widget testing
+*   Test user interactions and state changes
+*   Avoid testing visual appearance (use manual testing)
+
+=== Testing Database Operations
+
+**Rule:** Use temporary databases for tests.
+
+*   Create temporary SQLite databases in `initTestCase()`
+*   Use `QTemporaryDir` for file system tests
+*   Clean up in `cleanupTestCase()`
+*   Test transactions and rollbacks
+
+=== Testing Security
+
+**Rule:** Test security-critical code thoroughly.
+
+*   Test all security levels (L1, L2, L3)
+*   Test tampering detection
+*   Test certificate validation
+*   Test trust registry operations
+*   Test error handling for security failures
+
+== Anti-Patterns to Avoid
+
+=== ❌ Writing Tests After Implementation
+
+**BAD:**
+
+1. Implement feature
+2. Write tests later
+3. Tests may not cover edge cases
+4. Tests may be biased by implementation
+
+**GOOD:**
+
+1. Write test first
+2. Implement feature
+3. Refactor
+4. All edge cases covered by design
+
+=== ❌ Skipping Tests for "Simple" Code
+
+**BAD:** "This code is too simple to test"
+
+**GOOD:** All code should be tested, regardless of complexity
+
+=== ❌ Testing Implementation Details
+
+**BAD:** Testing private methods, internal state, implementation specifics
+
+**GOOD:** Testing public API and behavior
+
+=== ❌ Brittle Tests
+
+**BAD:** Tests that break when implementation changes (but behavior is correct)
+
+**GOOD:** Tests that verify behavior, not implementation
+
+=== ❌ Slow Tests
+
+**BAD:** Tests that take too long to run (discourages running them)
+
+**GOOD:** Fast tests that can run frequently
+
+== Continuous Integration
+
+=== Pre-Commit Checks
+
+Before committing:
+
+1. ✅ All tests pass locally
+2. ✅ New tests are added for new functionality
+3. ✅ Test case IDs are included in commit messages
+4. ✅ Code coverage is maintained or improved
+
+=== Commit Message Format
+
+Include test information in commit messages:
+
+*   `test(persistence): Add T-PERS-01 manifest creation test`
+*   `feat(import): Implement import workflow with tests`
+*   `fix(security): Fix certificate validation (T-SEC-01)`
+
+== Test Maintenance
+
+=== Keeping Tests Up to Date
+
+*   Update tests when requirements change
+*   Refactor tests when code is refactored
+*   Remove obsolete tests
+*   Update test documentation
+
+=== Test Review
+
+During code review:
+
+*   Verify tests are written first (check git history)
+*   Verify test coverage is adequate
+*   Verify tests are maintainable
+*   Verify tests follow naming conventions
+
+== Resources
+
+=== Documentation
+
+*   `test-plan.adoc`: Complete test plan with all test cases
+*   `tdd-implementation-guide.adoc`: Detailed TDD guide
+*   `phase1-implementation-guide.adoc`: Implementation checklist with test cases
+
+=== Test Examples
+
+*   `test/unit/test_manifestmanager.cpp`: Basic unit test example
+*   `test/unit/test_signatureverifier.cpp`: Security testing example
+*   `test/unit/test_importmanager.cpp`: Integration test example
+
+== Enforcement
+
+=== Code Review Checklist
+
+Reviewers MUST verify:
+
+- [ ] Tests are written before implementation (check git history)
+- [ ] Test case IDs are included in test comments
+- [ ] All public methods have tests
+- [ ] Error cases are tested
+- [ ] Tests are added to CMakeLists.txt
+- [ ] Tests pass locally
+- [ ] Test documentation is complete
+
+=== Violations
+
+If TDD practices are not followed:
+
+1. Request tests to be written first
+2. Block merge until tests are added
+3. Document violation in review comments
+4. Provide guidance on TDD practices
+
+== Summary
+
+**Key Principles:**
+
+1. ✅ **Write tests FIRST** - Before implementation
+2. ✅ **Follow Red-Green-Refactor** - Test → Implement → Refactor
+3. ✅ **Trace to test plan** - Include test case IDs
+4. ✅ **Maintain coverage** - Minimum 80% for new code
+5. ✅ **Keep tests fast** - Run frequently
+6. ✅ **Test behavior** - Not implementation details
+
+**Remember:** Tests are executable specifications. They define what the code should do, not how it does it.
+
