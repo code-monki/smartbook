@@ -25,7 +25,12 @@ public:
         Cancel
     };
 
-    explicit ConsentDialog(smartbook::common::security::SecurityLevel level, const QString& cartridgeTitle, QWidget* parent = nullptr);
+    explicit ConsentDialog(
+        smartbook::common::security::SecurityLevel level,
+        const QString& cartridgeTitle,
+        const QString& authorName = QString(),
+        QWidget* parent = nullptr
+    );
     ~ConsentDialog();
 
     /**
@@ -40,7 +45,11 @@ private slots:
     void onCancel();
 
 private:
-    void setupUI(smartbook::common::security::SecurityLevel level, const QString& cartridgeTitle);
+    void setupUI(
+        smartbook::common::security::SecurityLevel level,
+        const QString& cartridgeTitle,
+        const QString& authorName = QString()
+    );
 
     ConsentResult m_result = Cancel;
 };

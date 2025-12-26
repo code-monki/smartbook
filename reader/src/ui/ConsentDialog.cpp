@@ -11,47 +11,90 @@ namespace smartbook {
 namespace reader {
 namespace ui {
 
-ConsentDialog::ConsentDialog(smartbook::common::security::SecurityLevel level, const QString& cartridgeTitle, QWidget* parent)
+ConsentDialog::ConsentDialog(
+    smartbook::common::security::SecurityLevel level,
+    const QString& cartridgeTitle,
+    const QString& authorName,
+    QWidget* parent)
     : QDialog(parent)
 {
-    setupUI(level, cartridgeTitle);
+    setupUI(level, cartridgeTitle, authorName);
 }
 
 ConsentDialog::~ConsentDialog() {
 }
 
-void ConsentDialog::setupUI(smartbook::common::security::SecurityLevel level, const QString& cartridgeTitle) {
-    setWindowTitle("Security Warning");
+void ConsentDialog::setupUI(
+    smartbook::common::security::SecurityLevel level,
+    const QString& cartridgeTitle,
+    const QString& authorName)
+{
+    using SecurityLevel = smartbook::common::security::SecurityLevel;
+    
+    // Set window title based on security level
+    if (level == SecurityLevel::LEVEL_2) {
+        setWindowTitle("Security Warning: Self-Signed Cartridge");
+    } else if (level == SecurityLevel::LEVEL_3) {
+        setWindowTitle("Security Warning: Unsigned Cartridge");
+    } else {
+        setWindowTitle("Security Warning");
+    }
+    
     setMinimumWidth(500);
-    resize(500, 400);
+    resize(500, 450);
+    setModal(true);
 
     QVBoxLayout* layout = new QVBoxLayout(this);
+    layout->setSpacing(15);
 
-    QLabel* titleLabel = new QLabel(QString("Security Warning: %1").arg(cartridgeTitle), this);
-    titleLabel->setStyleSheet("font-weight: bold; font-size: 14pt;");
+    QLabel* titleLabel = new QLabel(
+        level == SecurityLevel::LEVEL_2 ? "Security Warning: Self-Signed Cartridge" :
+        level == SecurityLevel::LEVEL_3 ? "Security Warning: Unsigned Cartridge" :
+        "Security Warning",
+        this
+    );
+    titleLabel->setStyleSheet("font-weight: bold; font-size: 16pt; color: #f57c00;");
     layout->addWidget(titleLabel);
 
     QTextEdit* warningText = new QTextEdit(this);
     warningText->setReadOnly(true);
+    warningText->setStyleSheet("background-color: #fff3e0; border: 1px solid #f57c00; padding: 10px;");
 
-    using SecurityLevel = smartbook::common::security::SecurityLevel;
+    QString message;
     
     if (level == SecurityLevel::LEVEL_2) {
-        warningText->setPlainText(
-            "This cartridge is signed with a self-signed certificate.\n\n"
-            "Self-signed certificates are not verified by a trusted Certificate Authority. "
-            "The publisher's identity cannot be verified, and embedded applications may require your consent to run.\n\n"
-            "Do you want to load this cartridge?"
-        );
+        message = "This cartridge is signed with a self-signed certificate and cannot be verified by a trusted authority.\n\n";
+        
+        if (!cartridgeTitle.isEmpty()) {
+            message += QString("Cartridge: %1\n").arg(cartridgeTitle);
+        }
+        if (!authorName.isEmpty()) {
+            message += QString("Author: %1\n").arg(authorName);
+        }
+        message += "Security Level: Level 2 (Self-Signed Trust)\n\n";
+        
+        message += "⚠️ WARNING: This cartridge has not been verified by a trusted certificate authority. "
+                  "The content may have been modified or could contain potentially unsafe embedded applications.\n\n";
+        
+        message += "Do you want to load this cartridge?";
     } else if (level == SecurityLevel::LEVEL_3) {
-        warningText->setPlainText(
-            "This cartridge is not digitally signed.\n\n"
-            "Unsigned cartridges cannot verify the publisher's identity or content integrity. "
-            "Embedded applications will require your explicit consent to run, and you will see "
-            "persistent warnings when using this cartridge.\n\n"
-            "Do you want to load this cartridge?"
-        );
+        message = "This cartridge has no digital signature and cannot be verified.\n\n";
+        
+        if (!cartridgeTitle.isEmpty()) {
+            message += QString("Cartridge: %1\n").arg(cartridgeTitle);
+        }
+        if (!authorName.isEmpty()) {
+            message += QString("Author: %1\n").arg(authorName);
+        }
+        message += "Security Level: Level 3 (No Signature)\n\n";
+        
+        message += "⚠️ WARNING: This cartridge has no digital signature. The content cannot be verified "
+                  "and may have been modified. Embedded applications may pose security risks.\n\n";
+        
+        message += "Do you want to load this cartridge?";
     }
+    
+    warningText->setPlainText(message);
 
     layout->addWidget(warningText);
 
