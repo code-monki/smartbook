@@ -153,9 +153,13 @@ void ReaderView::loadContentFromDatabase() {
     // Setup WebChannel bridge if not already set up
     if (!m_webChannelBridge) {
         m_webChannelBridge = new WebChannelBridge(this);
+        m_webChannelBridge->setCartridgeInfo(m_cartridgePath, m_cartridgeGuid);
         QWebChannel* channel = new QWebChannel(this);
         m_webChannelBridge->setupWebChannel(channel);
         m_webView->page()->setWebChannel(channel);
+    } else {
+        // Update cartridge info if bridge already exists
+        m_webChannelBridge->setCartridgeInfo(m_cartridgePath, m_cartridgeGuid);
     }
     
     connector.closeCartridge();

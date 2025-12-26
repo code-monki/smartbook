@@ -25,6 +25,13 @@ public:
      * @param webChannel QWebChannel instance
      */
     void setupWebChannel(QWebChannel* webChannel);
+    
+    /**
+     * @brief Set cartridge information for this bridge
+     * @param cartridgePath Path to cartridge file
+     * @param cartridgeGuid Cartridge GUID
+     */
+    void setCartridgeInfo(const QString& cartridgePath, const QString& cartridgeGuid);
 
 public slots:
     /**
@@ -94,7 +101,11 @@ signals:
     void sandboxFileDeleted(const QString& filename, bool success, const QString& error);
 
 private:
+    QString m_cartridgePath;
     QString m_cartridgeGuid;
+    QString m_appId; // Current app ID for sandbox operations
+    
+    QString getSandboxPath() const;
 };
 
 } // namespace reader
