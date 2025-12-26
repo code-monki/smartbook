@@ -86,6 +86,24 @@ public:
     QSqlDatabase& getDatabase();
 
     /**
+     * @brief Validate cartridge database schema
+     * @return true if schema is valid, false otherwise
+     */
+    bool validateDatabase();
+
+    /**
+     * @brief Check if required tables exist in the cartridge
+     * @return true if all required tables exist, false otherwise
+     */
+    bool hasRequiredTables();
+
+    /**
+     * @brief Get validation error message
+     * @return Last validation error message, or empty string if no error
+     */
+    QString getValidationError() const { return m_validationError; }
+
+    /**
      * @brief Save form data to User_Data table
      * @param formId Form identifier
      * @param dataJson JSON string containing form data
@@ -102,10 +120,13 @@ public:
 
 private:
     void configureConnection();
+    bool checkTableExists(const QString& tableName);
+    bool checkTableSchema(const QString& tableName, const QStringList& requiredColumns);
 
     QSqlDatabase m_database;
     QString m_cartridgeGuid;
     QString m_cartridgePath;
+    QString m_validationError;
     bool m_isOpen = false;
 };
 
