@@ -12,9 +12,12 @@
 #include "smartbook/common/metadata/MetadataExtractor.h"
 #include <QCloseEvent>
 #include <QSqlQuery>
-#include <QDebug>
+#include <QSqlError>
+#include <QDateTime>
+#include <QScreen>
 #include <QApplication>
 #include <QMessageBox>
+#include <QDebug>
 
 namespace smartbook {
 namespace reader {
@@ -28,6 +31,7 @@ ReaderViewWindow::ReaderViewWindow(const QString& cartridgeGuid, QWidget* parent
     , m_trustRegistry(new common::security::TrustRegistry(this))
 {
     setupUI();
+    restoreWindowState();
     loadCartridge();
 }
 
@@ -87,6 +91,12 @@ void ReaderViewWindow::loadCartridge() {
     // Load content (with cartridge GUID for settings)
     if (m_readerView) {
         m_readerView->loadCartridge(cartridgePath, m_cartridgeGuid);
+        
+        // Restore reading position if available
+        if (m_restoredPageId >= 0) {
+            m_readerView->loadPage(m_restoredPageId);
+            // TODO: Restore scroll position and anchor (requires JavaScript bridge)
+        }
     }
 }
 
@@ -105,8 +115,176 @@ void ReaderViewWindow::closeEvent(QCloseEvent* event) {
 }
 
 void ReaderViewWindow::saveWindowState() {
-    // TODO: Save window state to Local_Window_State table
-    // TODO: Save reading position to Local_Reading_Position table
+    // DDD Section: Window State Persistence
+    // Save window state and reading position atomically
+    
+    common::database::LocalDBManager& dbManager = 
+        common::database::LocalDBManager::getInstance();
+    
+    if (!dbManager.isOpen()) {
+        qWarning() << "Local database not open, cannot save window state";
+        return;
+    }
+    
+    QSqlDatabase db = dbManager.getDatabase();
+    
+    // Begin transaction for atomic save
+    if (!db.transaction()) {
+        qWarning() << "Failed to begin transaction for window state save";
+        return;
+    }
+    
+    try {
+        // Save window state
+        QRect geometry = this->geometry();
+        bool isMaximized = this->isMaximized();
+        qint64 timestamp = QDateTime::currentSecsSinceEpoch();
+        
+        QSqlQuery query(db);
+        query.prepare(R"(
+            INSERT OR REPLACE INTO Local_Window_State
+            (cartridge_guid, window_width, window_height, window_x, window_y, is_maximized, last_updated)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        )");
+        query.addBindValue(m_cartridgeGuid);
+        query.addBindValue(geometry.width());
+        query.addBindValue(geometry.height());
+        query.addBindValue(geometry.x());
+        query.addBindValue(geometry.y());
+        query.addBindValue(isMaximized ? 1 : 0);
+        query.addBindValue(timestamp);
+        
+        if (!query.exec()) {
+            qWarning() << "Failed to save window state:" << query.lastError().text();
+            db.rollback();
+            return;
+        }
+        
+        // Save reading position
+        int currentPageId = -1;
+        if (m_readerView) {
+            currentPageId = m_readerView->getCurrentPageId();
+        }
+        
+        // TODO: Get scroll position from WebEngine view (requires JavaScript bridge)
+        int scrollPosition = 0;
+        QString anchorId; // TODO: Get anchor ID from WebEngine view
+        
+        query.prepare(R"(
+            INSERT OR REPLACE INTO Local_Reading_Position
+            (cartridge_guid, page_id, anchor_id, scroll_position, last_access_timestamp)
+            VALUES (?, ?, ?, ?, ?)
+        )");
+        query.addBindValue(m_cartridgeGuid);
+        query.addBindValue(currentPageId >= 0 ? currentPageId : 1); // Default to page 1 if no page loaded
+        query.addBindValue(anchorId);
+        query.addBindValue(scrollPosition);
+        query.addBindValue(timestamp);
+        
+        if (!query.exec()) {
+            qWarning() << "Failed to save reading position:" << query.lastError().text();
+            db.rollback();
+            return;
+        }
+        
+        // Commit transaction
+        if (!db.commit()) {
+            qWarning() << "Failed to commit window state transaction";
+            db.rollback();
+        }
+    } catch (...) {
+        qWarning() << "Exception during window state save";
+        db.rollback();
+    }
+}
+
+void ReaderViewWindow::restoreWindowState() {
+    // DDD Section: Window State Restoration
+    // Restore window geometry and reading position
+    
+    common::database::LocalDBManager& dbManager = 
+        common::database::LocalDBManager::getInstance();
+    
+    if (!dbManager.isOpen()) {
+        // Use default geometry
+        resize(1024, 768);
+        centerWindow();
+        return;
+    }
+    
+    QSqlDatabase db = dbManager.getDatabase();
+    QSqlQuery query(db);
+    
+    // Restore window geometry
+    query.prepare(R"(
+        SELECT window_width, window_height, window_x, window_y, is_maximized
+        FROM Local_Window_State
+        WHERE cartridge_guid = ?
+    )");
+    query.addBindValue(m_cartridgeGuid);
+    
+    if (query.exec() && query.next()) {
+        int width = query.value(0).toInt();
+        int height = query.value(1).toInt();
+        int x = query.value(2).toInt();
+        int y = query.value(3).toInt();
+        bool isMaximized = query.value(4).toInt() != 0;
+        
+        // Validate geometry
+        QScreen* screen = QApplication::primaryScreen();
+        QRect screenGeometry = screen ? screen->availableGeometry() : QRect(0, 0, 1920, 1080);
+        
+        // Ensure reasonable size (minimum 400x300, maximum screen size)
+        width = qBound(400, width, screenGeometry.width());
+        height = qBound(300, height, screenGeometry.height());
+        
+        // Ensure position is within screen bounds
+        if (x < 0 || y < 0 || x + width > screenGeometry.width() || y + height > screenGeometry.height()) {
+            // Center window if position is invalid
+            centerWindow();
+        } else {
+            setGeometry(x, y, width, height);
+        }
+        
+        // Restore maximized state
+        if (isMaximized) {
+            showMaximized();
+        }
+    } else {
+        // No saved state, use default geometry
+        resize(1024, 768);
+        centerWindow();
+    }
+    
+    // Restore reading position (will be applied after content loads)
+    query.prepare(R"(
+        SELECT page_id, anchor_id, scroll_position
+        FROM Local_Reading_Position
+        WHERE cartridge_guid = ?
+    )");
+    query.addBindValue(m_cartridgeGuid);
+    
+    if (query.exec() && query.next()) {
+        int savedPageId = query.value(0).toInt();
+        QString anchorId = query.value(1).toString();
+        int scrollPosition = query.value(2).toInt();
+        
+        // Store for later use when content loads
+        m_restoredPageId = savedPageId;
+        m_restoredAnchorId = anchorId;
+        m_restoredScrollPosition = scrollPosition;
+    }
+}
+
+void ReaderViewWindow::centerWindow() {
+    QScreen* screen = QApplication::primaryScreen();
+    if (screen) {
+        QRect screenGeometry = screen->availableGeometry();
+        QRect windowGeometry = geometry();
+        int x = (screenGeometry.width() - windowGeometry.width()) / 2 + screenGeometry.x();
+        int y = (screenGeometry.height() - windowGeometry.height()) / 2 + screenGeometry.y();
+        move(x, y);
+    }
 }
 
 bool ReaderViewWindow::performSecurityVerification(const QString& cartridgePath)

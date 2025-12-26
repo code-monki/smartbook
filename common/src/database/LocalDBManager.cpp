@@ -194,6 +194,46 @@ bool LocalDBManager::createSchema() {
         return false;
     }
 
+    // Create Local_Window_State table
+    // DDD Section: Window State Persistence
+    QString windowStateTable = R"(
+        CREATE TABLE IF NOT EXISTS Local_Window_State (
+            state_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cartridge_guid TEXT NOT NULL UNIQUE,
+            window_width INTEGER NOT NULL,
+            window_height INTEGER NOT NULL,
+            window_x INTEGER NOT NULL,
+            window_y INTEGER NOT NULL,
+            is_maximized INTEGER NOT NULL,
+            last_updated INTEGER NOT NULL,
+            FOREIGN KEY (cartridge_guid) REFERENCES Local_Library_Manifest(cartridge_guid)
+        )
+    )";
+
+    if (!query.exec(windowStateTable)) {
+        qCritical() << "Failed to create Local_Window_State table:" << query.lastError().text();
+        return false;
+    }
+
+    // Create Local_Reading_Position table
+    // DDD Section: Reading Position Persistence
+    QString readingPositionTable = R"(
+        CREATE TABLE IF NOT EXISTS Local_Reading_Position (
+            position_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cartridge_guid TEXT NOT NULL UNIQUE,
+            page_id INTEGER NOT NULL,
+            anchor_id TEXT,
+            scroll_position INTEGER,
+            last_access_timestamp INTEGER NOT NULL,
+            FOREIGN KEY (cartridge_guid) REFERENCES Local_Library_Manifest(cartridge_guid)
+        )
+    )";
+
+    if (!query.exec(readingPositionTable)) {
+        qCritical() << "Failed to create Local_Reading_Position table:" << query.lastError().text();
+        return false;
+    }
+
     // Create indexes for performance
     query.exec("CREATE INDEX IF NOT EXISTS idx_manifest_guid ON Local_Library_Manifest(cartridge_guid)");
     query.exec("CREATE INDEX IF NOT EXISTS idx_trust_guid ON Local_Trust_Registry(cartridge_guid)");
@@ -202,6 +242,8 @@ bool LocalDBManager::createSchema() {
     query.exec("CREATE INDEX IF NOT EXISTS idx_manifest_series ON Local_Library_Manifest(series_name)");
     query.exec("CREATE INDEX IF NOT EXISTS idx_manifest_edition ON Local_Library_Manifest(edition_name)");
     query.exec("CREATE INDEX IF NOT EXISTS idx_user_settings_guid ON Local_User_Settings(cartridge_guid, setting_key)");
+    query.exec("CREATE INDEX IF NOT EXISTS idx_window_state_guid ON Local_Window_State(cartridge_guid)");
+    query.exec("CREATE INDEX IF NOT EXISTS idx_reading_position_guid ON Local_Reading_Position(cartridge_guid)");
 
     return true;
 }

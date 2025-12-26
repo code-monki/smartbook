@@ -54,6 +54,8 @@ private:
     void setupUI();
     void loadCartridge();
     void saveWindowState();
+    void restoreWindowState();
+    void centerWindow();
     bool performSecurityVerification(const QString& cartridgePath);
     void handleSecurityError(ui::SecurityErrorType errorType, const QString& errorDetails);
     void handleConsentRequired(common::security::SecurityLevel level, const QString& cartridgeTitle, const QString& authorName);
@@ -64,6 +66,11 @@ private:
     WebChannelBridge* m_webChannelBridge;
     common::security::SignatureVerifier* m_signatureVerifier;
     common::security::TrustRegistry* m_trustRegistry;
+    
+    // Restored state for reading position
+    int m_restoredPageId = -1;
+    QString m_restoredAnchorId;
+    int m_restoredScrollPosition = 0;
 };
 
 } // namespace reader
