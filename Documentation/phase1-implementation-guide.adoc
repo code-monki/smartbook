@@ -347,40 +347,40 @@ The implementation should follow this priority order to ensure dependencies are 
 === Phase 1.4: Reader Application Core
 
 ==== Library Manager UI
-[ ] Implement `LibraryManager` class
-  [ ] Library view widget
-  [ ] Dual view support (Bookshelf/List View)
-  [ ] View toggle functionality
-  [ ] Cartridge display (title, author, year, cover)
-  [ ] Context menu (Open, Delete, etc.)
-  [ ] Library refresh
-[ ] Implement Bookshelf View
-  [ ] Grid layout with cover images
-  [ ] Cover image display
-  [ ] Title overlay
-  [ ] Click to open
-[ ] Implement List View
-  [ ] Table with columns (Title, Author, Edition/Version, Year)
-  [ ] Data sourced from manifest
-  [ ] Sortable columns
-  [ ] Context menu
-[ ] Implement performance optimization
-  [ ] Lazy loading of cover images
-  [ ] Manifest-based metadata (no file parsing)
-  [ ] 500ms load time target (100+ cartridges)
+[X] Implement `LibraryManager` class
+  [X] Library view widget
+  [X] Dual view support (Bookshelf/List View)
+  [X] View toggle functionality
+  [X] Cartridge display (title, author, year, cover)
+  [X] Context menu (Open, Delete, etc.)
+  [X] Library refresh
+[X] Implement Bookshelf View
+  [X] Grid layout with cover images
+  [X] Cover image display
+  [X] Title overlay
+  [X] Click to open
+[X] Implement List View
+  [X] Table with columns (Title, Author, Edition/Version, Year)
+  [X] Data sourced from manifest
+  [X] Sortable columns
+  [X] Context menu
+[X] Implement performance optimization
+  [X] Lazy loading of cover images
+  [X] Manifest-based metadata (no file parsing)
+  [X] 500ms load time target (100+ cartridges)
 
 **Reference:** DDD Section 11.1 (UI Dual View), SRS FR-2.5.1, NFR-3.1
 
 **Test Cases:** T-UI-01 (Library Performance), T-UI-02 (Dual View)
 
 ==== Reader View Window
-[ ] Implement `ReaderViewWindow` class
-  [ ] Qt WebEngineView integration
-  [ ] Content loading from cartridge
-  [ ] Multi-window support
-  [ ] Window state persistence
-  [ ] Window state restoration
-  [ ] Window minimize/restore
+[X] Implement `ReaderViewWindow` class
+  [X] Qt WebEngineView integration
+  [X] Content loading from cartridge
+  [X] Multi-window support
+  [X] Window state persistence
+  [X] Window state restoration
+  [X] Window minimize/restore
 [ ] Implement content rendering
   [ ] Load HTML from `Content_Pages` table
   [ ] Apply CSS stylesheets
@@ -399,15 +399,15 @@ The implementation should follow this priority order to ensure dependencies are 
 **Test Cases:** T-PERS-02 (Multi-window isolation)
 
 ==== Settings Application
-[ ] Implement settings reading
-  [ ] Read `Settings` table from cartridge
-  [ ] Read `Local_User_Settings` for overrides
-  [ ] Apply settings priority (User override > Author default > App default)
-  [ ] Apply to content rendering
-[ ] Implement settings persistence
-  [ ] Store user preference overrides
-  [ ] Scoped per cartridge (`cartridge_guid`)
-  [ ] Persist across sessions
+[X] Implement settings reading
+  [X] Read `Settings` table from cartridge
+  [X] Read `Local_User_Settings` for overrides
+  [X] Apply settings priority (User override > Author default > App default)
+  [X] Apply to content rendering
+[X] Implement settings persistence
+  [X] Store user preference overrides
+  [X] Scoped per cartridge (`cartridge_guid`)
+  [X] Persist across sessions
 
 **Reference:** DDD Section 3.5 (Settings Table), SRS FR-2.2.3, FR-2.6.1 through FR-2.6.5
 
