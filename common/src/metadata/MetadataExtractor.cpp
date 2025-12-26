@@ -2,7 +2,9 @@
 #include <QDir>
 #include <QSqlDatabase>
 #include <QSqlQuery>
+#include <QSqlRecord>
 #include <QFileInfo>
+#include <QCryptographicHash>
 #include <QDebug>
 
 namespace smartbook {
@@ -63,10 +65,50 @@ CartridgeMetadata MetadataExtractor::extractMetadata(const QString& cartridgePat
 }
 
 QByteArray MetadataExtractor::calculateContentHash(const QString& cartridgePath) {
-    // This would use the same algorithm as SignatureVerifier
-    // For now, return empty - would need to implement full hash calculation
-    Q_UNUSED(cartridgePath);
-    return QByteArray();
+    // Use the same algorithm as SignatureVerifier::calculateContentHash
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "HashCalc");
+    db.setDatabaseName(cartridgePath);
+
+    if (!db.open()) {
+        qWarning() << "Failed to open cartridge for hash calculation";
+        return QByteArray();
+    }
+
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+
+    // Hash tables in fixed order: Content_Pages, Content_Themes, Embedded_Apps, Form_Definitions, Metadata, Settings
+    QStringList tables = {"Content_Pages", "Content_Themes", "Embedded_Apps", "Form_Definitions", "Metadata", "Settings"};
+
+    for (const QString& tableName : tables) {
+        QSqlQuery query(db);
+        QString tableQuery = QString("SELECT * FROM %1 ORDER BY rowid").arg(tableName);
+        
+        if (!query.exec(tableQuery)) {
+            // Table might not exist, hash empty
+            hash.addData(QByteArray());
+            continue;
+        }
+
+        // Hash each row
+        while (query.next()) {
+            QByteArray rowData;
+            for (int i = 0; i < query.record().count(); ++i) {
+                QVariant value = query.value(i);
+                if (value.isNull()) {
+                    rowData.append('\0');
+                } else {
+                    rowData.append(value.toString().toUtf8());
+                }
+            }
+            hash.addData(rowData);
+            hash.addData("\n");
+        }
+    }
+
+    db.close();
+    QSqlDatabase::removeDatabase("HashCalc");
+
+    return hash.result();
 }
 
 } // namespace metadata
