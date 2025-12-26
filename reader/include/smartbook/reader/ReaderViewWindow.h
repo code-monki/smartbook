@@ -6,6 +6,8 @@
 #include <memory>
 #include "smartbook/common/security/SignatureVerifier.h"
 #include "smartbook/reader/ui/SecurityErrorDialog.h"
+#include "smartbook/common/manifest/ManifestManager.h"
+#include "smartbook/common/metadata/MetadataExtractor.h"
 
 namespace smartbook {
 namespace common {
@@ -55,6 +57,7 @@ private:
     bool performSecurityVerification(const QString& cartridgePath);
     void handleSecurityError(ui::SecurityErrorType errorType, const QString& errorDetails);
     void handleConsentRequired(common::security::SecurityLevel level, const QString& cartridgeTitle, const QString& authorName);
+    void updateManifest(const QString& cartridgePath);
 
     QString m_cartridgeGuid;
     ReaderView* m_readerView;

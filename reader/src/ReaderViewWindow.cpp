@@ -8,6 +8,8 @@
 #include "smartbook/common/manifest/ManifestManager.h"
 #include "smartbook/common/security/SignatureVerifier.h"
 #include "smartbook/common/security/TrustRegistry.h"
+#include "smartbook/common/manifest/ManifestManager.h"
+#include "smartbook/common/metadata/MetadataExtractor.h"
 #include <QCloseEvent>
 #include <QSqlQuery>
 #include <QDebug>
@@ -78,6 +80,9 @@ void ReaderViewWindow::loadCartridge() {
         // Security verification failed - error dialog already shown
         return;
     }
+    
+    // Update manifest (update hash and last_opened timestamp)
+    updateManifest(cartridgePath);
     
     // Load content (with cartridge GUID for settings)
     if (m_readerView) {
@@ -217,6 +222,62 @@ void ReaderViewWindow::handleConsentRequired(
         // User cancelled or closed dialog - don't load cartridge
         close();
     }
+}
+
+void ReaderViewWindow::updateManifest(const QString& cartridgePath)
+{
+    // Update manifest entry with current hash and last_opened timestamp
+    common::manifest::ManifestManager manifestManager;
+    
+    if (!manifestManager.manifestEntryExists(m_cartridgeGuid)) {
+        // Manifest entry doesn't exist - this shouldn't happen if cartridge was imported
+        // but we'll create it anyway
+        qWarning() << "Manifest entry not found for cartridge:" << m_cartridgeGuid;
+        
+        // Extract metadata and create manifest entry
+        common::metadata::CartridgeMetadata metadata = 
+            common::metadata::MetadataExtractor::extractMetadata(cartridgePath);
+        
+        if (metadata.cartridgeGuid.isEmpty()) {
+            qWarning() << "Failed to extract metadata for manifest update";
+            return;
+        }
+        
+        QByteArray contentHash = common::metadata::MetadataExtractor::calculateContentHash(cartridgePath);
+        
+        common::manifest::ManifestManager::ManifestEntry entry;
+        entry.cartridgeGuid = metadata.cartridgeGuid;
+        entry.cartridgeHash = contentHash;
+        entry.localPath = cartridgePath;
+        entry.title = metadata.title;
+        entry.author = metadata.author;
+        entry.publisher = metadata.publisher;
+        entry.version = metadata.version;
+        entry.publicationYear = metadata.publicationYear;
+        entry.coverImageData = metadata.coverImageData;
+        
+        manifestManager.createManifestEntry(entry);
+        return;
+    }
+    
+    // Get existing entry
+    common::manifest::ManifestManager::ManifestEntry entry = 
+        manifestManager.getManifestEntry(m_cartridgeGuid);
+    
+    if (!entry.isValid()) {
+        qWarning() << "Invalid manifest entry for cartridge:" << m_cartridgeGuid;
+        return;
+    }
+    
+    // Recalculate content hash (H2) and update
+    QByteArray contentHash = common::metadata::MetadataExtractor::calculateContentHash(cartridgePath);
+    entry.cartridgeHash = contentHash;
+    
+    // Update manifest entry
+    manifestManager.updateManifestEntry(entry);
+    
+    // Note: last_opened timestamp would be updated here if we had that field
+    // For now, we're updating the hash to detect tampering on next load
 }
 
 } // namespace reader
