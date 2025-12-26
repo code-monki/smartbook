@@ -1,0 +1,227 @@
+= Agent Restart Primer
+:author: AI Assistant
+:revdate: 2025-12-25
+:doctype: article
+:toc: left
+:toclevels: 2
+:sectnums:
+
+== Purpose
+
+This document provides essential context for a new AI agent session to quickly understand the current state of the SmartBook project, recent work, open issues, and next steps.
+
+== Project Overview
+
+SmartBook is a Qt6-based application for creating and reading digital publications in a SQLite-based cartridge format. The project is in Phase 1 implementation, focusing on:
+
+* **Reader Application:** Multi-window content viewer with security verification
+* **Creator Tool:** Authoring tool for creating and exporting cartridges
+* **Security Model:** Three-tier trust system (L1: CA-signed, L2: self-signed, L3: unsigned)
+
+== Current Build Status
+
+=== Recent Fixes (December 25, 2025)
+
+1. **CertificateManagerDialog Namespace Fix**
+   * **Issue:** Class was incorrectly placed in `smartbook::creator::ui` namespace
+   * **Fix:** Removed extra `ui` namespace wrapper in `creator/src/ui/CertificateManagerDialog.cpp`
+   * **Status:** Fixed - class now correctly in `smartbook::creator` namespace
+
+2. **test_contenteditor Linker Error**
+   * **Issue:** Undefined symbol `PageManager::updatePageContent` in test build
+   * **Fix:** Added `PageManager.cpp` to `test_contenteditor` target in `test/CMakeLists.txt`
+   * **Status:** Fixed - test should now link successfully
+
+3. **PDF Conversion from HTML**
+   * **Issue:** PDFs generated from HTML were empty/garbage
+   * **Fix:** Updated `Makefile` with improved Chromium command:
+     * Added `--virtual-time-budget=2000` for JavaScript execution
+     * Added `--run-all-compositor-stages-before-draw` for rendering
+     * Added file existence and size checks
+   * **Status:** Partially fixed - PDFs generate but Mermaid diagrams not rendering (see Open Issues)
+
+=== Build Configuration
+
+* **CMake:** Version 3.20+ required
+* **Qt:** Qt6.2+ (Core, Gui, Widgets, WebEngine, WebChannel, Sql)
+* **OpenSSL:** Required for cartridge signing
+* **C++ Standard:** C++17
+
+Key build targets:
+* `smartbook-reader` - Reader application
+* `smartbook-creator` - Creator tool
+* `smartbook_common` - Shared library
+
+== Open Issues
+
+=== Critical
+
+1. **Mermaid Diagrams Not Rendering in PDFs**
+   * **Problem:** Mermaid diagrams in AsciiDoc are not being converted to images before PDF generation
+   * **Location:** `Documentation/diagrams.adoc` contains multiple `[mermaid, name, svg]` blocks
+   * **Current State:** HTML generation with `asciidoctor` doesn't process Mermaid blocks
+   * **Solution Needed:**
+     * Option 1: Pre-convert Mermaid to SVG/PNG using `mmdc` before HTML generation
+     * Option 2: Use `asciidoctor-diagram` extension to process Mermaid during HTML generation
+     * Option 3: Post-process HTML to replace Mermaid blocks with pre-rendered images
+   * **Files Affected:**
+     * `Documentation/diagrams.adoc` - Contains all Mermaid diagrams
+     * `Makefile` - `docs-html` target needs Mermaid processing
+   * **Priority:** Medium (documentation quality issue)
+
+=== Non-Critical
+
+1. **PDF Conversion Optimization**
+   * Chromium-based PDF conversion works but may need tuning for better quality
+   * Consider adding CSS print styles for better PDF formatting
+
+== Recent Work Summary
+
+=== Certificate Management (Completed)
+
+* **CertificateManager:** Backend for certificate import, generation, storage
+* **CertificateManagerDialog:** UI for managing certificates
+* **Integration:** Certificate selection integrated into `CartridgeExporter::signCartridgeWithCertificateId`
+* **Storage:** Certificates stored in platform-specific app data directory
+
+=== Cartridge Export and Signing (Completed)
+
+* **Content Hash Calculation:** SHA-256 hash of critical content tables (H1)
+* **Digital Signing:** OpenSSL EVP API integration for RSA signing
+* **Export Validation:** Comprehensive validation before export
+* **Security Levels:** L1/L2/L3 support with appropriate signing
+
+=== Documentation Build System (In Progress)
+
+* **HTML Generation:** `make docs-html` - Generates HTML from AsciiDoc
+* **PDF from HTML:** `make docs-html-pdf-chromium` - Converts HTML to PDF using Chromium
+* **PDF from HTML (Alt):** `make docs-html-pdf-weasyprint` - Alternative using WeasyPrint
+* **Direct PDF:** `make docs-pdf` - Direct AsciiDoc to PDF (has limitations)
+
+== Key Files and Locations
+
+=== Source Code Structure
+
+```
+creator/
+  include/smartbook/creator/
+    CertificateManager.h          # Certificate management backend
+    CertificateManagerDialog.h    # Certificate UI (in smartbook::creator namespace)
+    CartridgeExporter.h           # Export and signing logic
+    PageManager.h                 # Page CRUD operations
+    ContentEditor.h               # Content editing widget
+  src/
+    CertificateManager.cpp        # Certificate backend implementation
+    ui/CertificateManagerDialog.cpp  # Certificate UI (FIXED: namespace)
+    CartridgeExporter.cpp         # Export/signing implementation
+    PageManager.cpp               # Page management implementation
+    ContentEditor.cpp             # Content editor implementation
+
+test/
+  CMakeLists.txt                 # Test build configuration (FIXED: added PageManager.cpp)
+  unit/test_contenteditor.cpp    # ContentEditor unit tests
+```
+
+=== Documentation
+
+* `Documentation/phase1-implementation-guide.adoc` - Main implementation checklist
+* `Documentation/ddd.adoc` - Detailed design document
+* `Documentation/srs.adoc` - Software requirements specification
+* `Documentation/diagrams.adoc` - Architecture diagrams (Mermaid format)
+* `Documentation/build-process.adoc` - Build system documentation
+
+=== Build Files
+
+* `CMakeLists.txt` - Top-level CMake configuration
+* `Makefile` - Documentation build targets (FIXED: PDF conversion)
+* `creator/CMakeLists.txt` - Creator tool build config
+* `test/CMakeLists.txt` - Test build config (FIXED: PageManager dependency)
+
+== Next Steps
+
+=== Immediate (High Priority)
+
+1. **Fix Mermaid Diagram Rendering**
+   * Investigate `asciidoctor-diagram` extension installation
+   * Or implement pre-conversion step using `mmdc` CLI
+   * Update `docs-html` target in `Makefile` to process Mermaid
+
+2. **Verify Build Success**
+   * Run `cmake --build build` to verify all fixes compile
+   * Run `make test` to verify test suite passes
+   * Check that `test_contenteditor` links successfully
+
+=== Short Term
+
+1. **Complete Certificate Management Integration**
+   * Add menu item in Creator Tool to open Certificate Manager dialog
+   * Integrate certificate selection into export workflow
+
+2. **Testing**
+   * Test PDF generation with various document sizes
+   * Verify Mermaid diagram rendering once fixed
+   * Test certificate import/generation workflow
+
+=== Medium Term
+
+1. **Documentation Polish**
+   * Ensure all diagrams render correctly in PDFs
+   * Review PDF output quality and formatting
+   * Update build documentation with Mermaid processing steps
+
+== Important Notes
+
+=== Namespace Conventions
+
+* **Creator classes:** `smartbook::creator` namespace
+* **UI dialogs:** Also in `smartbook::creator` (NOT `smartbook::creator::ui`)
+* **Exception:** Some UI classes may have `ui` subdirectory but still in `smartbook::creator` namespace
+
+=== Build Commands
+
+```bash
+# Generate HTML documentation
+make docs-html
+
+# Generate PDF from HTML (Chromium)
+make docs-html-pdf-chromium
+
+# Generate PDF from HTML (WeasyPrint)
+make docs-html-pdf-weasyprint
+
+# Build project
+cmake -B build -S .
+cmake --build build
+
+# Run tests
+make test
+```
+
+=== Common Issues and Solutions
+
+1. **"Command failed to spawn: Aborted"**
+   * This is a tool execution issue, not a code problem
+   * Try running commands directly in terminal
+   * May indicate conversation is too large - consider restarting agent
+
+2. **Linker errors for PageManager methods**
+   * Ensure `PageManager.cpp` is included in target sources
+   * Check namespace matches between header and implementation
+
+3. **PDF generation creates empty files**
+   * Verify Chromium/Chrome is installed and detected
+   * Check HTML files are valid and complete
+   * Ensure `--virtual-time-budget` allows time for JavaScript execution
+
+== References
+
+* **Phase 1 Checklist:** `Documentation/phase1-implementation-guide.adoc`
+* **Detailed Design:** `Documentation/ddd.adoc`
+* **Requirements:** `Documentation/srs.adoc`
+* **Build Process:** `Documentation/build-process.adoc`
+
+== Last Updated
+
+* **Date:** December 25, 2025
+* **Session Focus:** PDF conversion, namespace fixes, test build fixes
+* **Status:** Build fixes complete, documentation rendering in progress
