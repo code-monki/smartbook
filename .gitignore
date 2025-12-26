@@ -177,3 +177,4 @@ build/docs/
 *.userosscache
 *.sln.docstates
 
+*.processed
