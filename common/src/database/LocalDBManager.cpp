@@ -76,8 +76,9 @@ QSqlDatabase& LocalDBManager::getDatabase() {
 QSqlQuery LocalDBManager::executeQuery(const QString& queryString) {
     QSqlQuery query(m_database);
     if (!query.exec(queryString)) {
-        qWarning() << "Query failed:" << queryString;
-        qWarning() << "Error:" << query.lastError().text();
+        qWarning() << "LocalDBManager: Query failed:" << queryString;
+        qWarning() << "LocalDBManager: Error:" << query.lastError().text();
+        qWarning() << "LocalDBManager: Database error type:" << query.lastError().type();
     }
     return query;
 }
