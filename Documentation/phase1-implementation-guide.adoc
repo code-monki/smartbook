@@ -387,12 +387,12 @@ The implementation should follow this priority order to ensure dependencies are 
   [ ] Apply author-defined settings
   [ ] Render embedded applications
   [ ] Handle form rendering
-[ ] Implement WebChannel bridge
-  [ ] `SmartbookBridge` JavaScript API
-  [ ] `requestAppConsent()` method
-  [ ] Form data persistence API
-  [ ] Sandbox file API
-  [ ] Error handling
+[X] Implement WebChannel bridge
+  [X] `SmartbookBridge` JavaScript API
+  [X] `requestAppConsent()` method
+  [X] Form data persistence API
+  [X] Sandbox file API
+  [X] Error handling
 
 **Reference:** DDD Section 5 (Qt WebEngine), Section 8 (Embedded Apps), Section 10 (Text Selection), SRS FR-2.1.1, FR-2.2.1, FR-2.2.2
 
