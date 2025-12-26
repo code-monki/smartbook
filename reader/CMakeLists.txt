@@ -91,6 +91,7 @@ set(READER_SOURCES
     src/ui/LibraryView.cpp
     src/ui/ReaderView.cpp
     src/ui/ConsentDialog.cpp
+    src/ui/SecurityErrorDialog.cpp
 )
 
 # Header files
@@ -101,6 +102,7 @@ set(READER_HEADERS
     include/smartbook/reader/ui/LibraryView.h
     include/smartbook/reader/ui/ReaderView.h
     include/smartbook/reader/ui/ConsentDialog.h
+    include/smartbook/reader/ui/SecurityErrorDialog.h
 )
 
 # Create executable
