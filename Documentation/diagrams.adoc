@@ -209,39 +209,35 @@ sequenceDiagram
     
     alt H1 == H2
         Note right of SV: Content integrity verified
+        Note over SV: Phase 3: Trust Lookup
+        SV->>LocalDB: Query Local_Trust_Registry
+        LocalDB->>DB: SELECT app_trust_policy WHERE cartridge_guid
+        DB-->>LocalDB: trust_policy (PERSISTENT/SESSION/REVOKED/null)
+        LocalDB-->>SV: trust_policy
+        
+        Note over SV: Phase 4: Policy Determination
+        SV->>SV: Determine Effective Trust Policy
+        
+        alt Level 1 (CA-signed) AND H1==H2
+            SV->>SV: Policy = WHITELISTED
+        else Level 2/3 AND Persistent Trust AND H1==H2
+            SV->>SV: Policy = WHITELISTED
+        else Level 2/3 AND No Persistent Trust
+            SV->>SV: Policy = CONSENT_REQUIRED
+        else Trust Revoked
+            SV->>SV: Policy = REVOKED
+        end
+        
+        SV-->>RVI: Effective Trust Policy
+        RVI->>RVI: Load cartridge content
+        RVI->>User: Display cartridge
     else H1 != H2
         Note right of SV: Tampering detected!
         SV-->>RVI: TAMPERING_DETECTED
-        deactivate SV
-        deactivate RVI
+        RVI->>User: Display tampering error
     end
     
-    Note over SV: Phase 3: Trust Lookup
-    SV->>LocalDB: Query Local_Trust_Registry
-    activate LocalDB
-    LocalDB->>DB: SELECT app_trust_policy WHERE cartridge_guid
-    DB-->>LocalDB: trust_policy (PERSISTENT/SESSION/REVOKED/null)
-    LocalDB-->>SV: trust_policy
-    deactivate LocalDB
-    
-    Note over SV: Phase 4: Policy Determination
-    SV->>SV: Determine Effective Trust Policy
-    
-    alt Level 1 (CA-signed) AND H1==H2
-        SV->>SV: Policy = WHITELISTED
-    else Level 2/3 AND Persistent Trust AND H1==H2
-        SV->>SV: Policy = WHITELISTED
-    else Level 2/3 AND No Persistent Trust
-        SV->>SV: Policy = CONSENT_REQUIRED
-    else Trust Revoked
-        SV->>SV: Policy = REVOKED
-    end
-    
-    SV-->>RVI: Effective Trust Policy
     deactivate SV
-    
-    RVI->>RVI: Load cartridge content
-    RVI->>User: Display cartridge
     deactivate RVI
 ----
 
@@ -288,57 +284,57 @@ sequenceDiagram
     alt H1 != H2
         SV-->>RVI: TAMPERING_DETECTED
         RVI->>User: Display tampering warning
-        deactivate SV
-        deactivate RVI
-    end
-    
-    SV->>LocalDB: Query trust registry
-    activate LocalDB
-    LocalDB->>LocalDBFile: SELECT app_trust_policy
-    LocalDBFile-->>LocalDB: trust_policy
-    LocalDB-->>SV: trust_policy
-    deactivate LocalDB
-    
-    SV->>SV: Determine Effective Trust Policy
-    SV-->>RVI: Trust Policy (WHITELISTED/CONSENT_REQUIRED)
-    deactivate SV
-    
-    alt Trust Policy == WHITELISTED
-        RVI->>CartDB: Open cartridge connection
-        activate CartDB
-        CartDB->>CartFile: Open SQLite connection
-        CartFile-->>CartDB: connection established
-        CartDB-->>RVI: connection ready
-        deactivate CartDB
+    else H1 == H2
+        SV->>LocalDB: Query trust registry
+        LocalDB->>LocalDBFile: SELECT app_trust_policy
+        LocalDBFile-->>LocalDB: trust_policy
+        LocalDB-->>SV: trust_policy
         
-        RVI->>CartDB: Load content pages
-        activate CartDB
-        CartDB->>CartFile: SELECT * FROM Content_Pages
-        CartFile-->>CartDB: content pages
-        CartDB-->>RVI: content
-        deactivate CartDB
+        SV->>SV: Determine Effective Trust Policy
+        SV-->>RVI: Trust Policy (WHITELISTED/CONSENT_REQUIRED)
         
-        RVI->>RVI: Render content in WebEngine
-        RVI->>User: Display cartridge content
-    else Trust Policy == CONSENT_REQUIRED
-        RVI->>User: Display consent dialog
-        User->>RVI: Grant/Deny consent
-        
-        alt User grants consent
-            RVI->>LocalDB: Update trust registry
-            activate LocalDB
-            LocalDB->>LocalDBFile: INSERT/UPDATE trust_policy
-            LocalDBFile-->>LocalDB: success
-            LocalDB-->>RVI: trust updated
-            deactivate LocalDB
-            RVI->>RVI: Continue loading (same as WHITELISTED)
-        else User denies consent
-            RVI->>User: Block cartridge loading
-            deactivate RVI
+        alt Trust Policy == WHITELISTED
+            RVI->>CartDB: Open cartridge connection
+            CartDB->>CartFile: Open SQLite connection
+            CartFile-->>CartDB: connection established
+            CartDB-->>RVI: connection ready
+            
+            RVI->>CartDB: Load content pages
+            CartDB->>CartFile: SELECT * FROM Content_Pages
+            CartFile-->>CartDB: content pages
+            CartDB-->>RVI: content
+            
+            RVI->>RVI: Render content in WebEngine
+            RVI->>User: Display cartridge content
+        else Trust Policy == CONSENT_REQUIRED
+            RVI->>User: Display consent dialog
+            User->>RVI: Grant/Deny consent
+            
+            alt User grants consent
+                RVI->>LocalDB: Update trust registry
+                LocalDB->>LocalDBFile: INSERT/UPDATE trust_policy
+                LocalDBFile-->>LocalDB: success
+                LocalDB-->>RVI: trust updated
+                RVI->>RVI: Continue loading (same as WHITELISTED)
+                RVI->>CartDB: Open cartridge connection
+                CartDB->>CartFile: Open SQLite connection
+                CartFile-->>CartDB: connection established
+                CartDB-->>RVI: connection ready
+                RVI->>CartDB: Load content pages
+                CartDB->>CartFile: SELECT * FROM Content_Pages
+                CartFile-->>CartDB: content pages
+                CartDB-->>RVI: content
+                RVI->>RVI: Render content in WebEngine
+                RVI->>User: Display cartridge content
+            else User denies consent
+                RVI->>User: Block cartridge loading
+            end
         end
     end
     
+    deactivate SV
     deactivate RVI
+    deactivate LM
 ----
 
 === Embedded Application Execution Flow
@@ -366,54 +362,42 @@ sequenceDiagram
     alt Trust Policy == WHITELISTED
         RVI-->>Bridge: Consent granted (skip dialog)
         Bridge-->>JS: consentGranted = true
-        deactivate RVI
-        deactivate Bridge
     else Trust Policy == CONSENT_REQUIRED
         RVI-->>Bridge: Consent required
-        deactivate RVI
         
         Bridge->>Dialog: Show native consent dialog
-        activate Dialog
         Dialog->>User: Display consent options
         User->>Dialog: Select trust option
         Dialog-->>Bridge: User decision (SESSION/PERSISTENT/CANCEL)
-        deactivate Dialog
         
         alt User selected CANCEL
             Bridge-->>JS: consentGranted = false, errorCode = USER_CANCELLED
-            deactivate Bridge
-        else User granted consent
+        else User granted consent (SESSION or PERSISTENT)
             Bridge->>LocalDB: Update trust registry
-            activate LocalDB
             LocalDB->>DB: INSERT/UPDATE app_trust_policy
             DB-->>LocalDB: success
             LocalDB-->>Bridge: trust updated
-            deactivate LocalDB
             
             Bridge->>RVI: Update in-memory trust policy
-            activate RVI
             RVI-->>Bridge: policy updated
-            deactivate RVI
             
             Bridge-->>JS: consentGranted = true, trustPolicy
-            deactivate Bridge
-            
-            JS->>WebView: Execute embedded application
-            activate WebView
-            WebView->>JS: Render app UI and execute code
-            JS->>Bridge: saveFormData(formKey, data)
-            activate Bridge
-            Bridge->>RVI: Save form data
-            activate RVI
-            RVI->>RVI: Validate and sanitize data
-            RVI->>RVI: Save to User_Data table via CartridgeDBConnector
-            RVI-->>Bridge: success
-            deactivate RVI
-            Bridge-->>JS: data saved
-            deactivate Bridge
-            deactivate WebView
         end
     end
+    
+    JS->>WebView: Execute embedded application
+    activate WebView
+    WebView->>JS: Render app UI and execute code
+    JS->>Bridge: saveFormData(formKey, data)
+    Bridge->>RVI: Save form data
+    activate RVI
+    RVI->>RVI: Validate and sanitize data
+    RVI->>RVI: Save to User_Data table via CartridgeDBConnector
+    RVI-->>Bridge: success
+    deactivate RVI
+    Bridge-->>JS: data saved
+    deactivate Bridge
+    deactivate WebView
 ----
 
 === Form Data Save Flow
@@ -438,22 +422,16 @@ sequenceDiagram
     
     alt Invalid format
         Bridge-->>FormJS: errorCode = INVALID_FORMAT
-        deactivate Bridge
     else Valid format
         Bridge->>RVI: Request form data save
         activate RVI
-        
         RVI->>RVI: Sanitize and validate data (server-side)
         
         alt Data validation fails
             RVI-->>Bridge: errorCode = VALIDATION_FAILED
-            deactivate RVI
             Bridge-->>FormJS: validation error
-            deactivate Bridge
         else Data valid
             RVI->>CartDB: saveFormData(formKey, sanitizedData)
-            activate CartDB
-            
             CartDB->>CartDB: Begin transaction
             CartDB->>CartFile: DELETE FROM User_Data WHERE form_key = ?
             CartFile-->>CartDB: deleted
@@ -466,25 +444,19 @@ sequenceDiagram
             alt Transaction fails
                 CartDB->>CartDB: Rollback transaction
                 CartDB-->>RVI: errorCode = DATABASE_ERROR
-                deactivate CartDB
                 RVI-->>Bridge: database error
-                deactivate RVI
                 Bridge-->>FormJS: database error
-                deactivate Bridge
             else Transaction success
                 CartDB-->>RVI: success
-                deactivate CartDB
-                
                 RVI-->>Bridge: success
-                deactivate RVI
-                
                 Bridge-->>FormJS: success
-                deactivate Bridge
-                
                 FormJS->>FormJS: Display success message to user
             end
         end
     end
+    
+    deactivate Bridge
+    deactivate RVI
 ----
 
 === Cartridge Import Process
@@ -538,55 +510,40 @@ sequenceDiagram
         
         alt User cancels
             LM->>User: Import cancelled
-            deactivate LM
         else User confirms
             LM->>LocalDB: Begin transaction
-            activate LocalDB
-            
             LocalDB->>LocalDBFile: UPDATE Local_Library_Manifest SET ...
             LocalDBFile-->>LocalDB: success
-            
             LocalDB->>LocalDBFile: Commit transaction
             
             alt Transaction fails
                 LocalDB->>LocalDBFile: Rollback transaction
                 LocalDB-->>LM: error
-                deactivate LocalDB
                 LM->>User: Display import error
-                deactivate LM
             else Transaction success
                 LocalDB-->>LM: import successful
-                deactivate LocalDB
-                
                 LM->>LM: Refresh library view
                 LM->>User: Display updated library
-                deactivate LM
             end
         end
     else Cartridge new
         LM->>LocalDB: Begin transaction
-        activate LocalDB
-        
         LocalDB->>LocalDBFile: INSERT INTO Local_Library_Manifest ...
         LocalDBFile-->>LocalDB: success
-        
         LocalDB->>LocalDBFile: Commit transaction
         
         alt Transaction fails
             LocalDB->>LocalDBFile: Rollback transaction
             LocalDB-->>LM: error
-            deactivate LocalDB
             LM->>User: Display import error
-            deactivate LM
         else Transaction success
             LocalDB-->>LM: import successful
-            deactivate LocalDB
-            
             LM->>LM: Refresh library view
             LM->>User: Display updated library
-            deactivate LM
         end
     end
+    
+    deactivate LM
 ----
 
 === Trust Revocation Process
@@ -610,42 +567,33 @@ sequenceDiagram
     
     alt User cancels
         LM->>User: Operation cancelled
-        deactivate LM
     else User confirms
         LM->>LocalDB: Revoke trust for cartridge
-        activate LocalDB
-        
         LocalDB->>LocalDB: Begin transaction
-        
         LocalDB->>LocalDBFile: UPDATE Local_Trust_Registry<br/>SET app_trust_policy = 'REVOKED'<br/>WHERE cartridge_guid = ?
         LocalDBFile-->>LocalDB: updated
-        
         LocalDB->>LocalDBFile: Commit transaction
         
         alt Transaction fails
             LocalDB->>LocalDBFile: Rollback transaction
             LocalDB-->>LM: error
-            deactivate LocalDB
             LM->>User: Display revocation error
-            deactivate LM
         else Transaction success
             LocalDB-->>LM: trust revoked
-            deactivate LocalDB
             
             alt Cartridge is currently open
                 LM->>RVI: Notify trust revoked
-                activate RVI
                 RVI->>RVI: Update Effective Trust Policy
                 RVI->>RVI: Block embedded app execution
                 RVI->>User: Display trust revoked warning
-                deactivate RVI
             end
             
             LM->>LM: Refresh library view
             LM->>User: Display updated status
-            deactivate LM
         end
     end
+    
+    deactivate LM
 ----
 
 == Data Flow Diagrams
