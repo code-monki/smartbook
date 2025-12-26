@@ -1,5 +1,6 @@
 #include "smartbook/creator/CartridgeExporter.h"
 #include "smartbook/common/database/CartridgeDBConnector.h"
+#include "smartbook/creator/CertificateManager.h"
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QSqlError>
@@ -266,6 +267,26 @@ bool CartridgeExporter::signCartridge(const QString& cartridgePath, const QStrin
     return true;
 }
 
+bool CartridgeExporter::signCartridgeWithCertificateId(const QString& cartridgePath, const QString& certificateId, int securityLevel) {
+    // Level 3: No signature required
+    if (securityLevel == 3) {
+        qDebug() << "Level 3 cartridge - no signing required";
+        return true;
+    }
+    
+    // Get certificate info from CertificateManager
+    CertificateManager certManager;
+    CertificateInfo certInfo = certManager.getCertificateInfo(certificateId);
+    
+    if (!certInfo.isValid()) {
+        qCritical() << "Invalid certificate ID or certificate not found:" << certificateId;
+        return false;
+    }
+    
+    // Use the certificate paths from CertificateInfo
+    return signCartridge(cartridgePath, certInfo.certificatePath, certInfo.privateKeyPath, securityLevel);
+}
+
 QByteArray CartridgeExporter::signHashWithPrivateKey(const QByteArray& hash, const QSslKey& privateKey) {
     // Digital signature creation using OpenSSL EVP API
     // Signs the provided hash using the private key with RSA PKCS#1 padding and SHA-256
@@ -443,7 +464,8 @@ bool CartridgeExporter::createCartridgeSchema(const QString& cartridgePath) {
             page_order INTEGER NOT NULL UNIQUE,
             chapter_title TEXT,
             html_content TEXT NOT NULL,
-            associated_css TEXT
+            associated_css TEXT,
+            article_id TEXT
         )
     )";
 
@@ -457,9 +479,8 @@ bool CartridgeExporter::createCartridgeSchema(const QString& cartridgePath) {
     QString formDefinitionsTable = R"(
         CREATE TABLE IF NOT EXISTS Form_Definitions (
             form_id TEXT PRIMARY KEY,
-            form_schema_json TEXT NOT NULL,
-            form_version INTEGER NOT NULL DEFAULT 1,
-            migration_rules_json TEXT
+            form_title TEXT NOT NULL,
+            form_schema_json TEXT NOT NULL
         )
     )";
 
@@ -474,10 +495,8 @@ bool CartridgeExporter::createCartridgeSchema(const QString& cartridgePath) {
         CREATE TABLE IF NOT EXISTS User_Data (
             data_id INTEGER PRIMARY KEY AUTOINCREMENT,
             form_key TEXT NOT NULL,
-            form_version INTEGER,
-            migrated_from_version INTEGER,
-            timestamp INTEGER NOT NULL,
-            serialized_data TEXT NOT NULL
+            serialized_data TEXT NOT NULL,
+            timestamp TEXT NOT NULL
         )
     )";
 
@@ -492,8 +511,7 @@ bool CartridgeExporter::createCartridgeSchema(const QString& cartridgePath) {
         CREATE TABLE IF NOT EXISTS Settings (
             setting_key TEXT PRIMARY KEY,
             setting_value TEXT NOT NULL,
-            setting_type TEXT NOT NULL,
-            description TEXT
+            setting_type TEXT NOT NULL
         )
     )";
 
@@ -508,11 +526,8 @@ bool CartridgeExporter::createCartridgeSchema(const QString& cartridgePath) {
         CREATE TABLE IF NOT EXISTS Embedded_Apps (
             app_id TEXT PRIMARY KEY,
             app_name TEXT NOT NULL,
-            manifest_json TEXT NOT NULL,
-            entry_html TEXT NOT NULL,
-            js_code BLOB,
-            css_code BLOB,
-            additional_resources BLOB
+            javascript_code TEXT NOT NULL,
+            app_config_json TEXT
         )
     )";
 
@@ -544,9 +559,7 @@ bool CartridgeExporter::createCartridgeSchema(const QString& cartridgePath) {
         CREATE TABLE IF NOT EXISTS Content_Themes (
             theme_id TEXT PRIMARY KEY,
             theme_name TEXT NOT NULL,
-            is_builtin INTEGER NOT NULL DEFAULT 0,
-            theme_config_json TEXT NOT NULL,
-            is_active INTEGER DEFAULT 0
+            theme_config_json TEXT NOT NULL
         )
     )";
 
@@ -577,14 +590,11 @@ bool CartridgeExporter::createCartridgeSchema(const QString& cartridgePath) {
     QString navigationStructureTable = R"(
         CREATE TABLE IF NOT EXISTS Navigation_Structure (
             nav_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            group_name TEXT NOT NULL,
-            group_order INTEGER NOT NULL,
-            item_label TEXT NOT NULL,
-            item_order INTEGER NOT NULL,
+            nav_label TEXT NOT NULL,
             target_type TEXT NOT NULL,
             target_value TEXT NOT NULL,
-            parent_item_id INTEGER,
-            metadata_json TEXT
+            nav_order INTEGER NOT NULL,
+            parent_nav_id INTEGER
         )
     )";
 
@@ -594,9 +604,51 @@ bool CartridgeExporter::createCartridgeSchema(const QString& cartridgePath) {
         return false;
     }
 
+    // Create Issues table (for magazine collections)
+    QString issuesTable = R"(
+        CREATE TABLE IF NOT EXISTS Issues (
+            issue_id TEXT PRIMARY KEY,
+            issue_number TEXT NOT NULL,
+            publication_date TEXT NOT NULL,
+            issue_title TEXT,
+            issn TEXT,
+            cover_image_path TEXT,
+            volume_number INTEGER,
+            metadata_json TEXT
+        )
+    )";
+
+    if (!query.exec(issuesTable)) {
+        qCritical() << "Failed to create Issues table:" << query.lastError().text();
+        db.close();
+        return false;
+    }
+
+    // Create Articles table (for magazine collections)
+    QString articlesTable = R"(
+        CREATE TABLE IF NOT EXISTS Articles (
+            article_id TEXT PRIMARY KEY,
+            issue_id TEXT NOT NULL,
+            article_title TEXT NOT NULL,
+            author TEXT,
+            department TEXT,
+            article_order INTEGER NOT NULL,
+            abstract TEXT,
+            keywords_json TEXT,
+            metadata_json TEXT
+        )
+    )";
+
+    if (!query.exec(articlesTable)) {
+        qCritical() << "Failed to create Articles table:" << query.lastError().text();
+        db.close();
+        return false;
+    }
+
     db.close();
     QSqlDatabase::removeDatabase("CartridgeCreate");
 
+    qDebug() << "Cartridge schema created successfully";
     return true;
 }
 
@@ -624,9 +676,9 @@ bool CartridgeExporter::packageContentPages(const QString& sourceCartridgePath, 
         return false;
     }
     
-    // Read pages from source
+    // Read content pages from source
     QSqlQuery sourceQuery(sourceConnector.getDatabase());
-    sourceQuery.prepare("SELECT page_order, chapter_title, html_content, associated_css "
+    sourceQuery.prepare("SELECT page_order, chapter_title, html_content, associated_css, article_id "
                         "FROM Content_Pages "
                         "ORDER BY page_order");
     
@@ -638,10 +690,12 @@ bool CartridgeExporter::packageContentPages(const QString& sourceCartridgePath, 
         return false;
     }
     
-    // Insert pages into target
+    // Insert content pages into target
     QSqlQuery targetQuery(targetDb);
-    targetQuery.prepare("INSERT INTO Content_Pages (page_order, chapter_title, html_content, associated_css) "
-                        "VALUES (?, ?, ?, ?)");
+    targetQuery.prepare(R"(
+        INSERT OR REPLACE INTO Content_Pages (page_order, chapter_title, html_content, associated_css, article_id)
+        VALUES (?, ?, ?, ?, ?)
+    )");
     
     int pageCount = 0;
     bool success = true;
@@ -651,11 +705,13 @@ bool CartridgeExporter::packageContentPages(const QString& sourceCartridgePath, 
         QString chapterTitle = sourceQuery.value(1).toString();
         QString htmlContent = sourceQuery.value(2).toString();
         QString associatedCss = sourceQuery.value(3).toString();
+        QString articleId = sourceQuery.value(4).toString();
         
         targetQuery.addBindValue(pageOrder);
         targetQuery.addBindValue(chapterTitle.isEmpty() ? QVariant() : chapterTitle);
         targetQuery.addBindValue(htmlContent);
         targetQuery.addBindValue(associatedCss.isEmpty() ? QVariant() : associatedCss);
+        targetQuery.addBindValue(articleId.isEmpty() ? QVariant() : articleId);
         
         if (!targetQuery.exec()) {
             qWarning() << "Failed to insert content page:" << targetQuery.lastError().text();
@@ -703,13 +759,10 @@ bool CartridgeExporter::packageMetadata(const QString& sourceCartridgePath, cons
     
     // Read metadata from source
     QSqlQuery sourceQuery(sourceConnector.getDatabase());
-    sourceQuery.prepare(R"(
-        SELECT cartridge_guid, title, author, publisher, version, publication_year,
-               tags_json, cover_image_path, schema_version, content_type, isbn,
-               series_name, edition_name, series_order
-        FROM Metadata
-        LIMIT 1
-    )");
+    sourceQuery.prepare("SELECT cartridge_guid, title, author, publisher, version, publication_year, "
+                        "tags_json, cover_image_path, schema_version, content_type, isbn, "
+                        "series_name, edition_name, series_order "
+                        "FROM Metadata LIMIT 1");
     
     if (!sourceQuery.exec() || !sourceQuery.next()) {
         qWarning() << "Failed to read metadata from source:" << sourceQuery.lastError().text();

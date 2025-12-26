@@ -39,6 +39,15 @@ public:
                       const QString& privateKeyPath, int securityLevel);
 
     /**
+     * @brief Sign cartridge with certificate from CertificateManager
+     * @param cartridgePath Path to cartridge file
+     * @param certificateId Certificate ID from CertificateManager
+     * @param securityLevel Security level (1, 2, or 3)
+     * @return true if signing successful, false otherwise
+     */
+    bool signCartridgeWithCertificateId(const QString& cartridgePath, const QString& certificateId, int securityLevel);
+
+    /**
      * @brief Package content pages from source cartridge to target cartridge
      * @param sourceCartridgePath Path to source cartridge (where content is)
      * @param targetCartridgePath Path to target cartridge (where to copy)

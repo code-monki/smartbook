@@ -12,13 +12,13 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QDialogButtonBox>
+#include <QInputDialog>
 #include <QSplitter>
 #include <QDateTime>
 #include <QDebug>
 
 namespace smartbook {
 namespace creator {
-namespace ui {
 
 CertificateManagerDialog::CertificateManagerDialog(CertificateManager* certManager, QWidget* parent)
     : QDialog(parent)
@@ -164,7 +164,7 @@ void CertificateManagerDialog::refreshCertificateList()
     
     QStringList certIds = m_certManager->getCertificateIds();
     for (const QString& certId : certIds) {
-        CertificateInfo info = m_certManager->getCertificateInfo(certId);
+        smartbook::creator::CertificateInfo info = m_certManager->getCertificateInfo(certId);
         if (info.isValid()) {
             QListWidgetItem* item = new QListWidgetItem(info.name, m_certificateList);
             item->setData(Qt::UserRole, certId);
@@ -207,7 +207,7 @@ void CertificateManagerDialog::updateCertificateDetails()
         return;
     }
     
-    CertificateInfo info = m_certManager->getCertificateInfo(m_selectedCertificateId);
+    smartbook::creator::CertificateInfo info = m_certManager->getCertificateInfo(m_selectedCertificateId);
     if (!info.isValid()) {
         clearCertificateDetails();
         return;
@@ -372,7 +372,7 @@ void CertificateManagerDialog::onDeleteCertificate()
         return;
     }
     
-    CertificateInfo info = m_certManager->getCertificateInfo(m_selectedCertificateId);
+    smartbook::creator::CertificateInfo info = m_certManager->getCertificateInfo(m_selectedCertificateId);
     if (!info.isValid()) {
         return;
     }
@@ -397,6 +397,5 @@ QString CertificateManagerDialog::getSelectedCertificateId() const
     return m_selectedCertificateId;
 }
 
-} // namespace ui
 } // namespace creator
 } // namespace smartbook

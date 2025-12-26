@@ -1,6 +1,8 @@
 #include "smartbook/creator/CreatorMainWindow.h"
 #include "smartbook/creator/ContentEditor.h"
 #include "smartbook/creator/FormBuilder.h"
+#include "smartbook/creator/CertificateManager.h"
+#include "smartbook/creator/ui/CertificateManagerDialog.h"
 #include <QMenuBar>
 #include <QMenu>
 #include <QAction>
@@ -14,7 +16,11 @@ CreatorMainWindow::CreatorMainWindow(QWidget* parent)
     : QMainWindow(parent)
     , m_contentEditor(nullptr)
     , m_formBuilder(nullptr)
+    , m_certificateManager(nullptr)
 {
+    // Initialize certificate manager
+    m_certificateManager = new CertificateManager(this);
+    
     setupUI();
     setupMenuBar();
 }
@@ -59,6 +65,12 @@ void CreatorMainWindow::setupMenuBar() {
     exitAction->setShortcut(QKeySequence::Quit);
     connect(exitAction, &QAction::triggered, this, &QWidget::close);
 
+    // Tools menu
+    QMenu* toolsMenu = menuBar()->addMenu("&Tools");
+    
+    QAction* certManagerAction = toolsMenu->addAction("&Certificate Manager...");
+    connect(certManagerAction, &QAction::triggered, this, &CreatorMainWindow::onCertificateManager);
+
     // Help menu
     QMenu* helpMenu = menuBar()->addMenu("&Help");
     
@@ -92,6 +104,17 @@ void CreatorMainWindow::onExportCartridge() {
     // TODO: Implement export cartridge
     QMessageBox::information(this, "Export Cartridge",
         "Export cartridge functionality will be implemented.");
+}
+
+void CreatorMainWindow::onCertificateManager() {
+    if (!m_certificateManager) {
+        QMessageBox::warning(this, "Certificate Manager",
+            "Certificate manager is not available.");
+        return;
+    }
+    
+    CertificateManagerDialog dialog(m_certificateManager, this);
+    dialog.exec();
 }
 
 } // namespace creator

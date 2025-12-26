@@ -102,6 +102,7 @@ set(CREATOR_SOURCES
     # src/ui/ContentEditorView.cpp  # TODO: Implement ContentEditorView
     src/ui/FormBuilderDialog.cpp
     src/ui/PageListView.cpp
+    src/ui/CertificateManagerDialog.cpp
 )
 
 # Header files

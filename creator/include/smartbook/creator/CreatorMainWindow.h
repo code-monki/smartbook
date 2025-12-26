@@ -9,6 +9,7 @@ namespace creator {
 
 class ContentEditor;
 class FormBuilder;
+class CertificateManager;
 
 /**
  * @brief Creator Tool main window
@@ -27,6 +28,7 @@ private slots:
     void onOpenCartridge();
     void onSaveCartridge();
     void onExportCartridge();
+    void onCertificateManager();
 
 private:
     void setupUI();
@@ -34,6 +36,7 @@ private:
 
     ContentEditor* m_contentEditor;
     FormBuilder* m_formBuilder;
+    CertificateManager* m_certificateManager;
     QString m_currentCartridgePath;
 };
 
