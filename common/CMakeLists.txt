@@ -88,7 +88,15 @@ else()
         endif()
     endif()
 endif()
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Sql)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Sql Network)
+
+# Find OpenSSL for signature verification
+find_package(OpenSSL)
+if(OpenSSL_FOUND)
+    message(STATUS "OpenSSL found - signature verification enabled")
+else()
+    message(WARNING "OpenSSL not found - signature verification will be limited")
+endif()
 
 # Enable Qt MOC
 set(CMAKE_AUTOMOC ON)
@@ -139,7 +147,16 @@ target_link_libraries(smartbook_common PUBLIC
     Qt6::Core
     Qt6::Gui
     Qt6::Sql
+    Qt6::Network
 )
+
+# Link OpenSSL if available
+if(OpenSSL_FOUND)
+    target_link_libraries(smartbook_common PUBLIC
+        OpenSSL::SSL
+        OpenSSL::Crypto
+    )
+endif()
 
 # Platform-specific settings
 if(APPLE)
