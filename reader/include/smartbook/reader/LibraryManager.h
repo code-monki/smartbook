@@ -13,6 +13,10 @@ namespace reader {
 
 class LibraryView;
 class ReaderViewWindow;
+class ImportManager;
+namespace ui {
+    class ImportDialog;
+}
 
 /**
  * @brief Cartridge information for library display
@@ -67,6 +71,7 @@ private:
 
     LibraryView* m_libraryView;
     QList<ReaderViewWindow*> m_readerWindows;
+    ImportManager* m_importManager;
 };
 
 } // namespace reader

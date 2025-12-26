@@ -1,12 +1,19 @@
 #include "smartbook/reader/LibraryManager.h"
 #include "smartbook/reader/ui/LibraryView.h"
+#include "smartbook/reader/ui/ImportDialog.h"
 #include "smartbook/reader/ReaderViewWindow.h"
+#include "smartbook/reader/ImportManager.h"
 #include "smartbook/common/database/LocalDBManager.h"
+#include "smartbook/common/manifest/ManifestManager.h"
+#include "smartbook/common/security/TrustRegistry.h"
 #include <QMenuBar>
 #include <QMenu>
 #include <QAction>
 #include <QStatusBar>
 #include <QMessageBox>
+#include <QFileDialog>
+#include <QStandardPaths>
+#include <QFile>
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QDebug>
@@ -17,6 +24,7 @@ namespace reader {
 LibraryManager::LibraryManager(QWidget* parent)
     : QMainWindow(parent)
     , m_libraryView(nullptr)
+    , m_importManager(new ImportManager(this))
 {
     setupUI();
     setupMenuBar();
@@ -137,9 +145,50 @@ void LibraryManager::openCartridge(const QString& cartridgeGuid) {
 }
 
 void LibraryManager::onImportCartridge() {
-    // TODO: Implement import dialog
-    QMessageBox::information(this, "Import Cartridge",
-        "Import functionality will be implemented.");
+    // Show file picker dialog
+    QStringList filePaths = QFileDialog::getOpenFileNames(
+        this,
+        "Import Cartridge",
+        QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation),
+        "SmartBook Cartridges (*.sqlite);;All Files (*)"
+    );
+
+    if (filePaths.isEmpty()) {
+        return;
+    }
+
+    // Filter to only .sqlite files
+    QStringList sqliteFiles;
+    for (const QString& filePath : filePaths) {
+        if (filePath.endsWith(".sqlite", Qt::CaseInsensitive)) {
+            sqliteFiles.append(filePath);
+        }
+    }
+
+    if (sqliteFiles.isEmpty()) {
+        QMessageBox::warning(this, "Import Cartridge",
+            "No valid cartridge files selected. Please select .sqlite files.");
+        return;
+    }
+
+    // Show import progress dialog
+    ui::ImportDialog* importDialog = new ui::ImportDialog(this);
+    importDialog->setFiles(sqliteFiles);
+    importDialog->show();
+
+    // Get library path
+    QString libraryPath = m_importManager->getLibraryPath();
+
+    // Import cartridges
+    QList<ImportManager::ImportResultInfo> results = 
+        m_importManager->importCartridges(sqliteFiles, libraryPath, importDialog);
+
+    // Refresh library view
+    loadLibrary();
+
+    // Close dialog
+    importDialog->close();
+    delete importDialog;
 }
 
 void LibraryManager::onDeleteCartridge(const QString& /* cartridgeGuid */) {

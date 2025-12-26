@@ -92,6 +92,8 @@ set(READER_SOURCES
     src/ui/ReaderView.cpp
     src/ui/ConsentDialog.cpp
     src/ui/SecurityErrorDialog.cpp
+    src/ui/ImportDialog.cpp
+    src/ImportManager.cpp
 )
 
 # Header files
@@ -103,6 +105,8 @@ set(READER_HEADERS
     include/smartbook/reader/ui/ReaderView.h
     include/smartbook/reader/ui/ConsentDialog.h
     include/smartbook/reader/ui/SecurityErrorDialog.h
+    include/smartbook/reader/ui/ImportDialog.h
+    include/smartbook/reader/ImportManager.h
 )
 
 # Create executable
