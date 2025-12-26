@@ -508,16 +508,21 @@ The implementation should follow this priority order to ensure dependencies are 
 === Phase 1.6: Testing and Integration
 
 ==== Unit Testing
+
+**IMPORTANT:** All tests MUST be written BEFORE implementation (TDD). See `tdd-practices.adoc` for TDD standards.
+
 [ ] Security verification tests
-  [ ] T-SEC-01: L1 Commercial Trust
-  [ ] T-SEC-02: L2/L3 Initial Consent
-  [ ] T-SEC-03: Persistent Trust
-  [ ] T-SEC-04: Tampering Detection
-  [ ] T-SEC-05: Trust Revocation
+  [X] T-SEC-01: L1 Commercial Trust
+  [X] T-SEC-02: L2/L3 Initial Consent
+  [X] T-SEC-03: Persistent Trust
+  [X] T-SEC-04: Tampering Detection
+  [X] T-SEC-05: Trust Revocation
 [ ] Persistence tests
-  [ ] T-PERS-01: Manifest Creation
-  [ ] T-PERS-02: Multi-Window Isolation
-  [ ] T-PERS-03: Atomic Deletion
+  [X] T-PERS-01: Manifest Creation
+  [X] T-PERS-02: Multi-Window Isolation
+  [X] T-PERS-03: Atomic Deletion
+  [X] T-PERS-01: Import and Manifest Creation (test_importmanager)
+  [X] T-PERS-01: Metadata Extraction (test_metadataextractor)
 [ ] UI tests
   [ ] T-UI-01: Library Performance
   [ ] T-UI-02: Dual View
