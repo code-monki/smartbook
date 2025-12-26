@@ -103,6 +103,7 @@ set(COMMON_SOURCES
     src/security/TrustRegistry.cpp
     src/utils/PlatformUtils.cpp
     src/utils/PathUtils.cpp
+    src/utils/SearchSnippetGenerator.cpp
     src/metadata/MetadataExtractor.cpp
     src/manifest/ManifestManager.cpp
     src/settings/SettingsManager.cpp
@@ -116,6 +117,7 @@ set(COMMON_HEADERS
     include/smartbook/common/security/TrustRegistry.h
     include/smartbook/common/utils/PlatformUtils.h
     include/smartbook/common/utils/PathUtils.h
+    include/smartbook/common/utils/SearchSnippetGenerator.h
     include/smartbook/common/metadata/MetadataExtractor.h
     include/smartbook/common/manifest/ManifestManager.h
     include/smartbook/common/settings/SettingsManager.h

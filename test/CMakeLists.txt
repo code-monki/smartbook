@@ -365,12 +365,31 @@ if(QT_TEST_AVAILABLE)
         smartbook_common
     )
     add_test(NAME TestSettingsManager COMMAND test_settings_manager)
-    
+
+    # test_searchsnippetgenerator
+    add_executable(test_searchsnippetgenerator
+        unit/test_searchsnippetgenerator.cpp
+    )
+    set_target_properties(test_searchsnippetgenerator PROPERTIES AUTOMOC ON)
+    target_include_directories(test_searchsnippetgenerator PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+    )
+    target_link_libraries(test_searchsnippetgenerator PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Gui
+        Qt6::Widgets
+        smartbook_common
+    )
+    add_test(NAME TestSearchSnippetGenerator COMMAND test_searchsnippetgenerator)
+
     # test_contenteditor
     add_executable(test_contenteditor
         unit/test_contenteditor.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../creator/src/ContentEditor.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/src/PageManager.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../creator/include/smartbook/creator/ContentEditor.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/include/smartbook/creator/PageManager.h
     )
     set_target_properties(test_contenteditor PROPERTIES AUTOMOC ON)
     target_include_directories(test_contenteditor PRIVATE
