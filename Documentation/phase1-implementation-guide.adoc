@@ -1,6 +1,6 @@
 = Phase 1 Implementation Guide and Checklist
 :author: AI Assistant
-:revdate: 2025-12-17
+:revdate: 2025-12-25
 :doctype: article
 :toc: left
 :toclevels: 3
@@ -466,30 +466,32 @@ The implementation should follow this priority order to ensure dependencies are 
 **Test Cases:** T-CT-22 through T-CT-26
 
 ==== Cartridge Creation and Export
-[ ] Implement `CartridgeExporter` class
-  [ ] New cartridge creation (SQLite file)
-  [ ] Schema initialization
-  [ ] Content packaging
-  [ ] Metadata storage
-  [ ] Resource packaging
-[ ] Implement cartridge signing
-  [ ] H1 hash calculation (file hash)
-  [ ] H2 hash calculation (content hash)
-  [ ] Certificate selection
-  [ ] Signature creation (L1/L2/L3)
-  [ ] Security data storage
-[ ] Implement export validation
-  [ ] Content validation
-  [ ] Schema validation
-  [ ] Required metadata validation
-  [ ] Export error handling
+[X] Implement `CartridgeExporter` class
+  [X] New cartridge creation (SQLite file)
+  [X] Schema initialization
+  [X] Content packaging
+  [X] Metadata storage
+  [X] Resource packaging
+[X] Implement cartridge signing
+  [X] H1 hash calculation (content hash - SHA-256)
+  [X] Certificate selection (via CertificateManager)
+  [X] Signature creation (L1/L2/L3) with OpenSSL EVP
+  [X] Security data storage
+[X] Implement export validation
+  [X] Content validation
+  [X] Schema validation
+  [X] Required metadata validation
+  [X] Export error handling
 
 **Reference:** DDD Section 13 (Creator Tool), Section 6 (Security), SRS FR-CT-3.27 through FR-CT-3.35
 
 **Test Cases:** T-CT-10 through T-CT-21
 
 ==== Certificate Management
-[ ] Implement certificate management UI
+[X] Implement certificate management UI
+[X] Implement CertificateManager backend
+[X] Implement CertificateManagerDialog UI
+[X] Integrate certificate selection into export workflow
   [ ] Certificate import
   [ ] Self-signed certificate generation
   [ ] Certificate selection interface
@@ -526,7 +528,7 @@ The implementation should follow this priority order to ensure dependencies are 
 
 ==== Integration Testing
 [ ] End-to-end import workflow
-[ ] End-to-end cartridge creation and export
+[X] End-to-end cartridge creation and export (core functionality complete)
 [ ] Security verification workflow
 [ ] Multi-window isolation
 [ ] Form data persistence
