@@ -4,9 +4,20 @@
 #include <QMainWindow>
 #include <QString>
 #include <memory>
+#include "smartbook/common/security/SignatureVerifier.h"
+#include "smartbook/reader/ui/SecurityErrorDialog.h"
 
 namespace smartbook {
+namespace common {
+namespace security {
+    class TrustRegistry;
+}
+}
+
 namespace reader {
+namespace ui {
+    class ConsentDialog;
+}
 
 class ReaderView;
 class WebChannelBridge;
@@ -41,10 +52,15 @@ private:
     void setupUI();
     void loadCartridge();
     void saveWindowState();
+    bool performSecurityVerification(const QString& cartridgePath);
+    void handleSecurityError(ui::SecurityErrorType errorType, const QString& errorDetails);
+    void handleConsentRequired(common::security::SecurityLevel level, const QString& cartridgeTitle, const QString& authorName);
 
     QString m_cartridgeGuid;
     ReaderView* m_readerView;
     WebChannelBridge* m_webChannelBridge;
+    common::security::SignatureVerifier* m_signatureVerifier;
+    common::security::TrustRegistry* m_trustRegistry;
 };
 
 } // namespace reader
