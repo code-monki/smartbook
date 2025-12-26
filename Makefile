@@ -210,7 +210,6 @@ docs-html-pdf-chromium: docs-html
 	for html in $$HTML_DIR/*.html; do \
 		if [ -f "$$html" ]; then \
 			doc_name=$$(basename "$$html" .html); \
-			# Skip diagrams.html if diagrams.adoc.html exists (use processed version with rendered diagrams) \
 			if [ "$$doc_name" = "diagrams" ] && [ -f "$$HTML_DIR/diagrams.adoc.html" ]; then \
 				echo "  Skipping $$doc_name.html (using diagrams.adoc.html with rendered diagrams instead)"; \
 				continue; \
@@ -226,7 +225,7 @@ docs-html-pdf-chromium: docs-html
 				echo "Warning: Failed to convert $$doc_name.html (empty or missing PDF)"; \
 				rm -f "$$pdf_path"; \
 			fi; \
-		fi \
+		fi; \
 	done
 	@echo "PDFs generated from HTML in $(PDF_DIR)/"
 
@@ -237,14 +236,13 @@ docs-html-pdf-weasyprint: docs-html
 	@for html in $(DOCS_DIR)/html/*.html; do \
 		if [ -f "$$html" ]; then \
 			doc_name=$$(basename "$$html" .html); \
-			# Skip diagrams.html - use diagrams.adoc.html (with rendered diagrams) instead \
 			if [ "$$doc_name" = "diagrams" ] && [ -f "$(DOCS_DIR)/html/diagrams.adoc.html" ]; then \
 				echo "  Skipping $$doc_name.html (using diagrams.adoc.html with rendered diagrams instead)"; \
 				continue; \
 			fi; \
 			echo "  Converting $$doc_name.html to PDF..."; \
 			weasyprint "$$html" "$(PDF_DIR)/$$doc_name.pdf" || echo "Warning: Failed to convert $$doc_name.html"; \
-		fi \
+		fi; \
 	done
 	@echo "PDFs generated from HTML in $(PDF_DIR)/"
 
