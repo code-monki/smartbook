@@ -4,6 +4,8 @@
 #include <QString>
 #include <QByteArray>
 #include <QObject>
+#include <QSslCertificate>
+#include <QSslKey>
 
 namespace smartbook {
 namespace common {
@@ -86,6 +88,44 @@ private:
      * @brief Phase 4: Final Policy - Determine effective trust policy
      */
     TrustPolicy phase4_FinalPolicy(SecurityLevel level, TrustPolicy localTrust, bool isTampered);
+
+    /**
+     * @brief Validate certificate and determine security level
+     * @param certData Certificate data from Cartridge_Security table
+     * @return Security level (LEVEL_1, LEVEL_2, or LEVEL_3)
+     */
+    SecurityLevel validateCertificate(const QByteArray& certData);
+
+    /**
+     * @brief Verify digital signature using public key
+     * @param signature Digital signature from Cartridge_Security
+     * @param hash Hash to verify (H1)
+     * @param publicKey Public key extracted from certificate
+     * @return true if signature is valid, false otherwise
+     */
+    bool verifyDigitalSignature(const QByteArray& signature, const QByteArray& hash, const QSslKey& publicKey);
+
+    /**
+     * @brief Verify public key fingerprint
+     * @param calculatedFingerprint Fingerprint calculated from certificate
+     * @param storedFingerprint Fingerprint stored in Cartridge_Security
+     * @return true if fingerprints match, false otherwise
+     */
+    bool verifyFingerprint(const QString& calculatedFingerprint, const QString& storedFingerprint);
+
+    /**
+     * @brief Calculate public key fingerprint
+     * @param publicKey Public key from certificate
+     * @return SHA-256 fingerprint as hexadecimal string
+     */
+    QString calculatePublicKeyFingerprint(const QSslKey& publicKey);
+
+    /**
+     * @brief Extract certificate from certificate data
+     * @param certData Certificate data (DER or PEM format)
+     * @return QSslCertificate object, or null if invalid
+     */
+    QSslCertificate extractCertificate(const QByteArray& certData);
 };
 
 } // namespace security
