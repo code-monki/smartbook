@@ -146,19 +146,18 @@ docs-html: docs-process-mermaid
 	@for doc in Documentation/*.adoc Documentation/*.adoc.processed; do \
 		if [ -f "$$doc" ]; then \
 			doc_basename=$$(basename "$$doc" .processed); \
-			# Skip diagrams.adoc if diagrams.adoc.processed exists (use processed version with rendered diagrams) \
 			if [ "$$doc_basename" = "diagrams.adoc" ] && [ -f "Documentation/diagrams.adoc.processed" ]; then \
 				echo "  Skipping $$doc_basename (using processed version with rendered diagrams instead)"; \
 				continue; \
 			fi; \
 			echo "  Converting $$doc_basename to HTML..."; \
 			asciidoctor -D $(DOCS_DIR)/html "$$doc" || echo "Warning: Failed to convert $$doc"; \
-		fi \
+		fi; \
 	done
 	@if [ -f "Documentation/diagrams.adoc.processed" ]; then \
 		rm -f Documentation/diagrams.adoc.processed; \
 	fi
-	@# Remove diagrams.html if diagrams.adoc.html exists (processed version is preferred) \
+	@# Remove diagrams.html if diagrams.adoc.html exists (processed version is preferred)
 	@if [ -f "$(DOCS_DIR)/html/diagrams.html" ] && [ -f "$(DOCS_DIR)/html/diagrams.adoc.html" ]; then \
 		rm -f "$(DOCS_DIR)/html/diagrams.html"; \
 		echo "  Removed diagrams.html (using diagrams.adoc.html with rendered diagrams instead)"; \
