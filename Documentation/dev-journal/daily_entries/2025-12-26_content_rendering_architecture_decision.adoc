@@ -1,0 +1,181 @@
+= Content Rendering Architecture Decision (ADR)
+:author: AI Assistant
+:revdate: 2025-12-26
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+
+== ADR: Content Rendering Architecture - QTextDocument + Qt Quick/QML
+
+[cols=">1, 5"]
+|===
+| **Status** | Accepted
+| **Date** | 2025-12-26
+| **Decision Driver** | 
+  * FR-2.2.1 (HTML/CSS Rendering)
+  * FR-2.2.2 (Embedded Application Support)
+  * FR-2.2.3 (Settings Application)
+  * FR-2.7.x (Form Rendering)
+  * Critical UX issue: Theme change rendering flash in Qt WebEngine
+| **Decision** | Use **QTextDocument/QTextBrowser** for content rendering and **Qt Quick/QML** for embedded applications, instead of Qt WebEngine
+| **Consequences** | 
+  * No rendering flash issues (synchronous rendering)
+  * Limited to HTML4 + CSS 2.1 (no HTML5/CSS3)
+  * Embedded apps use QML instead of JavaScript SPAs
+  * Forms use Qt Widgets instead of JavaScript
+  * Simpler deployment (no Chromium dependency)
+  * Better performance for text-heavy content
+  * Requires redesign of existing WebEngine-based implementation
+|===
+
+== Context
+
+The SmartBook project requires content rendering with support for:
+* HTML/CSS content rendering
+* Embedded interactive applications
+* Form rendering and validation
+* WYSIWYG editing in Creator Tool
+* Theme changes without visual artifacts
+
+The initial implementation used Qt WebEngine (Chromium-based) for content rendering. However, evaluation revealed a critical UX issue: theme changes cause visible rendering flash due to WebEngine's multi-process architecture and asynchronous viewport updates.
+
+== Decision
+
+**Use QTextDocument/QTextBrowser for content rendering and Qt Quick/QML for embedded applications.**
+
+=== Rationale
+
+1. **Rendering Flash Issue:** Qt WebEngine's theme change rendering flash is **unacceptable** and appears unfixable due to the architecture (separate Chromium process, async updates). This is a deal-breaker.
+
+2. **QML Alternative:** Qt Quick/QML provides equivalent functionality to JavaScript SPAs for embedded applications:
+   * Interactive UIs with JavaScript expressions
+   * Can be embedded via `QQuickWidget` in Qt Widgets applications
+   * Synchronous rendering (no separate process)
+   * Better Qt integration
+
+3. **Acceptable Limitations:**
+   * HTML4 + CSS 2.1 is sufficient (HTML5/CSS3 not required)
+   * Qt Widget Forms are acceptable (no JavaScript forms needed)
+   * QML embedded apps are acceptable (no JavaScript SPAs needed)
+   * Limited WYSIWYG is acceptable with robust authoring environment
+
+4. **Benefits:**
+   * No rendering flash issues
+   * Simpler deployment (no Chromium dependency)
+   * Better performance for text-heavy content
+   * Lower memory footprint
+   * Native Qt integration
+
+== Implementation Approach
+
+=== Content Rendering
+
+* **Reader View:** Use `QTextBrowser` to display HTML content from `Content_Pages` table
+* **HTML Support:** HTML4 subset + CSS 2.1
+* **Settings Application:** Apply settings via Qt stylesheets or content transformation
+* **Theme Changes:** Synchronous rendering, no flash
+
+=== Embedded Applications
+
+* **Storage:** Store QML code in `Embedded_Apps` table (instead of HTML/JavaScript)
+* **Embedding:** Use `QQuickWidget` to embed QML applications in content pages
+* **Communication:** Use Qt property binding for C++/QML communication
+* **Authoring:** Provide QML authoring tools in Creator Tool
+
+=== Form Rendering
+
+* **Schema Parsing:** Parse JSON form schemas in C++
+* **Widget Generation:** Dynamically create Qt Widgets (QLineEdit, QComboBox, etc.)
+* **Validation:** Implement validation logic in C++
+* **Persistence:** Use existing form data persistence mechanisms
+* **Undo/Redo:** Use Qt's undo/redo framework
+
+=== Creator Tool
+
+* **WYSIWYG Editor:** Use `QTextEdit` with rich text formatting toolbar
+* **Supported Features:** Bold, italic, underline, font size, font family, colors, lists, alignment
+* **HTML Editing:** Direct HTML source editing mode
+* **Preview:** Limited preview (HTML4 subset only)
+
+== Consequences
+
+=== Positive
+
+* ✅ **No Rendering Flash:** Synchronous rendering eliminates theme change flash
+* ✅ **Simpler Deployment:** No Chromium dependency, smaller binary
+* ✅ **Better Performance:** Faster startup, lower memory, better text rendering
+* ✅ **Native Integration:** Seamless Qt Widgets integration
+* ✅ **Consistent Styling:** Native Qt styling throughout
+
+=== Negative
+
+* ❌ **Limited HTML/CSS:** HTML4 subset only, no CSS3 features (flexbox, grid, transforms)
+* ❌ **QML Learning Curve:** Authors need to learn QML instead of web technologies
+* ❌ **Limited WYSIWYG:** Cannot preview CSS3 features, limited HTML support
+* ❌ **Redesign Required:** Existing WebEngine-based implementation needs redesign
+* ❌ **No Web Standards:** Cannot use existing web frameworks (React, Vue, etc.)
+
+=== Risks
+
+* **HTML/CSS Limitations:** May restrict content authoring capabilities
+* **QML Adoption:** Authors may prefer web technologies over QML
+* **WYSIWYG Limitations:** May require more manual HTML editing
+* **Migration Effort:** Significant refactoring of existing code
+
+== Alternatives Considered
+
+=== Qt WebEngine (Rejected)
+
+**Reason for Rejection:** Theme change rendering flash is unacceptable and appears unfixable.
+
+**Mitigation Attempts:** Pre-rendering, fade transitions, theme caching - all unsuccessful in other project.
+
+=== Hybrid Approach (Rejected)
+
+**Reason for Rejection:** Architecture notes indicate "hybrid approach may not be viable." Complexity of maintaining two rendering systems outweighs benefits.
+
+== References
+
+* Content Rendering Decision Analysis: `content-rendering-decision-analysis.adoc`
+* Qt QTextDocument: https://doc.qt.io/qt-6/qtextdocument.html
+* Qt Quick/QML: https://doc.qt.io/qt-6/qtquick-index.html
+* QQuickWidget: https://doc.qt.io/qt-6/qquickwidget.html
+* Architecture Notes: `architecture-notes.adoc`
+
+== Action Items
+
+1. **Redesign Implementation:**
+   * Replace `QWebEngineView` with `QTextBrowser` in `ReaderViewWindow`
+   * Replace `QWebEngineView` with `QTextEdit` in `ContentEditor`
+   * Remove WebEngine dependencies from build system
+
+2. **QML Integration:**
+   * Design QML embedding mechanism in content pages
+   * Create QML authoring tools for Creator Tool
+   * Update `Embedded_Apps` table schema if needed
+
+3. **Form System Redesign:**
+   * Implement JSON schema parser in C++
+   * Create dynamic Qt Widgets generator
+   * Implement C++ validation framework
+   * Integrate with existing form data persistence
+
+4. **WYSIWYG Editor:**
+   * Implement rich text formatting toolbar for `QTextEdit`
+   * Add HTML source editing mode
+   * Create preview functionality (limited to HTML4)
+
+5. **Testing:**
+   * Verify no rendering flash with theme changes
+   * Test QML embedded applications
+   * Test Qt Widget forms
+   * Test WYSIWYG editor capabilities
+
+== Revision History
+
+|===
+| Date | Version | Changes | Author
+| 2025-12-26 | 1.0 | Initial ADR - Decision to use QTextDocument + QML | AI Assistant
+|===
+

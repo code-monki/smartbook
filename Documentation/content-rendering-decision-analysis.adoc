@@ -435,38 +435,56 @@ If using QTextDocument:
 
 == Updated Recommendations
 
-=== Primary Recommendation: **QTextDocument + Qt Quick/QML**
+=== Final Decision: **QTextDocument + Qt Quick/QML** ✅
+
+**Status:** **ACCEPTED**
 
 **Rationale:**
 
-1. **Rendering Issue:** The theme change flash is a **critical UX problem** that may be unfixable with WebEngine's architecture.
+1. **Rendering Flash:** ❌ **UNACCEPTABLE** - Deal-breaker for WebEngine. Other project spent significant effort trying to resolve and was unsuccessful.
 
-2. **Embedded Apps Alternative:** Qt Quick/QML provides a viable alternative to JavaScript SPAs:
+2. **Embedded Apps Alternative:** ✅ Qt Quick/QML provides equivalent functionality:
    * Can be embedded via `QQuickWidget`
-   * No separate process (synchronous rendering)
+   * No separate process (synchronous rendering, no flash)
    * Better Qt integration
-   * Still supports JavaScript expressions for interactivity
+   * Supports JavaScript expressions for interactivity
+   * **User Confirmed:** QML acceptable if it provides same functionality as JavaScript
 
-3. **Forms:** Qt Widget Forms are acceptable, so QTextDocument can handle forms.
+3. **HTML/CSS Level:** ✅ HTML4 + CSS 2.1 sufficient:
+   * **User Confirmed:** HTML4 + basic CSS acceptable
+   * Qt has **no plans** to add HTML5/CSS3 support to QTextDocument
+   * With robust WYSIWYG authoring environment, main loss is advanced CSS3 functionality
 
-4. **Deployment:** Simpler deployment without Chromium dependency.
+4. **Forms:** ✅ Qt Widget Forms acceptable:
+   * **User Confirmed:** Qt Widget Forms acceptable
+   * Can parse JSON schemas and generate Qt Widgets
+   * C++ validation instead of JavaScript
 
-5. **Performance:** Better performance for text-heavy content, no async rendering issues.
+5. **WYSIWYG:** ⚠️ Limited but acceptable:
+   * **User Input:** Depends on HOW limited
+   * QTextEdit provides: bold, italic, underline, font size, font family, colors, lists, alignment
+   * Cannot preview CSS3 features
+   * With robust authoring environment, limitations may be acceptable
+
+6. **Deployment:** ✅ Simpler deployment without Chromium dependency
+
+7. **Performance:** ✅ Better performance for text-heavy content, no async rendering issues
 
 **Implementation Approach:**
 
-* **Content Rendering:** QTextDocument/QTextBrowser for HTML content
+* **Content Rendering:** `QTextBrowser` for HTML4 + CSS 2.1 content
 * **Embedded Apps:** QML applications embedded via `QQuickWidget` in content pages
-* **Forms:** Qt Widgets generated from JSON schemas
-* **Creator Tool:** QTextEdit-based WYSIWYG editor (limited but functional)
+* **Forms:** Qt Widgets generated from JSON schemas (C++ parser, dynamic widget creation)
+* **Creator Tool:** `QTextEdit` with rich text formatting toolbar
 
 **Trade-offs:**
-* ⚠️ Limited HTML/CSS support (HTML4 subset, basic CSS)
-* ⚠️ QML learning curve for embedded app authors
-* ⚠️ Limited WYSIWYG editing capabilities
-* ✅ No rendering flash issues
-* ✅ Better performance
-* ✅ Simpler deployment
+* ⚠️ Limited HTML/CSS support (HTML4 subset, CSS 2.1 only - no CSS3)
+* ⚠️ QML learning curve for embedded app authors (different from web technologies)
+* ⚠️ Limited WYSIWYG editing capabilities (cannot preview CSS3)
+* ✅ **No rendering flash issues** (synchronous rendering)
+* ✅ Better performance (faster startup, lower memory)
+* ✅ Simpler deployment (no Chromium dependency)
+* ✅ Native Qt integration (consistent styling, event handling)
 
 === Alternative: **Qt WebEngine with Mitigations**
 
@@ -481,7 +499,7 @@ If using QTextDocument:
 
 **Risk:** ⚠️ **HIGH** - Rendering flash may be unfixable due to WebEngine architecture
 
-== Questions for Discussion (UPDATED)
+== Final Answers to Discussion Questions
 
 1. ✅ **Embedded Applications:** Qt Quick/QML is acceptable alternative - **CONFIRMED VIABLE**
 
@@ -489,29 +507,64 @@ If using QTextDocument:
 
 3. ✅ **Other Project Issues:** Theme change rendering flash - **CRITICAL ISSUE IDENTIFIED**
 
-4. ⚠️ **Rendering Flash Acceptability:** Is the theme change flash acceptable, or is it a deal-breaker?
+4. ❌ **Rendering Flash Acceptability:** **UNACCEPTABLE** - Deal-breaker for WebEngine. Other project spent significant effort trying to resolve and was unsuccessful.
 
 5. ✅ **Form Architecture:** Qt Widget Forms acceptable - **CONFIRMED**
 
-6. ⚠️ **HTML/CSS Limitations:** Are HTML4 + basic CSS sufficient, or is HTML5/CSS3 required?
+6. ✅ **HTML/CSS Limitations:** HTML4 + basic CSS sufficient - **CONFIRMED ACCEPTABLE**
+   * Qt has **no plans** to add HTML5/CSS3 support to QTextDocument
+   * QTextDocument supports HTML4 subset and CSS 2.1
+   * Advanced CSS3 features (flexbox, grid, transforms) will not be available
+   * With robust WYSIWYG authoring environment, main loss is advanced CSS3 functionality
 
-7. ⚠️ **QML vs JavaScript:** Are QML embedded apps acceptable, or must they be JavaScript SPAs?
+7. ✅ **QML vs JavaScript:** QML acceptable if it provides same functionality - **CONFIRMED ACCEPTABLE**
+   * QML provides similar interactive capabilities to JavaScript
+   * Supports JavaScript expressions for logic
+   * Different syntax but equivalent functionality
+   * Better Qt integration than JavaScript SPAs
 
-8. ⚠️ **WYSIWYG Limitations:** Is limited WYSIWYG editing acceptable for Creator Tool?
+8. ⚠️ **WYSIWYG Limitations:** Depends on HOW limited - **REQUIRES ASSESSMENT**
+   * QTextEdit provides rich text editing with formatting toolbar
+   * Supports: bold, italic, underline, font size, font family, colors, lists, alignment
+   * Limited HTML support (HTML4 subset)
+   * Cannot preview CSS3 features
+   * May need custom implementation for advanced features
+
+== Final Decision
+
+=== Decision: **QTextDocument + Qt Quick/QML**
+
+**Status:** ✅ **ACCEPTED**
+
+**Rationale Summary:**
+
+1. **Rendering Flash:** UNACCEPTABLE - Deal-breaker for WebEngine
+2. **QML Alternative:** Acceptable - Provides equivalent functionality to JavaScript
+3. **HTML/CSS Level:** HTML4 + CSS 2.1 sufficient - Qt has no plans for HTML5/CSS3
+4. **Forms:** Qt Widget Forms acceptable
+5. **WYSIWYG:** Limited but acceptable with robust authoring environment
+
+**Implementation:**
+* Content: `QTextBrowser` for HTML4 + CSS 2.1 rendering
+* Embedded Apps: QML via `QQuickWidget`
+* Forms: Qt Widgets generated from JSON schemas
+* Creator Tool: `QTextEdit` with rich text toolbar
 
 == Next Steps
 
-1. **Discussion:** Review updated analysis with QML alternative and rendering issue
-2. **Decision:** Make final architectural decision considering:
-   * Theme change flash issue (critical UX problem)
-   * QML as alternative to JavaScript SPAs
-   * Qt Widget Forms acceptance
-3. **Proof of Concept (if QML chosen):**
+1. ✅ **Decision Made:** QTextDocument + QML architecture accepted
+2. **ADR Created:** Architecture Decision Record documented
+3. **Implementation Planning:**
+   * Redesign `ReaderViewWindow` to use `QTextBrowser`
+   * Redesign `ContentEditor` to use `QTextEdit`
+   * Design QML embedding mechanism
+   * Design Qt Widgets form generator
+4. **Proof of Concept:**
    * Create QML embedded app example
-   * Test QML embedding in QTextBrowser content
+   * Test QML embedding in content pages
    * Verify no rendering flash with theme changes
-4. **Documentation:** Update ADR (Architecture Decision Record) with decision
-5. **Implementation:** Proceed with content rendering implementation based on decision
+   * Test Qt Widgets form generation
+5. **Implementation:** Proceed with content rendering implementation
 
 == Critical Decision Factors
 
