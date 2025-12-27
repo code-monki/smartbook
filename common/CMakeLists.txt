@@ -118,6 +118,7 @@ set(COMMON_SOURCES
     src/forms/FormSchemaParser.cpp
     src/forms/FormWidgetGenerator.cpp
     src/forms/FormValidator.cpp
+    src/forms/FormDataSerializer.cpp
 )
 
 # Header files
@@ -135,6 +136,7 @@ set(COMMON_HEADERS
     include/smartbook/common/forms/FormSchemaParser.h
     include/smartbook/common/forms/FormWidgetGenerator.h
     include/smartbook/common/forms/FormValidator.h
+    include/smartbook/common/forms/FormDataSerializer.h
 )
 
 # Create shared library

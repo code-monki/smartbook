@@ -591,6 +591,26 @@ if(QT_TEST_AVAILABLE)
     )
     add_test(NAME TestFormValidator COMMAND test_formvalidator)
     
+    # test_formdataserializer
+    add_executable(test_formdataserializer
+        unit/test_formdataserializer.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/src/forms/FormDataSerializer.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include/smartbook/common/forms/FormDataSerializer.h
+    )
+    set_target_properties(test_formdataserializer PROPERTIES AUTOMOC ON)
+    target_include_directories(test_formdataserializer PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/unit
+    )
+    target_link_libraries(test_formdataserializer PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Gui
+        Qt6::Widgets
+        smartbook_common
+    )
+    add_test(NAME TestFormDataSerializer COMMAND test_formdataserializer)
+    
     # test_readerview_qml_integration
     add_executable(test_readerview_qml_integration
         unit/test_readerview_qml_integration.cpp
