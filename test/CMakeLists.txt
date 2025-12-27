@@ -918,4 +918,37 @@ if(QT_TEST_AVAILABLE)
         test_helpers
     )
     add_test(NAME TestFormDataPersistence COMMAND test_form_data_persistence)
+    
+    # test_settings_application
+    add_executable(test_settings_application
+        integration/test_settings_application.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ReaderViewWindow.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ReaderView.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ConsentDialog.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/SecurityErrorDialog.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/WebChannelBridge.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ReaderViewWindow.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ReaderView.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ConsentDialog.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/SecurityErrorDialog.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/WebChannelBridge.h
+    )
+    set_target_properties(test_settings_application PROPERTIES AUTOMOC ON)
+    target_include_directories(test_settings_application PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/unit
+    )
+    target_link_libraries(test_settings_application PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        Qt6::Gui
+        Qt6::Widgets
+        Qt6::WebEngine
+        Qt6::WebChannel
+        smartbook_common
+        test_helpers
+    )
+    add_test(NAME TestSettingsApplication COMMAND test_settings_application)
 endif()
