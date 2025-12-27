@@ -78,17 +78,40 @@ Completed Phase 2 migration of ContentEditor from Qt WebEngineView to QTextEdit/
 
 == Test Updates
 
-**Status:** ✅ Complete - All 7 tests passing
+**Status:** ✅ Complete - All 19 tests passing (TDD)
 
-**Test Changes:**
-* Removed WebEngine async wait logic
-* Updated test expectations for synchronous content retrieval
-* All existing tests updated and passing:
+**TDD Approach:**
+1. ✅ Wrote comprehensive tests FIRST for all formatting methods
+2. ✅ Fixed implementation to make tests pass
+3. ✅ All tests passing
+
+**Test Coverage:**
+* **Original Tests (7):**
   * T-CT-01: HTML Content Authoring ✓
   * T-CT-02: Rich Text Editing ✓
   * T-CT-03: Direct HTML Editing ✓
   * T-CT-04: Standard Edit Operations ✓
   * T-CT-05: Preview Functionality ✓
+
+* **New TDD Tests (12):**
+  * testSetBold: Bold formatting application ✓
+  * testSetItalic: Italic formatting application ✓
+  * testSetUnderline: Underline formatting application ✓
+  * testSetFontFamily: Font family changes ✓
+  * testSetFontSize: Font size changes ✓
+  * testSetTextColor: Text color changes ✓
+  * testSetAlignment: Text alignment ✓
+  * testInsertList: List insertion (ordered/unordered) ✓
+  * testInsertLinkWithUrl: Link insertion with URL ✓
+  * testInsertImageWithPath: Image insertion with path ✓
+  * testFormMarkerInsertion: Form marker insertion ✓
+  * testContentSyncBetweenModes: Content sync between modes ✓
+
+**Test Changes:**
+* Removed WebEngine async wait logic
+* Updated test expectations for synchronous content retrieval
+* Added comprehensive formatting method tests
+* Tests verify both method execution and formatting application
 
 == Benefits of QTextEdit Migration
 
