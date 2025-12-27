@@ -17,22 +17,29 @@ bool createMinimalCartridge(const QString& path, const QString& guid,
     
     QSqlQuery query(db);
     
-    // Create Metadata table
+    // Create Metadata table with all columns that MetadataEditor expects
     query.exec(R"(
         CREATE TABLE IF NOT EXISTS Metadata (
             cartridge_guid TEXT PRIMARY KEY,
             title TEXT NOT NULL,
             author TEXT NOT NULL,
-            publication_year TEXT NOT NULL
+            publisher TEXT,
+            publication_year TEXT NOT NULL,
+            schema_version TEXT NOT NULL DEFAULT '1.0',
+            version TEXT NOT NULL DEFAULT '1.0',
+            tags_json TEXT,
+            cover_image_path TEXT
         )
     )");
     
     // Insert metadata
-    query.prepare("INSERT INTO Metadata (cartridge_guid, title, author, publication_year) VALUES (?, ?, ?, ?)");
+    query.prepare("INSERT INTO Metadata (cartridge_guid, title, author, publication_year, schema_version, version) VALUES (?, ?, ?, ?, ?, ?)");
     query.addBindValue(guid);
     query.addBindValue(title);
     query.addBindValue("Test Author");
     query.addBindValue("2025");
+    query.addBindValue("1.0");
+    query.addBindValue("1.0");
     if (!query.exec()) {
         qWarning() << "Failed to insert metadata:" << query.lastError().text();
         db.close();
@@ -74,6 +81,16 @@ bool createMinimalCartridge(const QString& path, const QString& guid,
         CREATE TABLE IF NOT EXISTS Settings (
             setting_key TEXT PRIMARY KEY,
             setting_value TEXT
+        )
+    )");
+    
+    query.exec(R"(
+        CREATE TABLE IF NOT EXISTS Resources (
+            resource_id TEXT PRIMARY KEY,
+            resource_path TEXT,
+            resource_type TEXT,
+            resource_data BLOB,
+            mime_type TEXT
         )
     )");
     
