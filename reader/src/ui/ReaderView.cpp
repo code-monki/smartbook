@@ -226,6 +226,18 @@ void ReaderView::applyTheme() {
     m_textBrowser->update();
 }
 
+void ReaderView::setTheme(const QString& theme) {
+    if (!m_settingsManager || m_cartridgeGuid.isEmpty()) {
+        return;
+    }
+    
+    // Save theme as user override
+    m_settingsManager->setUserOverride("default_theme", theme);
+    
+    // Apply theme immediately
+    applyTheme();
+}
+
 void ReaderView::processQmlAppMarkers(const QString& htmlContent)
 {
     // Clean up existing QML app widgets

@@ -16,6 +16,10 @@
 #include <QScreen>
 #include <QApplication>
 #include <QMessageBox>
+#include <QMenuBar>
+#include <QMenu>
+#include <QAction>
+#include <QActionGroup>
 #include <QDebug>
 
 namespace smartbook {
@@ -48,6 +52,43 @@ void ReaderViewWindow::setupUI() {
             this, &ReaderViewWindow::onContentLoaded);
     connect(m_readerView, &ReaderView::errorOccurred,
             this, &ReaderViewWindow::onError);
+    
+    // Create menu bar with theme selector
+    QMenuBar* menuBar = this->menuBar();
+    
+    // View menu
+    QMenu* viewMenu = menuBar->addMenu("View");
+    
+    // Theme submenu
+    QMenu* themeMenu = viewMenu->addMenu("Theme");
+    QActionGroup* themeGroup = new QActionGroup(this);
+    
+    QAction* lightAction = themeMenu->addAction("Light");
+    lightAction->setCheckable(true);
+    lightAction->setChecked(true);
+    lightAction->setData("light");
+    themeGroup->addAction(lightAction);
+    
+    QAction* darkAction = themeMenu->addAction("Dark");
+    darkAction->setCheckable(true);
+    darkAction->setData("dark");
+    themeGroup->addAction(darkAction);
+    
+    QAction* sepiaAction = themeMenu->addAction("Sepia");
+    sepiaAction->setCheckable(true);
+    sepiaAction->setData("sepia");
+    themeGroup->addAction(sepiaAction);
+    
+    // Connect theme actions
+    connect(themeGroup, &QActionGroup::triggered, this, [this](QAction* action) {
+        QString theme = action->data().toString();
+        if (m_readerView) {
+            // Get settings manager from ReaderView and update theme
+            // We need to access the SettingsManager through ReaderView
+            // For now, we'll add a method to ReaderView to change theme
+            m_readerView->setTheme(theme);
+        }
+    });
 }
 
 void ReaderViewWindow::loadCartridge() {

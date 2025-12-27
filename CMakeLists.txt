@@ -26,6 +26,11 @@ add_subdirectory(reader)
 add_subdirectory(creator)
 add_subdirectory(test)
 
+# Tools (optional utilities)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tools/CMakeLists.txt")
+    add_subdirectory(tools)
+endif()
+
 # PoC applications (optional, for development/testing)
 option(BUILD_POC "Build Proof of Concept applications" OFF)
 if(BUILD_POC)

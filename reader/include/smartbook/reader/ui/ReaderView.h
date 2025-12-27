@@ -51,6 +51,12 @@ public:
      * @return Current page ID, or -1 if no page loaded
      */
     int getCurrentPageId() const { return m_currentPageId; }
+    
+    /**
+     * @brief Set theme (light/dark/sepia)
+     * @param theme Theme name
+     */
+    void setTheme(const QString& theme);
 
 signals:
     void contentLoaded();
