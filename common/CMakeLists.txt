@@ -117,6 +117,7 @@ set(COMMON_SOURCES
     src/settings/SettingsManager.cpp
     src/forms/FormSchemaParser.cpp
     src/forms/FormWidgetGenerator.cpp
+    src/forms/FormValidator.cpp
 )
 
 # Header files
@@ -133,6 +134,7 @@ set(COMMON_HEADERS
     include/smartbook/common/settings/SettingsManager.h
     include/smartbook/common/forms/FormSchemaParser.h
     include/smartbook/common/forms/FormWidgetGenerator.h
+    include/smartbook/common/forms/FormValidator.h
 )
 
 # Create shared library

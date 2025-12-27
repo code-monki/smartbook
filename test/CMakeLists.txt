@@ -572,6 +572,25 @@ if(QT_TEST_AVAILABLE)
     )
     add_test(NAME TestFormWidgetGenerator COMMAND test_formwidgetgenerator)
     
+    # test_formvalidator
+    add_executable(test_formvalidator
+        unit/test_formvalidator.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/src/forms/FormValidator.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include/smartbook/common/forms/FormValidator.h
+    )
+    set_target_properties(test_formvalidator PROPERTIES AUTOMOC ON)
+    target_include_directories(test_formvalidator PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/unit
+    )
+    target_link_libraries(test_formvalidator PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Gui
+        smartbook_common
+    )
+    add_test(NAME TestFormValidator COMMAND test_formvalidator)
+    
     # test_readerview_qml_integration
     add_executable(test_readerview_qml_integration
         unit/test_readerview_qml_integration.cpp
