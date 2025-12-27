@@ -204,6 +204,37 @@ QTextBrowser loads content synchronously, which means:
 
 **Final Status:** All 14 tests passing ✓
 
+== Phase 1.5: ContentParser Integration into ReaderView (TDD)
+
+**Status:** ✅ Complete
+
+**Approach:** Test-Driven Development
+1. Tests written first (`test_readerview_qml_integration.cpp` - 9 test cases)
+2. ContentParser integrated into ReaderView
+3. All 9 tests passing
+
+**Integration Features:**
+* ContentParser detects QML app markers in HTML content
+* HTML cleaned (markers removed) before rendering in QTextBrowser
+* QmlEmbeddedAppWidget instances created for each detected marker
+* Graceful error handling for missing/invalid QML apps
+
+**Implementation:**
+* Added `ContentParser* m_contentParser` member to ReaderView
+* `processQmlAppMarkers()` method parses HTML and creates widgets
+* `cleanupQmlAppWidgets()` handles widget lifecycle
+* QML widgets created but positioning deferred (future enhancement)
+
+**Test Coverage:**
+* QML marker detection (single, multiple, none, invalid)
+* QML app loading from markers
+* Error handling for missing apps
+* Multiple apps on same page
+
+**Final Status:** All 9 tests passing ✓
+
+**Note:** Widget positioning/embedding in layout is deferred to future enhancement. Current implementation creates widgets but doesn't position them in the content flow.
+
 == Commit History
 
 * `feat: Add content rendering architecture PoC applications` - Initial PoC creation
