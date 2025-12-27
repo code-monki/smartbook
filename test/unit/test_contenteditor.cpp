@@ -48,8 +48,8 @@ void TestContentEditor::initTestCase()
     m_editor = new ContentEditor();
     QVERIFY(m_editor != nullptr);
     
-    // Wait for WebEngine to initialize
-    waitForLoad();
+    // QTextEdit is synchronous, no need to wait
+    QApplication::processEvents();
 }
 
 void TestContentEditor::cleanupTestCase()
@@ -63,17 +63,14 @@ void TestContentEditor::cleanupTestCase()
 
 void TestContentEditor::waitForLoad()
 {
-    // Wait for WebEngine to load
-    QTest::qWait(500);
-    QApplication::processEvents();
-    QTest::qWait(200);
+    // QTextEdit is synchronous, minimal wait for UI updates
     QApplication::processEvents();
 }
 
 // T-CT-01: HTML Content Authoring
 // Requirement: FR-CT-3.1
 // Test Plan: test-plan.adoc lines 156-165
-// AC: Content is stored as HTML. WYSIWYG interface displays and allows editing of HTML content using Qt WebEngineView.
+// AC: Content is stored as HTML. WYSIWYG interface displays and allows editing of HTML content using QTextEdit.
 void TestContentEditor::testWysiwygEditing()
 {
     QVERIFY(m_editor != nullptr);
@@ -84,10 +81,9 @@ void TestContentEditor::testWysiwygEditing()
     
     waitForLoad();
     
-    // Verify content can be retrieved
+    // Verify content can be retrieved (QTextEdit is synchronous)
     QString retrieved = m_editor->getContent();
-    // Note: getContent() returns cached content, which should match what we loaded
-    QVERIFY(!retrieved.isEmpty() || !testContent.isEmpty()); // At least one should be non-empty
+    QVERIFY(!retrieved.isEmpty());
     
     // Verify editor is in WYSIWYG mode (not HTML mode)
     QVERIFY(!m_editor->isHtmlMode());
@@ -121,8 +117,9 @@ void TestContentEditor::testRichTextFormatting()
     m_editor->insertOrderedList();
     QApplication::processEvents();
     
-    // Verify formatting actions exist
-    QVERIFY(true); // If we got here, formatting methods are callable
+    // Verify content changed (formatting was applied)
+    QString content = m_editor->getContent();
+    QVERIFY(!content.isEmpty());
 }
 
 // T-CT-03: Direct HTML Editing
@@ -136,15 +133,19 @@ void TestContentEditor::testHtmlMode()
     // Test HTML mode toggle
     QVERIFY(!m_editor->isHtmlMode()); // Should start in WYSIWYG mode
     
+    // Load HTML content in WYSIWYG mode first
+    QString htmlContent = "<div class=\"custom\">Custom Content</div>";
+    m_editor->loadContent(htmlContent);
+    waitForLoad();
+    
     // Switch to HTML mode
     m_editor->setHtmlMode(true);
     QApplication::processEvents();
     QVERIFY(m_editor->isHtmlMode());
     
-    // Load HTML content
-    QString htmlContent = "<div class=\"custom\">Custom Content</div>";
-    m_editor->loadContent(htmlContent);
-    waitForLoad();
+    // Content should be in HTML editor
+    QString htmlModeContent = m_editor->getContent();
+    QVERIFY(!htmlModeContent.isEmpty());
     
     // Switch back to WYSIWYG mode
     m_editor->setHtmlMode(false);
@@ -153,7 +154,7 @@ void TestContentEditor::testHtmlMode()
     
     // Content should be preserved
     QString retrieved = m_editor->getContent();
-    QVERIFY(!retrieved.isEmpty() || !htmlContent.isEmpty());
+    QVERIFY(!retrieved.isEmpty());
 }
 
 // T-CT-04: Standard Edit Operations
