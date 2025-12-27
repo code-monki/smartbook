@@ -149,12 +149,43 @@ QTextBrowser loads content synchronously, which means:
 * Simpler code flow
 * Better performance (no async overhead)
 
+== Phase 1.3: QmlEmbeddedAppWidget Component (TDD)
+
+**Status:** ✅ Complete with TDD Review
+
+**Approach:** Test-Driven Development
+1. Tests written first (`test_qmlembeddedappwidget.cpp` - 13 test cases)
+2. Implementation created to satisfy tests
+3. TDD review performed - all issues fixed
+4. All 13 tests passing
+
+**Components Created:**
+* `QmlEmbeddedAppWidget` - Widget for embedding QML applications
+* `QmlAppBridge` - C++/QML communication bridge (replaces WebChannelBridge for QML)
+
+**TDD Review Findings:**
+* Test cartridge schema missing `publication_year` column - Fixed
+* Database connection cleanup issue - Fixed
+* QML loading approach - Switched from `QQmlComponent` to `QQuickWidget::setSource()`
+* Widget initialization - Added `widget.show()` calls in tests
+* Cartridge info setting logic - Fixed
+
+**Test Coverage:**
+* QML app loading from database
+* Error handling (invalid app ID, invalid cartridge, QML errors)
+* Bridge communication (cartridge info, form data, sandbox operations)
+* App lifecycle (load, unload, reload, multiple apps)
+
+**Final Status:** All 13 tests passing ✓
+
 == Commit History
 
 * `feat: Add content rendering architecture PoC applications` - Initial PoC creation
 * `fix: Resolve unused parameter warnings in PoC applications` - Compilation fixes
 * `fix: Improve QTextBrowser PoC theme changes and test button` - PoC improvements
 * `feat: Phase 1.2 - Migrate ReaderView from QWebEngineView to QTextBrowser` - Phase 1.1 & 1.2 migration
+* `feat: Phase 1.3 - Create QmlEmbeddedAppWidget component (TDD)` - Phase 1.3 initial implementation
+* `fix: Phase 1.3 TDD review - Fix test failures and implementation issues` - TDD review fixes
 
-**Note:** Phase 1.1 and 1.2 were committed together as they are tightly coupled (header changes require implementation changes to compile). Future phases will use more atomic commits.
+**Note:** Phase 1.1 and 1.2 were committed together as they are tightly coupled (header changes require implementation changes to compile). Phase 1.3 followed proper TDD with tests written first, then implementation, then review and fixes.
 
