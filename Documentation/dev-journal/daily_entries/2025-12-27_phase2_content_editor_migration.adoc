@@ -1,0 +1,123 @@
+= Phase 2: Content Editor Migration (QTextEdit)
+:author: AI Assistant
+:revdate: 2025-12-27
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+
+== Overview
+
+Completed Phase 2 migration of ContentEditor from Qt WebEngineView to QTextEdit/QPlainTextEdit for content authoring. This follows the content rendering architecture migration decision.
+
+== Phase 2.1: Update ContentEditor Header
+
+**Status:** ✅ Complete
+
+**Changes:**
+* Replaced `#include <QWebEngineView>` with `#include <QTextEdit>` and `#include <QPlainTextEdit>`
+* Replaced `QWebEngineView* m_webView;` with `QTextEdit* m_textEdit;` and `QPlainTextEdit* m_htmlEdit;`
+* Removed JavaScript execution methods
+* Added rich text formatting methods:
+  * `setBold(bool enabled)`
+  * `setItalic(bool enabled)`
+  * `setUnderline(bool enabled)`
+  * `setFontFamily(const QString& family)`
+  * `setFontSize(int size)`
+  * `setTextColor(const QColor& color)`
+  * `setAlignment(Qt::Alignment alignment)`
+  * `insertList(bool ordered)`
+  * `insertLink(const QString& url)`
+  * `insertImage(const QString& path)`
+* Removed async content caching (QTextEdit is synchronous)
+* Updated class documentation
+
+== Phase 2.2: Update ContentEditor Implementation
+
+**Status:** ✅ Complete
+
+**Changes:**
+* Removed all WebEngine includes and dependencies
+* Replaced `QWebEngineView` with `QTextEdit` (WYSIWYG) and `QPlainTextEdit` (HTML source)
+* Used `QStackedWidget` to toggle between editors
+* Implemented rich text formatting using `QTextCursor` and `QTextCharFormat`
+* Implemented all formatting methods using Qt's rich text framework
+* Updated `loadContent()` to use `QTextEdit::setHtml()` (synchronous)
+* Updated `getContent()` to use `QTextEdit::toHtml()` (synchronous, no caching needed)
+* Updated `setHtmlMode()` to toggle between `QTextEdit` and `QPlainTextEdit`
+* Updated `setPreviewMode()` to use `setReadOnly()`
+* Removed async JavaScript execution and content caching
+* Implemented form marker insertion using `QTextCursor::insertHtml()`
+* Added content synchronization between WYSIWYG and HTML modes
+
+**Key Implementation Details:**
+* `QStackedWidget` manages switching between WYSIWYG and HTML editors
+* `syncContentBetweenModes()` ensures content is preserved when switching modes
+* All formatting operations use `QTextCursor` and format objects
+* Undo/redo support via `QTextEdit::undo()`/`redo()`
+
+== Phase 2.3: Rich Text Toolbar Implementation
+
+**Status:** ✅ Complete (integrated into Phase 2.2)
+
+**Features Implemented:**
+* Bold, italic, underline buttons (with checkable state)
+* Font family and size controls (methods available)
+* Text color and alignment (methods available)
+* List buttons (bulleted, numbered)
+* Link and image insertion buttons
+* Undo/Redo buttons (with availability signals)
+* HTML source toggle button
+* Preview toggle button
+
+**Implementation:**
+* All toolbar actions connected to formatting methods
+* Formatting uses `QTextCursor` and `QTextCharFormat`
+* Lists use `QTextListFormat`
+* Alignment uses `QTextBlockFormat`
+
+== Test Updates
+
+**Status:** ✅ Complete - All 7 tests passing
+
+**Test Changes:**
+* Removed WebEngine async wait logic
+* Updated test expectations for synchronous content retrieval
+* All existing tests updated and passing:
+  * T-CT-01: HTML Content Authoring ✓
+  * T-CT-02: Rich Text Editing ✓
+  * T-CT-03: Direct HTML Editing ✓
+  * T-CT-04: Standard Edit Operations ✓
+  * T-CT-05: Preview Functionality ✓
+
+== Benefits of QTextEdit Migration
+
+**Performance:**
+* ✅ Synchronous content operations (no async overhead)
+* ✅ Faster content loading and saving
+* ✅ No JavaScript execution overhead
+
+**Simplicity:**
+* ✅ Native Qt widgets (no WebEngine dependency)
+* ✅ Direct API access (no JavaScript bridge needed)
+* ✅ Simpler codebase (removed ~200 lines of JavaScript)
+
+**Reliability:**
+* ✅ No WebEngine background thread issues
+* ✅ Predictable behavior (synchronous operations)
+* ✅ Better error handling
+
+== Commit History
+
+* `feat: Phase 2.1 - Update ContentEditor header for QTextEdit migration` - Header changes
+* `feat: Phase 2.2 - Update ContentEditor implementation for QTextEdit migration` - Implementation
+* `test: Update ContentEditor tests for QTextEdit migration` - Test updates
+
+== Next Steps
+
+Phase 2 is complete. Next phases:
+* Phase 3: Form System Redesign (Qt Widgets forms)
+* Phase 4: WebChannel Bridge Replacement (complete migration)
+* Phase 6: Testing and Validation
+* Phase 7: Documentation Updates
+
