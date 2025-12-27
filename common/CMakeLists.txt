@@ -116,6 +116,7 @@ set(COMMON_SOURCES
     src/manifest/ManifestManager.cpp
     src/settings/SettingsManager.cpp
     src/forms/FormSchemaParser.cpp
+    src/forms/FormWidgetGenerator.cpp
 )
 
 # Header files
@@ -131,6 +132,7 @@ set(COMMON_HEADERS
     include/smartbook/common/manifest/ManifestManager.h
     include/smartbook/common/settings/SettingsManager.h
     include/smartbook/common/forms/FormSchemaParser.h
+    include/smartbook/common/forms/FormWidgetGenerator.h
 )
 
 # Create shared library

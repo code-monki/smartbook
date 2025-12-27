@@ -550,6 +550,28 @@ if(QT_TEST_AVAILABLE)
     )
     add_test(NAME TestFormSchemaParser COMMAND test_formschemaparser)
     
+    # test_formwidgetgenerator
+    add_executable(test_formwidgetgenerator
+        unit/test_formwidgetgenerator.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/src/forms/FormWidgetGenerator.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/src/forms/FormSchemaParser.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include/smartbook/common/forms/FormWidgetGenerator.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include/smartbook/common/forms/FormSchemaParser.h
+    )
+    set_target_properties(test_formwidgetgenerator PROPERTIES AUTOMOC ON)
+    target_include_directories(test_formwidgetgenerator PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/unit
+    )
+    target_link_libraries(test_formwidgetgenerator PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Gui
+        Qt6::Widgets
+        smartbook_common
+    )
+    add_test(NAME TestFormWidgetGenerator COMMAND test_formwidgetgenerator)
+    
     # test_readerview_qml_integration
     add_executable(test_readerview_qml_integration
         unit/test_readerview_qml_integration.cpp
