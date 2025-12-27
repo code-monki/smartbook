@@ -316,7 +316,17 @@ if(QT_TEST_AVAILABLE)
     add_executable(test_readerview_content
         unit/test_readerview_content.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ReaderView.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ContentParser.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/QmlEmbeddedAppWidget.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/QmlAppBridge.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/FormEmbeddedWidget.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ConsentDialog.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ReaderView.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ContentParser.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/QmlEmbeddedAppWidget.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/QmlAppBridge.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/FormEmbeddedWidget.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ConsentDialog.h
     )
     set_target_properties(test_readerview_content PROPERTIES AUTOMOC ON)
     target_include_directories(test_readerview_content PRIVATE
@@ -329,6 +339,9 @@ if(QT_TEST_AVAILABLE)
         Qt6::Sql
         Qt6::Gui
         Qt6::Widgets
+        Qt6::Quick
+        Qt6::QuickWidgets
+        Qt6::Qml
         smartbook_common
     )
     add_test(NAME TestReaderViewContent COMMAND test_readerview_content)
