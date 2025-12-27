@@ -1,12 +1,13 @@
-#include "smartbook/creator/MetadataEditor.h"
-#include "smartbook/creator/ResourceManager.h"
-#include "smartbook/common/database/CartridgeDBConnector.h"
+// Include Qt Widgets headers BEFORE MetadataEditor.h to avoid forward declaration issues
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QFormLayout>
 #include <QLineEdit>
 #include <QLabel>
 #include <QPushButton>
+#include "smartbook/creator/MetadataEditor.h"
+#include "smartbook/creator/ResourceManager.h"
+#include "smartbook/common/database/CartridgeDBConnector.h"
 #include <QFileDialog>
 #include <QPixmap>
 #include <QMessageBox>

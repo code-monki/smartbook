@@ -61,7 +61,7 @@ else()
         endif()
     endif()
 endif()
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Sql)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Sql Quick QuickWidgets Qml)
 # WebChannel and WebEngine still needed for WebChannelBridge (will be replaced with QML bridge later)
 find_package(Qt6 COMPONENTS WebChannel QUIET)
 find_package(Qt6 COMPONENTS WebEngine QUIET)
@@ -89,8 +89,10 @@ set(READER_SOURCES
     src/LibraryManager.cpp
     src/ReaderViewWindow.cpp
     src/WebChannelBridge.cpp
+    src/QmlAppBridge.cpp
     src/ui/LibraryView.cpp
     src/ui/ReaderView.cpp
+    src/ui/QmlEmbeddedAppWidget.cpp
     src/ui/ConsentDialog.cpp
     src/ui/SecurityErrorDialog.cpp
     src/ui/ImportDialog.cpp
@@ -102,8 +104,10 @@ set(READER_HEADERS
     include/smartbook/reader/LibraryManager.h
     include/smartbook/reader/ReaderViewWindow.h
     include/smartbook/reader/WebChannelBridge.h
+    include/smartbook/reader/QmlAppBridge.h
     include/smartbook/reader/ui/LibraryView.h
     include/smartbook/reader/ui/ReaderView.h
+    include/smartbook/reader/ui/QmlEmbeddedAppWidget.h
     include/smartbook/reader/ui/ConsentDialog.h
     include/smartbook/reader/ui/SecurityErrorDialog.h
     include/smartbook/reader/ui/ImportDialog.h
@@ -128,6 +132,9 @@ target_link_libraries(smartbook-reader PRIVATE
     Qt6::Gui
     Qt6::Widgets
     Qt6::Sql
+    Qt6::Quick
+    Qt6::QuickWidgets
+    Qt6::Qml
     smartbook_common
 )
 

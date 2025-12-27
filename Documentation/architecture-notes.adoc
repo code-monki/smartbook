@@ -1,0 +1,78 @@
+= Architecture Notes and Design Decisions
+:author: AI Assistant
+:revdate: 2025-12-26
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+
+== Content Rendering Architecture
+
+=== Current Implementation: Qt WebEngine
+
+The current implementation uses Qt WebEngine for content rendering in both the Reader and Creator tools. This provides:
+
+* Full HTML/CSS/JavaScript support
+* WYSIWYG editing capabilities in Creator Tool
+* Embedded application support
+* WebChannel bridge for JavaScript/C++ communication
+
+=== Alternative Consideration: Qt TextDocument
+
+**Status:** Under evaluation
+
+**Context:** Another project indicates that using a hybrid approach with QtWebEngine may not be viable.
+
+**Qt TextDocument Approach:**
+
+* **Pros:**
+  * Lighter weight than Qt WebEngine
+  * Native Qt rendering (no Chromium dependency)
+  * Better integration with Qt Widgets
+  * Potentially better performance for text-heavy content
+  * Simpler deployment (no WebEngine runtime)
+
+* **Cons:**
+  * Limited HTML/CSS support compared to WebEngine
+  * No JavaScript execution
+  * No embedded application support (would require alternative approach)
+  * Limited WYSIWYG editing capabilities
+  * May not support all HTML5/CSS3 features
+
+**Feasibility Assessment:**
+
+1. **For Reader Application:**
+   * **Text-heavy content:** Qt TextDocument would work well for simple HTML content
+   * **Rich formatting:** Limited CSS support may be insufficient
+   * **Forms:** Would need alternative form rendering (Qt Widgets)
+   * **Embedded Apps:** Not supported - would require complete redesign
+   * **Settings application:** Would need Qt Widgets-based implementation
+
+2. **For Creator Tool:**
+   * **WYSIWYG editing:** Qt TextDocument has limited editing capabilities
+   * **HTML editing:** Would need custom HTML editor or fallback to source editing
+   * **Preview:** Limited preview capabilities compared to WebEngine
+
+**Recommendation:**
+
+* **Short-term:** Continue with Qt WebEngine for Phase 1
+* **Evaluation needed:**
+  * Assess specific issues with Qt WebEngine in the other project
+  * Determine if those issues apply to SmartBook use case
+  * Evaluate Qt TextDocument feature set against SmartBook requirements
+  * Consider hybrid approach: Qt TextDocument for simple content, WebEngine for rich content
+
+**Action Items:**
+
+1. Document specific Qt WebEngine issues from other project
+2. Create proof-of-concept with Qt TextDocument for basic content rendering
+3. Evaluate feature gaps between WebEngine and TextDocument
+4. Assess impact on embedded applications and forms
+5. Make final decision before Phase 2 implementation
+
+**References:**
+
+* Qt TextDocument: https://doc.qt.io/qt-6/qtextdocument.html
+* Qt WebEngine: https://doc.qt.io/qt-6/qtwebengine-index.html
+* SmartBook DDD Section 5 (Qt WebEngine Integration)
+

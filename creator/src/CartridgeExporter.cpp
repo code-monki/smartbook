@@ -33,7 +33,7 @@ CartridgeExporter::CartridgeExporter(QObject* parent)
 {
 }
 
-bool CartridgeExporter::exportCartridge(const QString& cartridgePath, const QHash<QString, QVariant>& /* metadata */) {
+bool CartridgeExporter::exportCartridge(const QString& cartridgePath, const QHash<QString, QVariant>& metadata) {
     qDebug() << "Exporting cartridge to:" << cartridgePath;
     
     emit exportProgress(10);
@@ -50,9 +50,14 @@ bool CartridgeExporter::exportCartridge(const QString& cartridgePath, const QHas
     // Package metadata from source (same path) to target
     // Note: In a real workflow, source might be a working file and target is the export
     // For now, we assume they're the same (exporting the current cartridge)
-    if (!packageMetadata(cartridgePath, cartridgePath)) {
-        qWarning() << "Failed to package metadata, but continuing export";
-        // Don't fail export if metadata packaging fails - might be a new cartridge
+    bool metadataPackaged = packageMetadata(cartridgePath, cartridgePath);
+    
+    // If metadata packaging failed (likely a new cartridge), create metadata from parameter
+    if (!metadataPackaged && !metadata.isEmpty()) {
+        qDebug() << "Creating new metadata from parameter";
+        if (!createMetadataFromParameter(cartridgePath, metadata)) {
+            qWarning() << "Failed to create metadata from parameter";
+        }
     }
 
     emit exportProgress(40);
@@ -734,10 +739,26 @@ bool CartridgeExporter::packageContentPages(const QString& sourceCartridgePath, 
 }
 
 bool CartridgeExporter::packageMetadata(const QString& sourceCartridgePath, const QString& targetCartridgePath) {
-    // If source and target are the same, metadata is already in place
+    // If source and target are the same, check if metadata exists
     if (sourceCartridgePath == targetCartridgePath) {
-        qDebug() << "Source and target are the same, metadata already in place";
-        return true;
+        // Check if metadata actually exists
+        QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "CheckMetadata");
+        db.setDatabaseName(sourceCartridgePath);
+        
+        if (db.open()) {
+            QSqlQuery query(db);
+            query.prepare("SELECT COUNT(*) FROM Metadata");
+            if (query.exec() && query.next() && query.value(0).toInt() > 0) {
+                qDebug() << "Source and target are the same, metadata already in place";
+                db.close();
+                QSqlDatabase::removeDatabase("CheckMetadata");
+                return true;
+            }
+            db.close();
+            QSqlDatabase::removeDatabase("CheckMetadata");
+        }
+        // Metadata doesn't exist, return false so createMetadataFromParameter can be called
+        return false;
     }
     
     // Open source cartridge
@@ -861,6 +882,106 @@ bool CartridgeExporter::packageMetadata(const QString& sourceCartridgePath, cons
     targetDb.close();
     QSqlDatabase::removeDatabase("CartridgeTarget");
     sourceConnector.closeCartridge();
+    
+    return true;
+}
+
+bool CartridgeExporter::createMetadataFromParameter(const QString& cartridgePath, const QHash<QString, QVariant>& metadata) {
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "CreateMetadata");
+    db.setDatabaseName(cartridgePath);
+    
+    if (!db.open()) {
+        qCritical() << "Failed to open cartridge for metadata creation:" << db.lastError().text();
+        return false;
+    }
+    
+    // Generate GUID if not provided
+    QString cartridgeGuid = metadata.value("cartridge_guid").toString();
+    if (cartridgeGuid.isEmpty() || !isValidUuidV4(cartridgeGuid)) {
+        cartridgeGuid = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    }
+    
+    // Extract metadata fields with defaults
+    QString title = metadata.value("title").toString();
+    QString author = metadata.value("author").toString();
+    QString publisher = metadata.value("publisher").toString();
+    QString version = metadata.value("version").toString();
+    if (version.isEmpty()) {
+        version = "1.0";
+    }
+    QString publicationYear = metadata.value("publication_year").toString();
+    QString schemaVersion = metadata.value("schema_version").toString();
+    if (schemaVersion.isEmpty()) {
+        schemaVersion = "1.0";
+    }
+    QString contentType = metadata.value("content_type").toString();
+    if (contentType.isEmpty()) {
+        contentType = "book";
+    }
+    
+    // Validate required fields
+    if (title.isEmpty() || author.isEmpty() || publicationYear.isEmpty()) {
+        qWarning() << "Missing required metadata fields (title, author, publication_year)";
+        db.close();
+        QSqlDatabase::removeDatabase("CreateMetadata");
+        return false;
+    }
+    
+    // Check if metadata already exists
+    QSqlQuery checkQuery(db);
+    checkQuery.prepare("SELECT COUNT(*) FROM Metadata WHERE cartridge_guid = ?");
+    checkQuery.addBindValue(cartridgeGuid);
+    checkQuery.exec();
+    checkQuery.next();
+    bool exists = checkQuery.value(0).toInt() > 0;
+    
+    QSqlQuery query(db);
+    
+    if (exists) {
+        // Update existing metadata
+        query.prepare(R"(
+            UPDATE Metadata SET
+                title = ?, author = ?, publisher = ?, version = ?,
+                publication_year = ?, schema_version = ?, content_type = ?
+            WHERE cartridge_guid = ?
+        )");
+        query.addBindValue(title);
+        query.addBindValue(author);
+        query.addBindValue(publisher.isEmpty() ? QVariant() : publisher);
+        query.addBindValue(version);
+        query.addBindValue(publicationYear);
+        query.addBindValue(schemaVersion);
+        query.addBindValue(contentType);
+        query.addBindValue(cartridgeGuid);
+    } else {
+        // Insert new metadata
+        query.prepare(R"(
+            INSERT INTO Metadata (
+                cartridge_guid, title, author, publisher, version,
+                publication_year, schema_version, content_type
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        )");
+        query.addBindValue(cartridgeGuid);
+        query.addBindValue(title);
+        query.addBindValue(author);
+        query.addBindValue(publisher.isEmpty() ? QVariant() : publisher);
+        query.addBindValue(version);
+        query.addBindValue(publicationYear);
+        query.addBindValue(schemaVersion);
+        query.addBindValue(contentType);
+    }
+    
+    if (!query.exec()) {
+        qCritical() << "Failed to create metadata:" << query.lastError().text();
+        db.close();
+        QSqlDatabase::removeDatabase("CreateMetadata");
+        return false;
+    }
+    
+    qDebug() << "Created metadata successfully";
+    
+    db.close();
+    QSqlDatabase::removeDatabase("CreateMetadata");
     
     return true;
 }

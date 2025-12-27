@@ -77,6 +77,7 @@ signals:
 
 private:
     bool createCartridgeSchema(const QString& cartridgePath);
+    bool createMetadataFromParameter(const QString& cartridgePath, const QHash<QString, QVariant>& metadata);
     QByteArray calculateContentHash(const QString& cartridgePath);
     QByteArray signHashWithPrivateKey(const QByteArray& hash, const QSslKey& privateKey);
     
