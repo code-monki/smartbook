@@ -3,6 +3,13 @@
 #include "smartbook/reader/LibraryManager.h"
 #include "smartbook/common/utils/PlatformUtils.h"
 
+// Forward declaration
+namespace smartbook {
+namespace reader {
+    void registerQmlTypes();
+}
+}
+
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
 
@@ -14,6 +21,9 @@ int main(int argc, char *argv[]) {
 
     // Apply Qt Fusion style for uniform appearance
     app.setStyle(QStyleFactory::create("Fusion"));
+
+    // Register QML types for embedded applications
+    smartbook::reader::registerQmlTypes();
 
     // Initialize platform-specific settings
     smartbook::common::utils::PlatformUtils::getApplicationDataDirectory();
