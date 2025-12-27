@@ -27,5 +27,6 @@ include::daily_entries/2025-12-26_phase1.3_persistence_manifest.adoc[]
 include::daily_entries/2025-12-26_phase1.4_completion_and_tests.adoc[]
 include::daily_entries/2025-12-26_phase1.5_test_coverage.adoc[]
 include::daily_entries/2025-12-26_phase1.6_integration_testing.adoc[]
+include::daily_entries/2025-12-26_content_rendering_architecture_decision.adoc[]
 // Add subsequent include lines here as new files are created.
 // include::daily_entries/YYYY-MM-DD_topic.adoc[]
