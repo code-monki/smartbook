@@ -532,9 +532,9 @@ The implementation should follow this priority order to ensure dependencies are 
 **Reference:** `test-plan.adoc`
 
 ==== Integration Testing
-[ ] End-to-end import workflow
+[X] End-to-end import workflow
 [X] End-to-end cartridge creation and export (core functionality complete)
-[ ] Security verification workflow
+[X] Security verification workflow
 [ ] Multi-window isolation
 [ ] Form data persistence
 [ ] Settings application
