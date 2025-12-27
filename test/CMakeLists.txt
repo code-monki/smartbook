@@ -589,6 +589,81 @@ if(QT_TEST_AVAILABLE)
     )
     add_test(NAME TestWebChannelBridge COMMAND test_webchannelbridge)
     
+    # test_readerviewwindow_windowstate
+    add_executable(test_readerviewwindow_windowstate
+        unit/test_readerviewwindow_windowstate.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ReaderViewWindow.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ReaderView.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/WebChannelBridge.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ConsentDialog.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/SecurityErrorDialog.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ReaderViewWindow.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ReaderView.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/WebChannelBridge.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ConsentDialog.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/SecurityErrorDialog.h
+    )
+    set_target_properties(test_readerviewwindow_windowstate PROPERTIES AUTOMOC ON)
+    target_include_directories(test_readerviewwindow_windowstate PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/unit
+    )
+    target_link_libraries(test_readerviewwindow_windowstate PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        Qt6::Gui
+        Qt6::Widgets
+        Qt6::WebEngine
+        Qt6::WebChannel
+        smartbook_common
+        test_helpers
+    )
+    add_test(NAME TestReaderViewWindowWindowState COMMAND test_readerviewwindow_windowstate)
+    
+    # test_consentdialog
+    add_executable(test_consentdialog
+        unit/test_consentdialog.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ConsentDialog.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ConsentDialog.h
+    )
+    set_target_properties(test_consentdialog PROPERTIES AUTOMOC ON)
+    target_include_directories(test_consentdialog PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/unit
+    )
+    target_link_libraries(test_consentdialog PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Gui
+        Qt6::Widgets
+        smartbook_common
+    )
+    add_test(NAME TestConsentDialog COMMAND test_consentdialog)
+    
+    # test_securityerrordialog
+    add_executable(test_securityerrordialog
+        unit/test_securityerrordialog.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/SecurityErrorDialog.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/SecurityErrorDialog.h
+    )
+    set_target_properties(test_securityerrordialog PROPERTIES AUTOMOC ON)
+    target_include_directories(test_securityerrordialog PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/unit
+    )
+    target_link_libraries(test_securityerrordialog PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Gui
+        Qt6::Widgets
+        smartbook_common
+    )
+    add_test(NAME TestSecurityErrorDialog COMMAND test_securityerrordialog)
+    
     # Test helpers library (shared by multiple test executables)
     add_library(test_helpers STATIC
         unit/test_helpers.cpp
