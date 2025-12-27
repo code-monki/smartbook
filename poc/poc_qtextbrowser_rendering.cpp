@@ -24,6 +24,7 @@
 #include <QTextDocument>
 #include <QDebug>
 #include <QTimer>
+#include <QPalette>
 
 class ContentRenderingPoC : public QMainWindow
 {
@@ -37,9 +38,12 @@ public:
         , m_fontSizeSpin(nullptr)
         , m_fontFamilyCombo(nullptr)
         , m_currentTheme("light")
+        , m_initializing(true)
     {
         setupUI();
         loadSampleContent();
+        applyTheme();
+        m_initializing = false;
     }
 
 private slots:
@@ -53,29 +57,36 @@ private slots:
     void onFontSizeChanged(int size)
     {
         Q_UNUSED(size);
-        applySettings();
+        if (!m_initializing) {
+            applySettings();
+        }
     }
 
     void onFontFamilyChanged(const QString& family)
     {
         Q_UNUSED(family);
-        applySettings();
+        if (!m_initializing) {
+            applySettings();
+        }
     }
 
     void onTestFlash()
     {
-        // Rapidly change themes to test for flash
+        // Change theme once per button press to test for flash
         QString themes[] = {"light", "dark", "sepia", "light"};
+        
+        // Find current theme index
+        int currentIndex = -1;
         for (int i = 0; i < 4; ++i) {
-            m_themeCombo->setCurrentText(themes[i]);
-            QApplication::processEvents();
-            QTimer::singleShot(100, [this, i, themes]() {
-                if (i < 3) {
-                    m_themeCombo->setCurrentText(themes[i + 1]);
-                    QApplication::processEvents();
-                }
-            });
+            if (themes[i] == m_currentTheme) {
+                currentIndex = i;
+                break;
+            }
         }
+        
+        // Advance to next theme
+        int nextIndex = (currentIndex + 1) % 4;
+        m_themeCombo->setCurrentText(themes[nextIndex]);
     }
 
 private:
@@ -83,6 +94,9 @@ private:
     {
         setWindowTitle("QTextBrowser Content Rendering PoC");
         resize(1000, 700);
+        
+        // Ensure window is visible on screen
+        move(100, 100);
 
         QWidget* centralWidget = new QWidget(this);
         setCentralWidget(centralWidget);
@@ -130,9 +144,10 @@ private:
         // Content browser
         m_textBrowser = new QTextBrowser(this);
         m_textBrowser->setOpenExternalLinks(true);
+        m_textBrowser->setMinimumSize(800, 500);
         mainLayout->addWidget(m_textBrowser);
-
-        applyTheme();
+        
+        qDebug() << "UI setup complete - textBrowser created:" << (m_textBrowser != nullptr);
     }
 
     void loadSampleContent()
@@ -245,56 +260,45 @@ private:
 </html>)";
 
         m_textBrowser->setHtml(html);
+        qDebug() << "Sample content loaded, HTML length:" << html.length();
     }
 
     void applyTheme()
     {
-        QString stylesheet;
+        QColor bgColor, textColor;
         
         if (m_currentTheme == "light") {
-            stylesheet = R"(
-                QTextBrowser {
-                    background-color: #ffffff;
-                    color: #000000;
-                }
-            )";
+            bgColor = QColor(255, 255, 255);
+            textColor = QColor(0, 0, 0);
         } else if (m_currentTheme == "dark") {
-            stylesheet = R"(
-                QTextBrowser {
-                    background-color: #1e1e1e;
-                    color: #d4d4d4;
-                }
-            )";
+            bgColor = QColor(30, 30, 30);
+            textColor = QColor(212, 212, 212);
         } else if (m_currentTheme == "sepia") {
-            stylesheet = R"(
-                QTextBrowser {
-                    background-color: #f4ecd8;
-                    color: #5c4b37;
-                }
-            )";
+            bgColor = QColor(244, 236, 216);
+            textColor = QColor(92, 75, 55);
         }
-
-        m_textBrowser->setStyleSheet(stylesheet);
         
-        // Also update HTML content styles if needed
-        applySettings();
+        // Update palette atomically to minimize flash
+        QPalette palette = m_textBrowser->palette();
+        palette.setColor(QPalette::Base, bgColor);
+        palette.setColor(QPalette::Text, textColor);
+        
+        // Block repaints during palette change
+        m_textBrowser->setAttribute(Qt::WA_UpdatesDisabled, true);
+        m_textBrowser->setPalette(palette);
+        m_textBrowser->setAttribute(Qt::WA_UpdatesDisabled, false);
+        
+        // Force single atomic repaint
+        m_textBrowser->update();
     }
 
     void applySettings()
     {
-        // Get current HTML
-        QString html = m_textBrowser->toHtml();
-        
-        // Update font size and family in HTML
-        // This is a simplified approach - in production, we'd parse and update the HTML properly
-        Q_UNUSED(m_fontSizeSpin->value());
-        Q_UNUSED(m_fontFamilyCombo->currentText());
-        
         // Reload with updated settings
         // Note: In production, we'd apply settings more elegantly
         loadSampleContent();
         
-        // Apply theme again
+        // Apply theme to the reloaded content
         applyTheme();
     }
 
@@ -303,6 +307,7 @@ private:
     QSpinBox* m_fontSizeSpin;
     QFontComboBox* m_fontFamilyCombo;
     QString m_currentTheme;
+    bool m_initializing;
 };
 
 int main(int argc, char* argv[])
@@ -310,7 +315,18 @@ int main(int argc, char* argv[])
     QApplication app(argc, argv);
     
     ContentRenderingPoC poc;
+    
+    // Ensure window is visible and on top
+    poc.setWindowFlags(Qt::Window | Qt::WindowStaysOnTopHint);
     poc.show();
+    poc.raise();
+    poc.activateWindow();
+    
+    // Force update
+    QApplication::processEvents();
+    
+    qDebug() << "PoC window shown - size:" << poc.size() << "position:" << poc.pos();
+    qDebug() << "Window visible:" << poc.isVisible() << "isActiveWindow:" << poc.isActiveWindow();
     
     return app.exec();
 }
