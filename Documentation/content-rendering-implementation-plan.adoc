@@ -1,0 +1,673 @@
+= Content Rendering Architecture Implementation Plan
+:author: AI Assistant
+:revdate: 2025-12-26
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+
+== Overview
+
+This document provides a detailed implementation plan for migrating from Qt WebEngine to QTextDocument + Qt Quick/QML architecture for content rendering in SmartBook.
+
+**Decision:** Use QTextDocument/QTextBrowser for content rendering and Qt Quick/QML for embedded applications.
+
+**Rationale:** See `content-rendering-decision-analysis.adoc` and `2025-12-26_content_rendering_architecture_decision.adoc`.
+
+== Implementation Phases
+
+=== Phase 1: Reader View Migration (QTextBrowser)
+
+**Goal:** Replace `QWebEngineView` with `QTextBrowser` in `ReaderView`.
+
+==== 1.1 Update ReaderView Header
+
+**File:** `reader/include/smartbook/reader/ui/ReaderView.h`
+
+**Changes:**
+* Replace `#include <QWebEngineView>` with `#include <QTextBrowser>`
+* Replace `QWebEngineView* m_webView;` with `QTextBrowser* m_textBrowser;`
+* Remove `WebChannelBridge* m_webChannelBridge;` (will be replaced with QML bridge)
+* Update class documentation
+
+==== 1.2 Update ReaderView Implementation
+
+**File:** `reader/src/ui/ReaderView.cpp`
+
+**Changes:**
+* Remove WebEngine includes (`QWebEngineView`, `QWebEngineProfile`, `QWebEngineSettings`, `QWebEnginePage`, `QWebChannel`)
+* Add `#include <QTextBrowser>`
+* Replace `QWebEngineView` instantiation with `QTextBrowser`
+* Remove `setupWebEngine()` method
+* Update `loadContentFromDatabase()`:
+  * Remove WebChannel setup
+  * Use `QTextBrowser::setHtml()` instead of `QWebEngineView::setHtml()`
+  * Remove `onLoadFinished()` slot (QTextBrowser loads synchronously)
+* Update `buildHtmlDocument()`:
+  * Ensure HTML is HTML4 compliant
+  * Remove HTML5/CSS3 features if present
+* Update `applySettingsToHtml()`:
+  * Use CSS 2.1 compatible properties only
+  * Remove CSS3 variables (use direct CSS properties)
+* Emit `contentLoaded()` signal immediately after `setHtml()` (synchronous)
+
+==== 1.3 QML Embedded Application Support
+
+**New Component:** `QmlEmbeddedAppWidget`
+
+**File:** `reader/include/smartbook/reader/ui/QmlEmbeddedAppWidget.h`
+
+**Purpose:** Widget to embed QML applications in content pages.
+
+**Implementation:**
+* Use `QQuickWidget` to embed QML
+* Load QML from `Embedded_Apps` table
+* Support C++/QML communication via Qt properties
+* Handle app lifecycle (load, unload, error)
+
+**File:** `reader/src/ui/QmlEmbeddedAppWidget.cpp`
+
+**Features:**
+* Load QML code from database
+* Create `QQmlEngine` and `QQmlComponent`
+* Create `QQuickWidget` for rendering
+* Expose C++ objects to QML via `QQmlContext`
+* Handle QML errors
+
+==== 1.4 Content Parser for QML Embedding
+
+**New Component:** `ContentParser`
+
+**File:** `reader/include/smartbook/reader/ContentParser.h`
+
+**Purpose:** Parse HTML content and replace QML app markers with `QmlEmbeddedAppWidget` instances.
+
+**Implementation:**
+* Parse HTML content for QML app markers (e.g., `<div data-smartbook-qml-app="app_id"></div>`)
+* Query `Embedded_Apps` table for QML code
+* Replace markers with `QmlEmbeddedAppWidget` instances
+* Maintain layout structure
+
+**File:** `reader/src/ContentParser.cpp`
+
+**Approach:**
+* Use `QTextDocument` to parse HTML
+* Find QML app markers in document structure
+* Create `QmlEmbeddedAppWidget` for each marker
+* Insert widgets into layout (requires custom layout or `QTextBrowser` subclass)
+
+**Alternative Approach:**
+* Use `QTextBrowser` subclass that supports embedded widgets
+* Override `paintEvent()` or use `QTextDocument::drawContents()` with widget embedding
+* Or use `QTextBrowser` with `QTextDocumentFragment` and custom rendering
+
+**Recommended Approach:**
+* Create `QTextBrowser` subclass: `ContentBrowser`
+* Override `setHtml()` to parse and extract QML app markers
+* Create separate layout for QML widgets
+* Use `QTextDocument::toHtml()` to get HTML without QML markers
+* Display HTML in `QTextBrowser`
+* Display QML widgets in overlay or adjacent layout
+
+==== 1.5 Update ReaderViewWindow
+
+**File:** `reader/include/smartbook/reader/ReaderViewWindow.h` and `.cpp`
+
+**Changes:**
+* Remove `WebChannelBridge` references
+* Update to work with new `ReaderView` API
+* No changes needed if `ReaderView` API remains compatible
+
+==== 1.6 Testing
+
+**Test File:** `test/unit/test_readerview.cpp` (new or update existing)
+
+**Test Cases:**
+* T-RV-01: Load HTML content (HTML4)
+* T-RV-02: Apply settings (font size, font family, theme)
+* T-RV-03: Load page by page_id
+* T-RV-04: Navigate between pages
+* T-RV-05: Theme change (verify no flash)
+* T-RV-06: QML embedded app loading
+* T-RV-07: QML embedded app communication
+* T-RV-08: Multiple QML apps on same page
+
+=== Phase 2: Content Editor Migration (QTextEdit)
+
+**Goal:** Replace `QWebEngineView` with `QTextEdit` in `ContentEditor`.
+
+==== 2.1 Update ContentEditor Header
+
+**File:** `creator/include/smartbook/creator/ContentEditor.h`
+
+**Changes:**
+* Replace `#include <QWebEngineView>` with `#include <QTextEdit>`
+* Replace `QWebEngineView* m_webView;` with `QTextEdit* m_textEdit;`
+* Remove JavaScript execution methods
+* Add rich text formatting methods:
+  * `void setBold(bool enabled);`
+  * `void setItalic(bool enabled);`
+  * `void setUnderline(bool enabled);`
+  * `void setFontFamily(const QString& family);`
+  * `void setFontSize(int size);`
+  * `void setTextColor(const QColor& color);`
+  * `void setAlignment(Qt::Alignment alignment);`
+  * `void insertList(bool ordered);`
+  * `void insertLink(const QString& url);`
+  * `void insertImage(const QString& path);`
+* Update class documentation
+
+==== 2.2 Update ContentEditor Implementation
+
+**File:** `creator/src/ContentEditor.cpp`
+
+**Changes:**
+* Remove WebEngine includes
+* Add `#include <QTextEdit>`, `#include <QTextCharFormat>`, `#include <QTextListFormat>`, `#include <QTextList>`, `#include <QTextCursor>`, `#include <QColorDialog>`, `#include <QFontDialog>`
+* Replace `QWebEngineView` with `QTextEdit`
+* Remove `setupWebEngine()` and `setupEditorHTML()` methods
+* Remove JavaScript execution methods
+* Implement rich text formatting methods using `QTextCursor` and `QTextCharFormat`
+* Update `loadContent()`:
+  * Use `QTextEdit::setHtml()` directly
+* Update `getContent()`:
+  * Use `QTextEdit::toHtml()` directly (synchronous, no caching needed)
+* Update `setHtmlMode()`:
+  * Toggle between `QTextEdit` (WYSIWYG) and `QPlainTextEdit` (HTML source)
+  * Or use `QTextEdit` with `setReadOnly(false)` and HTML source view
+* Update `setPreviewMode()`:
+  * Use `QTextEdit::setReadOnly(true)`
+* Update toolbar actions:
+  * Connect to new formatting methods
+  * Update `undo()`/`redo()` to use `QTextEdit::undo()`/`redo()`
+
+==== 2.3 Rich Text Toolbar Implementation
+
+**File:** `creator/src/ContentEditor.cpp` (in `setupToolbar()`)
+
+**Features:**
+* Bold, italic, underline buttons
+* Font family dropdown (`QFontComboBox`)
+* Font size selector (`QSpinBox` or `QComboBox`)
+* Text color button (`QColorDialog`)
+* Highlight color button (`QColorDialog`)
+* Alignment buttons (left, center, right, justify)
+* List buttons (bulleted, numbered)
+* Indent buttons (increase, decrease)
+* Link button (insert hyperlink)
+* Image button (insert image from file)
+* Undo/Redo buttons
+* HTML source toggle button
+* Preview toggle button
+
+**Implementation:**
+* Use `QTextCursor` and `QTextCharFormat` for formatting
+* Use `QTextListFormat` for lists
+* Use `QTextBlockFormat` for alignment and indentation
+* Connect toolbar actions to formatting methods
+
+==== 2.4 HTML Source Editing Mode
+
+**Approach 1:** Use `QPlainTextEdit` for HTML source
+* Toggle between `QTextEdit` (WYSIWYG) and `QPlainTextEdit` (source)
+* Sync content between modes
+
+**Approach 2:** Use `QTextEdit` with `setReadOnly(false)` and HTML source
+* Display HTML as plain text
+* Parse and validate HTML4 on save
+
+**Recommended:** Approach 1 (separate widgets)
+
+==== 2.5 Form Marker Insertion
+
+**Update:** `insertFormMarker()`
+
+**Changes:**
+* Use `QTextCursor::insertHtml()` to insert form marker
+* Format: `<div data-smartbook-form="form_id"></div>`
+* Or use `QTextDocumentFragment` for structured insertion
+
+==== 2.6 Testing
+
+**Test File:** `test/unit/test_contenteditor.cpp` (update existing)
+
+**Test Cases:**
+* T-CT-01: Load content
+* T-CT-02: Get content
+* T-CT-03: Bold formatting
+* T-CT-04: Italic formatting
+* T-CT-05: Underline formatting
+* T-CT-06: Font family change
+* T-CT-07: Font size change
+* T-CT-08: Text color change
+* T-CT-09: Alignment change
+* T-CT-10: List insertion
+* T-CT-11: Link insertion
+* T-CT-12: Image insertion
+* T-CT-13: Undo/Redo
+* T-CT-14: HTML source mode
+* T-CT-15: Preview mode
+* T-CT-16: Form marker insertion
+
+=== Phase 3: Form System Redesign (Qt Widgets)
+
+**Goal:** Replace JavaScript forms with Qt Widgets generated from JSON schemas.
+
+==== 3.1 Form Schema Parser
+
+**New Component:** `FormSchemaParser`
+
+**File:** `common/include/smartbook/common/forms/FormSchemaParser.h`
+
+**Purpose:** Parse JSON form schemas and create Qt Widget form layouts.
+
+**File:** `common/src/forms/FormSchemaParser.cpp`
+
+**Features:**
+* Parse JSON schema (field definitions, validation rules, layout)
+* Create `QFormLayout` with appropriate widgets:
+  * `QLineEdit` for text inputs
+  * `QTextEdit` for textarea
+  * `QComboBox` for select
+  * `QCheckBox` for checkbox
+  * `QRadioButton` for radio (with `QButtonGroup`)
+  * `QSpinBox`/`QDoubleSpinBox` for number
+  * `QDateEdit`/`QTimeEdit`/`QDateTimeEdit` for date/time
+  * `QFileDialog` for file input
+* Apply validation rules (required, min/max, pattern, etc.)
+* Return `QWidget*` with form layout
+
+==== 3.2 Form Widget Generator
+
+**New Component:** `FormWidgetGenerator`
+
+**File:** `common/include/smartbook/common/forms/FormWidgetGenerator.h`
+
+**Purpose:** Generate form widgets from JSON schemas.
+
+**File:** `common/src/forms/FormWidgetGenerator.cpp`
+
+**Implementation:**
+* Use `FormSchemaParser` to parse schema
+* Create form widget with layout
+* Apply styling (CSS-like via Qt stylesheets)
+* Connect validation signals
+* Return `QWidget*` ready for embedding
+
+==== 3.3 Form Validation Framework
+
+**New Component:** `FormValidator`
+
+**File:** `common/include/smartbook/common/forms/FormValidator.h`
+
+**Purpose:** Validate form data against schema rules.
+
+**File:** `common/src/forms/FormValidator.cpp`
+
+**Features:**
+* Required field validation
+* Type validation (string, number, date, etc.)
+* Range validation (min/max)
+* Pattern validation (regex)
+* Custom validation callbacks
+* Error message generation
+
+==== 3.4 Form Data Serialization
+
+**Update:** `FormManager` or create `FormDataSerializer`
+
+**File:** `common/include/smartbook/common/forms/FormDataSerializer.h`
+
+**Purpose:** Serialize/deserialize form data to/from JSON.
+
+**File:** `common/src/forms/FormDataSerializer.cpp`
+
+**Features:**
+* Extract form data from Qt Widgets to JSON
+* Load form data from JSON to Qt Widgets
+* Handle all field types
+* Preserve data types
+
+==== 3.5 Form Rendering in Content
+
+**Update:** `ContentParser` (from Phase 1.4)
+
+**Changes:**
+* Parse form markers in HTML: `<div data-smartbook-form="form_id"></div>`
+* Query `Forms` table for form schema
+* Use `FormWidgetGenerator` to create form widget
+* Replace marker with form widget (similar to QML embedding)
+
+**Approach:**
+* Use `ContentBrowser` subclass (from Phase 1.4)
+* Extract form markers
+* Create form widgets
+* Embed in layout (overlay or adjacent)
+
+==== 3.6 Form Data Persistence
+
+**Update:** `WebChannelBridge` replacement (see Phase 4)
+
+**Changes:**
+* Form widgets connect directly to persistence layer
+* No JavaScript bridge needed
+* Use signals/slots for save/load
+
+==== 3.7 Testing
+
+**Test File:** `test/unit/test_formwidgetgenerator.cpp` (new)
+
+**Test Cases:**
+* T-FORM-01: Parse JSON schema
+* T-FORM-02: Generate text input
+* T-FORM-03: Generate textarea
+* T-FORM-04: Generate select
+* T-FORM-05: Generate checkbox
+* T-FORM-06: Generate radio buttons
+* T-FORM-07: Generate number input
+* T-FORM-08: Generate date input
+* T-FORM-09: Required field validation
+* T-FORM-10: Range validation
+* T-FORM-11: Pattern validation
+* T-FORM-12: Form data serialization
+* T-FORM-13: Form data loading
+* T-FORM-14: Form rendering in content
+
+=== Phase 4: WebChannel Bridge Replacement
+
+**Goal:** Replace `WebChannelBridge` with QML property binding and direct C++ signals/slots.
+
+==== 4.1 QML Bridge for Embedded Apps
+
+**New Component:** `QmlAppBridge`
+
+**File:** `reader/include/smartbook/reader/QmlAppBridge.h`
+
+**Purpose:** C++ object exposed to QML for app communication.
+
+**File:** `reader/src/QmlAppBridge.cpp`
+
+**Features:**
+* Expose C++ methods/properties to QML via `QQmlContext`
+* Methods:
+  * `saveFormData(formId, dataJson)` - Save form data
+  * `loadFormData(formId)` - Load form data
+  * `requestAppConsent(appId)` - Request consent
+  * `saveSandboxFile(filename, data)` - Save sandbox file
+  * `loadSandboxFile(filename)` - Load sandbox file
+  * `listSandboxFiles()` - List sandbox files
+  * `deleteSandboxFile(filename)` - Delete sandbox file
+  * `logMessage(level, message)` - Log message
+* Properties:
+  * `cartridgePath` - Current cartridge path
+  * `cartridgeGuid` - Current cartridge GUID
+* Signals:
+  * `formDataSaved(formId, success, error)`
+  * `formDataLoaded(formId, dataJson, error)`
+  * `appConsentGranted(appId)`
+  * `appConsentDenied(appId)`
+
+**Usage in QML:**
+```qml
+import SmartBook 1.0
+
+Item {
+    property var bridge: SmartbookBridge
+    
+    function saveData() {
+        bridge.saveFormData("form1", JSON.stringify(formData))
+    }
+    
+    Connections {
+        target: bridge
+        function onFormDataSaved(formId, success, error) {
+            if (success) {
+                console.log("Data saved")
+            }
+        }
+    }
+}
+```
+
+==== 4.2 Form Widget Persistence
+
+**Update:** Form widgets connect directly to persistence
+
+**File:** `common/src/forms/FormWidgetGenerator.cpp`
+
+**Changes:**
+* Connect form widget signals to persistence layer
+* Use `FormDataSerializer` for serialization
+* Use `CartridgeDBConnector::saveFormData()` / `loadFormData()`
+* No bridge needed - direct C++ connection
+
+==== 4.3 Remove WebChannelBridge
+
+**File:** `reader/include/smartbook/reader/WebChannelBridge.h` and `.cpp`
+
+**Action:** Mark as deprecated, remove after migration complete
+
+**Replacement:** `QmlAppBridge` for QML apps, direct C++ for form widgets
+
+==== 4.4 Testing
+
+**Test File:** `test/unit/test_qmlappbridge.cpp` (new)
+
+**Test Cases:**
+* T-BRIDGE-01: Expose bridge to QML
+* T-BRIDGE-02: Save form data from QML
+* T-BRIDGE-03: Load form data from QML
+* T-BRIDGE-04: Request consent from QML
+* T-BRIDGE-05: Sandbox file operations from QML
+* T-BRIDGE-06: Log message from QML
+* T-BRIDGE-07: Signal emission to QML
+
+=== Phase 5: Build System Updates
+
+**Goal:** Remove WebEngine dependencies, add Quick/QML dependencies.
+
+==== 5.1 CMake Updates
+
+**Files:** `reader/CMakeLists.txt`, `creator/CMakeLists.txt`, `test/CMakeLists.txt`
+
+**Changes:**
+* Remove `Qt6::WebEngine` dependencies
+* Add `Qt6::Quick` and `Qt6::QuickWidgets` dependencies
+* Remove WebEngine-related conditionals
+* Update target link libraries
+
+==== 5.2 Embedded Apps Table Schema
+
+**File:** Database schema (DDD or migration script)
+
+**Changes:**
+* Update `Embedded_Apps` table to store QML code instead of HTML/JavaScript
+* Column: `qml_code` (TEXT) instead of `html_content` and `javascript_code`
+* Or add `qml_code` column and keep existing for migration
+
+==== 5.3 QML Module Registration
+
+**File:** `common/src/forms/qml_module.cpp` (new)
+
+**Purpose:** Register QML types for embedded apps
+
+**Implementation:**
+* Use `qmlRegisterType<>()` to register C++ types
+* Register `QmlAppBridge` as `SmartbookBridge` in QML
+* Create QML module: `SmartBook 1.0`
+
+=== Phase 6: Testing and Validation
+
+**Goal:** Comprehensive testing of new architecture.
+
+==== 6.1 Unit Tests
+
+**Update existing tests:**
+* `test_readerview.cpp` - Update for QTextBrowser
+* `test_contenteditor.cpp` - Update for QTextEdit
+* `test_webchannelbridge.cpp` - Replace with `test_qmlappbridge.cpp`
+* `test_formbuilder.cpp` - Update for Qt Widgets forms
+
+**New tests:**
+* `test_contentparser.cpp` - QML embedding and form rendering
+* `test_formwidgetgenerator.cpp` - Form widget generation
+* `test_formvalidator.cpp` - Form validation
+* `test_qmlappbridge.cpp` - QML bridge communication
+
+==== 6.2 Integration Tests
+
+**Update existing tests:**
+* `test_import_workflow.cpp` - Verify content loads correctly
+* `test_form_data_persistence.cpp` - Verify Qt Widgets form persistence
+* `test_settings_application.cpp` - Verify settings apply to QTextBrowser
+
+**New tests:**
+* `test_qml_embedded_app.cpp` - QML app embedding and communication
+* `test_theme_change.cpp` - Verify no rendering flash
+
+==== 6.3 Manual Testing
+
+**Test Scenarios:**
+* Load cartridge with HTML4 content
+* Apply theme changes (verify no flash)
+* Load QML embedded app
+* Interact with QML app (save/load data)
+* Create content with QTextEdit
+* Format text (bold, italic, etc.)
+* Insert form marker
+* Render form in content
+* Fill and save form data
+* Load saved form data
+
+=== Phase 7: Documentation Updates
+
+**Goal:** Update all documentation to reflect new architecture.
+
+==== 7.1 Architecture Documentation
+
+**Files:**
+* `architecture-notes.adoc` - Update content rendering section
+* `ddd.adoc` - Update WebEngine sections to QTextDocument/QML
+* `srs.adoc` - Update requirements if needed
+
+==== 7.2 Developer Documentation
+
+**Files:**
+* `content-rendering-decision-analysis.adoc` - Already updated
+* `qtextedit-wysiwyg-capabilities.adoc` - Already created
+* Create `qml-embedded-apps-guide.adoc` - Guide for QML app development
+* Create `qt-widgets-forms-guide.adoc` - Guide for form development
+
+==== 7.3 API Documentation
+
+**Update:** Doxygen comments for all changed classes
+
+**Files:**
+* All header files with API changes
+
+== Implementation Order
+
+**Recommended Sequence:**
+
+1. **Phase 1: Reader View Migration** - Core content rendering
+2. **Phase 5: Build System Updates** - Remove WebEngine dependencies early
+3. **Phase 2: Content Editor Migration** - Creator Tool functionality
+4. **Phase 3: Form System Redesign** - Forms are critical feature
+5. **Phase 4: WebChannel Bridge Replacement** - Complete the migration
+6. **Phase 6: Testing and Validation** - Comprehensive testing
+7. **Phase 7: Documentation Updates** - Final documentation
+
+**Alternative Sequence (Incremental):**
+
+1. Phase 1.1-1.2: Basic QTextBrowser migration (no QML yet)
+2. Phase 6.1: Test basic content rendering
+3. Phase 1.3-1.4: QML embedding
+4. Phase 6.1: Test QML embedding
+5. Phase 2: Content Editor
+6. Phase 3: Forms
+7. Phase 4: Bridge replacement
+8. Phase 6: Full testing
+9. Phase 7: Documentation
+
+== Risk Mitigation
+
+=== Risk 1: QML Embedding Complexity
+
+**Risk:** Embedding QML widgets in HTML content may be complex.
+
+**Mitigation:**
+* Use `QTextBrowser` subclass with custom layout
+* Or use overlay approach (HTML in background, QML widgets on top)
+* Proof of concept before full implementation
+
+=== Risk 2: Form Widget Layout
+
+**Risk:** Embedding form widgets in content layout may be challenging.
+
+**Mitigation:**
+* Similar approach to QML embedding
+* Use `QTextBrowser` subclass or overlay
+* Test with simple forms first
+
+=== Risk 3: HTML4/CSS 2.1 Limitations
+
+**Risk:** Content may not render as expected with limited CSS support.
+
+**Mitigation:**
+* Validate content during import
+* Warn authors about unsupported features
+* Provide HTML4/CSS 2.1 style guide
+
+=== Risk 4: QML Learning Curve
+
+**Risk:** Authors may prefer JavaScript over QML.
+
+**Mitigation:**
+* Provide comprehensive QML documentation
+* Create QML app templates
+* Provide migration guide from JavaScript to QML
+
+== Success Criteria
+
+* ✅ Content renders correctly in QTextBrowser (HTML4 + CSS 2.1)
+* ✅ No rendering flash on theme changes
+* ✅ QML embedded apps load and function correctly
+* ✅ Qt Widgets forms render and persist data correctly
+* ✅ Content Editor provides functional WYSIWYG editing
+* ✅ All existing tests pass (or updated to pass)
+* ✅ No WebEngine dependencies remain
+* ✅ Documentation updated
+
+== Timeline Estimate
+
+**Rough Estimates (assuming full-time development):**
+
+* Phase 1: Reader View Migration - 1-2 weeks
+* Phase 2: Content Editor Migration - 1 week
+* Phase 3: Form System Redesign - 2 weeks
+* Phase 4: WebChannel Bridge Replacement - 1 week
+* Phase 5: Build System Updates - 1 day
+* Phase 6: Testing and Validation - 1-2 weeks
+* Phase 7: Documentation Updates - 3-5 days
+
+**Total:** 6-8 weeks
+
+**Note:** These are rough estimates. Actual time depends on complexity of QML embedding and form widget integration.
+
+== Next Steps
+
+1. **Review and Approve Plan:** Review this implementation plan
+2. **Create Proof of Concept:** Implement basic QTextBrowser content rendering
+3. **Create QML Embedding POC:** Test QML widget embedding approach
+4. **Begin Phase 1:** Start Reader View migration
+5. **Iterate:** Implement, test, refine
+
+== References
+
+* Content Rendering Decision Analysis: `content-rendering-decision-analysis.adoc`
+* Architecture Decision Record: `2025-12-26_content_rendering_architecture_decision.adoc`
+* QTextEdit WYSIWYG Capabilities: `qtextedit-wysiwyg-capabilities.adoc`
+* Qt QTextDocument: https://doc.qt.io/qt-6/qtextdocument.html
+* Qt Quick/QML: https://doc.qt.io/qt-6/qtquick-index.html
+* QQuickWidget: https://doc.qt.io/qt-6/qquickwidget.html
+
