@@ -951,4 +951,36 @@ if(QT_TEST_AVAILABLE)
         test_helpers
     )
     add_test(NAME TestSettingsApplication COMMAND test_settings_application)
+    
+    # test_error_handling
+    find_package(OpenSSL)
+    if(OpenSSL_FOUND)
+        add_executable(test_error_handling
+            integration/test_error_handling.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ImportManager.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ImportDialog.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ImportManager.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ImportDialog.h
+        )
+        set_target_properties(test_error_handling PROPERTIES AUTOMOC ON)
+        target_include_directories(test_error_handling PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+            ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include
+            ${CMAKE_CURRENT_SOURCE_DIR}/unit
+        )
+        target_link_libraries(test_error_handling PRIVATE
+            Qt6::Test
+            Qt6::Core
+            Qt6::Sql
+            Qt6::Gui
+            Qt6::Widgets
+            smartbook_common
+            test_helpers
+            OpenSSL::SSL
+            OpenSSL::Crypto
+        )
+        add_test(NAME TestErrorHandling COMMAND test_error_handling)
+    else()
+        message(WARNING "OpenSSL not found - skipping test_error_handling")
+    endif()
 endif()
