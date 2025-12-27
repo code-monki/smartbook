@@ -178,6 +178,32 @@ QTextBrowser loads content synchronously, which means:
 
 **Final Status:** All 13 tests passing ✓
 
+== Phase 1.4: ContentParser for QML Embedding (TDD)
+
+**Status:** ✅ Complete
+
+**Approach:** Test-Driven Development
+1. Tests written first (`test_contentparser.cpp` - 14 test cases)
+2. Implementation created to satisfy tests
+3. All 14 tests passing
+
+**Component Created:**
+* `ContentParser` - Parser for detecting QML app markers in HTML content
+
+**Features:**
+* Parse HTML for QML app markers: `<div data-smartbook-qml-app="app_id"></div>`
+* Extract app IDs from markers (preserves order)
+* Clean HTML by removing markers (preserves other content)
+* Track marker positions for widget placement
+
+**Test Coverage:**
+* QML marker detection (single, multiple, with attributes, none)
+* HTML cleaning (removes markers, preserves content, handles nested content)
+* App ID extraction (order preservation, invalid marker handling)
+* Marker position tracking
+
+**Final Status:** All 14 tests passing ✓
+
 == Commit History
 
 * `feat: Add content rendering architecture PoC applications` - Initial PoC creation
