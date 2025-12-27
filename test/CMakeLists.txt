@@ -486,6 +486,31 @@ if(QT_TEST_AVAILABLE)
     )
     add_test(NAME TestQmlEmbeddedAppWidget COMMAND test_qmlembeddedappwidget)
     
+    # test_qmlappbridge
+    add_executable(test_qmlappbridge
+        unit/test_qmlappbridge.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/QmlAppBridge.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ConsentDialog.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/QmlAppBridge.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ConsentDialog.h
+    )
+    set_target_properties(test_qmlappbridge PROPERTIES AUTOMOC ON)
+    target_include_directories(test_qmlappbridge PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/unit
+    )
+    target_link_libraries(test_qmlappbridge PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        Qt6::Gui
+        Qt6::Widgets
+        smartbook_common
+        test_helpers
+    )
+    add_test(NAME TestQmlAppBridge COMMAND test_qmlappbridge)
+    
     # test_contentparser
     add_executable(test_contentparser
         unit/test_contentparser.cpp
