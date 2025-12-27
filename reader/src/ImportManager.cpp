@@ -43,12 +43,19 @@ bool ImportManager::validateCartridge(const QString& filePath) {
     // Step 1: File format validation
     QFileInfo fileInfo(filePath);
     if (!fileInfo.exists() || !fileInfo.isReadable()) {
+        qWarning() << "ImportManager::validateCartridge: File does not exist or is not readable:" << filePath;
         return false;
     }
 
     // Check if it's a SQLite database
     common::database::CartridgeDBConnector connector(this);
     if (!connector.openCartridge(filePath)) {
+        QString validationError = connector.getValidationError();
+        if (!validationError.isEmpty()) {
+            qWarning() << "ImportManager::validateCartridge: Validation failed:" << validationError;
+        } else {
+            qWarning() << "ImportManager::validateCartridge: Failed to open cartridge:" << filePath;
+        }
         return false;
     }
 
@@ -122,13 +129,39 @@ ImportManager::ImportResultInfo ImportManager::importCartridge(
         return result;
     }
 
-    // Step 5: Create manifest entry
-    if (!createManifestEntry(destPath, libraryPath)) {
-        // If manifest creation fails, remove the copied file
-        QFile::remove(destPath);
-        result.result = ManifestFailed;
-        result.errorMessage = "Failed to create manifest entry";
-        return result;
+    // Step 5: Create or update manifest entry
+    // For KeepBoth, we update the existing entry with the new file path
+    if (duplicateAction == ui::ImportDialog::KeepBoth && 
+        m_manifestManager->manifestEntryExists(metadata.cartridgeGuid)) {
+        // Update existing manifest entry with new file path
+        common::manifest::ManifestManager::ManifestEntry existingEntry = 
+            m_manifestManager->getManifestEntry(metadata.cartridgeGuid);
+        existingEntry.localPath = destPath;
+        // Update hash and other metadata
+        QByteArray contentHash = common::metadata::MetadataExtractor::calculateContentHash(destPath);
+        existingEntry.cartridgeHash = contentHash;
+        existingEntry.title = metadata.title;
+        existingEntry.author = metadata.author;
+        existingEntry.publisher = metadata.publisher;
+        existingEntry.version = metadata.version;
+        existingEntry.publicationYear = metadata.publicationYear;
+        existingEntry.coverImageData = metadata.coverImageData;
+        
+        if (!m_manifestManager->updateManifestEntry(existingEntry)) {
+            QFile::remove(destPath);
+            result.result = ManifestFailed;
+            result.errorMessage = "Failed to update manifest entry";
+            return result;
+        }
+    } else {
+        // Create new manifest entry
+        if (!createManifestEntry(destPath, libraryPath)) {
+            // If manifest creation fails, remove the copied file
+            QFile::remove(destPath);
+            result.result = ManifestFailed;
+            result.errorMessage = "Failed to create manifest entry";
+            return result;
+        }
     }
 
     if (duplicateAction == ui::ImportDialog::Replace) {

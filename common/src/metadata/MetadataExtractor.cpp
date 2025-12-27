@@ -2,9 +2,11 @@
 #include <QDir>
 #include <QSqlDatabase>
 #include <QSqlQuery>
+#include <QSqlError>
 #include <QSqlRecord>
 #include <QFileInfo>
 #include <QCryptographicHash>
+#include <QUuid>
 #include <QDebug>
 
 namespace smartbook {
@@ -14,7 +16,9 @@ namespace metadata {
 CartridgeMetadata MetadataExtractor::extractMetadata(const QString& cartridgePath) {
     CartridgeMetadata metadata;
 
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "MetadataExtract");
+    // Use unique connection name to avoid conflicts
+    QString connectionName = QString("MetadataExtract_%1").arg(QUuid::createUuid().toString(QUuid::WithoutBraces));
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", connectionName);
     db.setDatabaseName(cartridgePath);
 
     if (!db.open()) {
@@ -25,7 +29,8 @@ CartridgeMetadata MetadataExtractor::extractMetadata(const QString& cartridgePat
     QSqlQuery query(db);
 
     // Extract from Metadata table
-    if (query.exec("SELECT cartridge_guid, title, author, publisher, version, publication_year, series_name, edition_name, series_order, schema_version FROM Metadata LIMIT 1")) {
+    // Use only required columns that exist in all cartridges
+    if (query.exec("SELECT cartridge_guid, title, author, publisher, version, publication_year, schema_version FROM Metadata LIMIT 1")) {
         if (query.next()) {
             metadata.cartridgeGuid = query.value(0).toString();
             metadata.title = query.value(1).toString();
@@ -33,11 +38,22 @@ CartridgeMetadata MetadataExtractor::extractMetadata(const QString& cartridgePat
             metadata.publisher = query.value(3).toString();
             metadata.version = query.value(4).toString();
             metadata.publicationYear = query.value(5).toString();
-            metadata.seriesName = query.value(6).toString();
-            metadata.editionName = query.value(7).toString();
-            metadata.seriesOrder = query.value(8).toInt();
-            metadata.schemaVersion = query.value(9).toString();
+            metadata.schemaVersion = query.value(6).toString();
+            
+            // Try to get optional columns if they exist
+            QSqlQuery optionalQuery(db);
+            if (optionalQuery.exec("SELECT series_name, edition_name, series_order FROM Metadata LIMIT 1")) {
+                if (optionalQuery.next()) {
+                    metadata.seriesName = optionalQuery.value(0).toString();
+                    metadata.editionName = optionalQuery.value(1).toString();
+                    metadata.seriesOrder = optionalQuery.value(2).toInt();
+                }
+            }
+        } else {
+            qWarning() << "MetadataExtractor: Metadata table is empty or query returned no rows";
         }
+    } else {
+        qWarning() << "MetadataExtractor: Failed to query Metadata table:" << query.lastError().text();
     }
 
     // Extract cover image
@@ -59,14 +75,16 @@ CartridgeMetadata MetadataExtractor::extractMetadata(const QString& cartridgePat
     }
 
     db.close();
-    QSqlDatabase::removeDatabase("MetadataExtract");
+    QSqlDatabase::removeDatabase(connectionName);
 
     return metadata;
 }
 
 QByteArray MetadataExtractor::calculateContentHash(const QString& cartridgePath) {
     // Use the same algorithm as SignatureVerifier::calculateContentHash
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "HashCalc");
+    // Use unique connection name to avoid conflicts
+    QString connectionName = QString("HashCalc_%1").arg(QUuid::createUuid().toString(QUuid::WithoutBraces));
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", connectionName);
     db.setDatabaseName(cartridgePath);
 
     if (!db.open()) {
@@ -106,7 +124,7 @@ QByteArray MetadataExtractor::calculateContentHash(const QString& cartridgePath)
     }
 
     db.close();
-    QSqlDatabase::removeDatabase("HashCalc");
+    QSqlDatabase::removeDatabase(connectionName);
 
     return hash.result();
 }
