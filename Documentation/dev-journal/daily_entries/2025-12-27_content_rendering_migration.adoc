@@ -1,0 +1,160 @@
+= Content Rendering Architecture Migration - Phase 1.1 & 1.2
+:author: AI Assistant
+:revdate: 2025-12-27
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+
+== Overview
+
+Completed Proof of Concept validation and began Phase 1 migration from Qt WebEngine to QTextDocument + Qt Quick/QML architecture.
+
+== PoC Validation
+
+=== QTextBrowser Rendering PoC
+
+**Status:** ✅ Validated
+
+**Key Findings:**
+* Theme changes are **imperceptible** - no visible flash
+* HTML4 + CSS 2.1 rendering works correctly
+* QPalette-based theme application is effective
+* `Qt::WA_UpdatesDisabled` attribute prevents intermediate repaints
+
+**Issues Resolved:**
+* Fixed infinite loop in `applySettings()` / `applyTheme()` recursion
+* Fixed test flash button to advance one theme per click (not auto-cycle)
+* Improved theme change implementation using QPalette instead of stylesheet
+
+**PoC Location:** `poc/poc_qtextbrowser_rendering.cpp`
+
+=== QML Embedding PoC
+
+**Status:** ✅ Validated
+
+**Key Findings:**
+* QML applications embed successfully in Qt Widgets using `QQuickWidget`
+* C++/QML communication via `QmlAppBridge` works correctly
+* Form data save/load simulation successful
+* Bridge object properly exposed to QML context
+
+**PoC Location:** `poc/poc_qml_embedding.cpp`
+
+== Phase 1.1: ReaderView Header Migration
+
+**Status:** ✅ Complete
+
+**Changes:**
+* Replaced `#include <QWebEngineView>` with `#include <QTextBrowser>`
+* Removed `WebChannelBridge` forward declaration
+* Updated class documentation to reflect QTextBrowser + QML architecture
+* Removed `onLoadFinished()` slot (QTextBrowser loads synchronously)
+* Removed `setupWebEngine()` method declaration
+* Added `applyTheme()` method declaration
+* Changed `m_webView` to `m_textBrowser`
+
+**Files Modified:**
+* `reader/include/smartbook/reader/ui/ReaderView.h`
+
+== Phase 1.2: ReaderView Implementation Migration
+
+**Status:** ✅ Complete
+
+**Changes:**
+
+=== Includes and Dependencies
+* Removed WebEngine includes (`QWebEngineView`, `QWebEngineProfile`, `QWebEngineSettings`, `QWebEnginePage`, `QWebChannel`)
+* Removed `WebChannelBridge.h` include
+* Added `QTextBrowser`, `QPalette`, `QColor` includes
+
+=== Constructor and Destructor
+* Replaced `QWebEngineView` instantiation with `QTextBrowser`
+* Removed `setupWebEngine()` call
+* Removed `loadFinished` signal connection (synchronous loading)
+* Simplified destructor (no WebEngine cleanup needed)
+* Set `setOpenExternalLinks(true)` on QTextBrowser
+
+=== Content Loading
+* Updated `buildHtmlDocument()` to use HTML4 DOCTYPE:
+  * Changed from `<!DOCTYPE html>` to `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"...>`
+  * Changed meta tag to `http-equiv="Content-Type"`
+* Removed WebChannel bridge setup code
+* Emit `contentLoaded()` immediately after `setHtml()` (synchronous)
+
+=== Settings Application
+* Updated `applySettingsToHtml()` to use CSS 2.1 (removed CSS variables):
+  * Removed `:root` CSS variables
+  * Applied settings directly to `body` element
+  * Removed theme CSS injection (handled by `applyTheme()`)
+
+=== Theme Application
+* Added `applyTheme()` method:
+  * Uses QPalette for direct color changes
+  * Supports light, dark, and sepia themes
+  * Uses `Qt::WA_UpdatesDisabled` to prevent flash
+  * Forces single atomic repaint
+
+=== Other Changes
+* Removed unused `WebChannelBridge` from `ReaderViewWindow`
+* Updated `reader/CMakeLists.txt` to make WebEngine/WebChannel optional (still needed for WebChannelBridge, will be replaced later)
+
+**Files Modified:**
+* `reader/src/ui/ReaderView.cpp`
+* `reader/src/ReaderViewWindow.cpp`
+* `reader/include/smartbook/reader/ReaderViewWindow.h`
+* `reader/CMakeLists.txt`
+
+== Build Status
+
+✅ **Build Successful**
+
+All changes compile and link successfully. WebEngine dependencies made optional for future removal.
+
+== Next Steps
+
+* **Phase 1.3:** Create `QmlEmbeddedAppWidget` component
+* **Phase 1.4:** Create `ContentParser` for QML embedding detection and replacement
+
+== Technical Notes
+
+=== Theme Change Flash Prevention
+
+The PoC validated that using `QPalette` with `Qt::WA_UpdatesDisabled` attribute effectively prevents visible flash during theme changes. This approach:
+
+1. Disables widget updates during palette change
+2. Applies new palette colors
+3. Re-enables updates
+4. Forces single atomic repaint
+
+This is significantly better than WebEngine's multi-process async updates.
+
+=== HTML4/CSS 2.1 Limitations
+
+* No CSS variables (`:root`, `var()`)
+* No CSS3 features (transitions, transforms, etc.)
+* Limited to HTML4 elements
+* No JavaScript execution in content
+
+These limitations are acceptable given:
+* WYSIWYG editor will guide authors to compatible content
+* QML provides richer interactive capabilities than JavaScript
+* Better performance and no rendering flash
+
+=== Synchronous Loading
+
+QTextBrowser loads content synchronously, which means:
+* `contentLoaded()` signal emitted immediately after `setHtml()`
+* No need for `loadFinished` signal handling
+* Simpler code flow
+* Better performance (no async overhead)
+
+== Commit History
+
+* `feat: Add content rendering architecture PoC applications` - Initial PoC creation
+* `fix: Resolve unused parameter warnings in PoC applications` - Compilation fixes
+* `fix: Improve QTextBrowser PoC theme changes and test button` - PoC improvements
+* `feat: Phase 1.2 - Migrate ReaderView from QWebEngineView to QTextBrowser` - Phase 1.1 & 1.2 migration
+
+**Note:** Phase 1.1 and 1.2 were committed together as they are tightly coupled (header changes require implementation changes to compile). Future phases will use more atomic commits.
+
