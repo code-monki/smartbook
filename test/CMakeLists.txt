@@ -885,4 +885,37 @@ if(QT_TEST_AVAILABLE)
         test_helpers
     )
     add_test(NAME TestMultiWindowIsolation COMMAND test_multiwindow_isolation)
+    
+    # test_form_data_persistence
+    add_executable(test_form_data_persistence
+        integration/test_form_data_persistence.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ReaderViewWindow.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/WebChannelBridge.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ReaderView.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ConsentDialog.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/SecurityErrorDialog.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ReaderViewWindow.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/WebChannelBridge.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ReaderView.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ConsentDialog.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/SecurityErrorDialog.h
+    )
+    set_target_properties(test_form_data_persistence PROPERTIES AUTOMOC ON)
+    target_include_directories(test_form_data_persistence PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/unit
+    )
+    target_link_libraries(test_form_data_persistence PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        Qt6::Gui
+        Qt6::Widgets
+        Qt6::WebEngine
+        Qt6::WebChannel
+        smartbook_common
+        test_helpers
+    )
+    add_test(NAME TestFormDataPersistence COMMAND test_form_data_persistence)
 endif()
