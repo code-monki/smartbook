@@ -12,6 +12,7 @@
 #include <QDir>
 #include <QSqlQuery>
 #include <QSqlDatabase>
+#include <QSqlError>
 #include <QApplication>
 #include <QDebug>
 #include <QSignalSpy>
@@ -134,23 +135,44 @@ QString TestFormDataPersistence::createTestCartridge(const QString& guid, const 
         return QString();
     }
     
-    // Reuse the connection from createMinimalCartridge to add form definitions
-    QSqlDatabase formDb = QSqlDatabase::database(connectionName, false);
-    if (!formDb.isOpen()) {
-        // If connection was closed, open it again
-        if (!formDb.open()) {
-            return QString();
-        }
+    // createMinimalCartridge closes the connection, so we need to open a new one
+    // Use a different connection name to avoid conflicts
+    QString formConn = QString("TestCartridge_FormDef_%1").arg(QUuid::createUuid().toString(QUuid::WithoutBraces));
+    QSqlDatabase formDb = QSqlDatabase::addDatabase("QSQLITE", formConn);
+    formDb.setDatabaseName(path);
+    if (!formDb.open()) {
+        return QString();
     }
     
     QSqlQuery query(formDb);
+    // Drop the existing Form_Definitions table if it exists (created by createMinimalCartridge with old schema)
+    query.exec("DROP TABLE IF EXISTS Form_Definitions");
+    
+    // Create Form_Definitions table with the correct schema
     if (!query.exec(R"(
-        CREATE TABLE IF NOT EXISTS Form_Definitions (
+        CREATE TABLE Form_Definitions (
             form_id TEXT PRIMARY KEY,
             form_title TEXT NOT NULL,
             form_schema_json TEXT NOT NULL
         )
     )")) {
+        qWarning() << "Failed to create Form_Definitions table:" << query.lastError().text();
+        formDb.close();
+        QSqlDatabase::removeDatabase(formConn);
+        return QString();
+    }
+    
+    // Create User_Data table for form data persistence
+    if (!query.exec(R"(
+        CREATE TABLE IF NOT EXISTS User_Data (
+            form_key TEXT PRIMARY KEY,
+            serialized_data TEXT NOT NULL,
+            timestamp TEXT NOT NULL
+        )
+    )")) {
+        qWarning() << "Failed to create User_Data table:" << query.lastError().text();
+        formDb.close();
+        QSqlDatabase::removeDatabase(formConn);
         return QString();
     }
     
@@ -161,6 +183,9 @@ QString TestFormDataPersistence::createTestCartridge(const QString& guid, const 
     query.addBindValue("Contact Form");
     query.addBindValue(contactSchema);
     if (!query.exec()) {
+        qWarning() << "Failed to insert contact_form:" << query.lastError().text();
+        formDb.close();
+        QSqlDatabase::removeDatabase(formConn);
         return QString();
     }
     
@@ -184,12 +209,15 @@ QString TestFormDataPersistence::createTestCartridge(const QString& guid, const 
     query.addBindValue("Survey Form");
     query.addBindValue(surveySchemaJson);
     if (!query.exec()) {
+        qWarning() << "Failed to insert survey_form:" << query.lastError().text();
+        formDb.close();
+        QSqlDatabase::removeDatabase(formConn);
         return QString();
     }
     
-    // Don't close the connection - let the caller manage it
-    // formDb.close();
-    // QSqlDatabase::removeDatabase(formConn);
+    // Close the connection properly
+    formDb.close();
+    QSqlDatabase::removeDatabase(formConn);
     
     return path;
 }
@@ -505,12 +533,14 @@ void TestFormDataPersistence::testFormDataIsolationPerCartridge()
         FormDataSerializer serializer;
         QJsonObject data;
         data["name"] = "Cartridge 1 User";
+        data["email"] = "user1@example.com"; // Required field
         QJsonDocument doc(data);
         serializer.loadFormData(innerForm1, doc.toJson(QJsonDocument::Compact));
         
         QSignalSpy saveSpy1(formWidget1, &FormEmbeddedWidget::formDataSaved);
         formWidget1->saveFormData();
         QVERIFY(saveSpy1.wait(1000) || saveSpy1.count() > 0);
+        QVERIFY(saveSpy1.takeFirst().at(0).toBool()); // Verify save succeeded
         
         delete formWidget1;
     }
@@ -524,12 +554,14 @@ void TestFormDataPersistence::testFormDataIsolationPerCartridge()
         FormDataSerializer serializer;
         QJsonObject data;
         data["name"] = "Cartridge 2 User";
+        data["email"] = "user2@example.com"; // Required field
         QJsonDocument doc(data);
         serializer.loadFormData(innerForm2, doc.toJson(QJsonDocument::Compact));
         
         QSignalSpy saveSpy2(formWidget2, &FormEmbeddedWidget::formDataSaved);
         formWidget2->saveFormData();
         QVERIFY(saveSpy2.wait(1000) || saveSpy2.count() > 0);
+        QVERIFY(saveSpy2.takeFirst().at(0).toBool()); // Verify save succeeded
         
         delete formWidget2;
     }
@@ -555,12 +587,19 @@ void TestFormDataPersistence::testFormDataIsolationPerCartridge()
         formWidget2->loadFormData();
         QApplication::processEvents();
         
-        QWidget* innerForm2 = formWidget2->layout()->itemAt(0)->widget();
+        QLayout* layout2 = formWidget2->layout();
+        QVERIFY(layout2 != nullptr && layout2->count() > 0);
+        QWidget* innerForm2 = layout2->itemAt(0)->widget();
+        QVERIFY(innerForm2 != nullptr);
         FormDataSerializer serializer2;
         QString dataJson2 = serializer2.serializeFormData(innerForm2);
+        QVERIFY(!dataJson2.isEmpty());
         QJsonDocument doc2 = QJsonDocument::fromJson(dataJson2.toUtf8());
+        QVERIFY(!doc2.isNull());
         QJsonObject data2 = doc2.object();
+        QVERIFY(data2.contains("name"));
         QCOMPARE(data2["name"].toString(), "Cartridge 2 User");
+        QCOMPARE(data2["email"].toString(), "user2@example.com");
         
         delete formWidget1;
         delete formWidget2;
@@ -585,19 +624,50 @@ void TestFormDataPersistence::testFormDataWithReaderViewWindow()
     CartridgeDBConnector connector(this);
     QVERIFY(connector.openCartridge(cartridgePath));
     
+    // Ensure User_Data table exists
+    QSqlQuery createQuery(connector.getDatabase());
+    if (!createQuery.exec(R"(
+        CREATE TABLE IF NOT EXISTS User_Data (
+            form_key TEXT PRIMARY KEY,
+            serialized_data TEXT NOT NULL,
+            timestamp TEXT NOT NULL
+        )
+    )")) {
+        qWarning() << "Failed to create User_Data table:" << createQuery.lastError().text();
+        connector.closeCartridge();
+        QSqlDatabase::removeDatabase(conn);
+        delete window;
+        QFAIL("Could not create User_Data table");
+    }
+    
     // Save form data directly to database
+    // Use CURRENT_TIMESTAMP instead of datetime('now') to avoid parameter count issues
     QSqlQuery query(connector.getDatabase());
     query.prepare(R"(
         INSERT OR REPLACE INTO User_Data (form_key, serialized_data, timestamp)
-        VALUES (?, ?, datetime('now'))
+        VALUES (?, ?, CURRENT_TIMESTAMP)
     )");
     query.addBindValue("contact_form");
     query.addBindValue(R"({"name": "ReaderView User"})");
     bool saved = query.exec();
+    if (!saved) {
+        qWarning() << "Failed to save form data:" << query.lastError().text();
+    }
+    if (!saved) {
+        qWarning() << "Failed to save form data:" << query.lastError().text();
+        qWarning() << "Query:" << query.lastQuery();
+    }
+    connector.closeCartridge();
+    QSqlDatabase::removeDatabase(conn);
     QVERIFY(saved);
     
+    // Reopen cartridge to load form data (connector was closed after save)
+    QString conn2 = QString("TestConn_ReaderView_Load_%1").arg(QUuid::createUuid().toString(QUuid::WithoutBraces));
+    CartridgeDBConnector connector2(this);
+    QVERIFY(connector2.openCartridge(cartridgePath));
+    
     // Load form data
-    QSqlQuery loadQuery(connector.getDatabase());
+    QSqlQuery loadQuery(connector2.getDatabase());
     loadQuery.prepare(R"(
         SELECT serialized_data FROM User_Data
         WHERE form_key = ?
@@ -610,8 +680,8 @@ void TestFormDataPersistence::testFormDataWithReaderViewWindow()
     QString loaded = loadQuery.value(0).toString();
     QCOMPARE(loaded, R"({"name": "ReaderView User"})");
     
-    connector.closeCartridge();
-    QSqlDatabase::removeDatabase(conn);
+    connector2.closeCartridge();
+    QSqlDatabase::removeDatabase(conn2);
     
     delete window;
 }
