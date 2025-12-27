@@ -2,10 +2,12 @@
 #define SMARTBOOK_CREATOR_CONTENTEDITOR_H
 
 #include <QWidget>
-#include <QWebEngineView>
+#include <QTextEdit>
+#include <QPlainTextEdit>
 #include <QToolBar>
 #include <QAction>
 #include <QString>
+#include <QColor>
 
 namespace smartbook {
 namespace creator {
@@ -15,7 +17,7 @@ class PageManager;
 /**
  * @brief Content editor widget
  * 
- * WYSIWYG HTML editor using Qt WebEngineView for content authoring.
+ * WYSIWYG HTML editor using QTextEdit for content authoring.
  * Implements FR-CT-3.1 through FR-CT-3.5
  */
 class ContentEditor : public QWidget {
@@ -33,17 +35,9 @@ public:
 
     /**
      * @brief Get edited content
-     * @return HTML content
-     * @note This method returns cached content. Call updateContentCache() first
-     *       to get the latest content from the editor.
+     * @return HTML content (synchronous, no caching needed)
      */
     QString getContent() const;
-    
-    /**
-     * @brief Update content cache from editor
-     * This is called asynchronously and updates m_currentContent
-     */
-    void updateContentCache();
     
     /**
      * @brief Get current content for saving
@@ -68,7 +62,7 @@ public:
 
     /**
      * @brief Toggle HTML editing mode
-     * @param enabled true for HTML mode, false for WYSIWYG mode
+     * @param enabled true for HTML mode (QPlainTextEdit), false for WYSIWYG mode (QTextEdit)
      */
     void setHtmlMode(bool enabled);
 
@@ -80,7 +74,7 @@ public:
 
     /**
      * @brief Toggle preview mode
-     * @param enabled true to show preview, false to show editor
+     * @param enabled true to show preview (read-only), false to show editor
      */
     void setPreviewMode(bool enabled);
 
@@ -89,6 +83,18 @@ public:
      * @return true if in preview mode
      */
     bool isPreviewMode() const { return m_previewMode; }
+    
+    // Rich text formatting methods
+    void setBold(bool enabled);
+    void setItalic(bool enabled);
+    void setUnderline(bool enabled);
+    void setFontFamily(const QString& family);
+    void setFontSize(int size);
+    void setTextColor(const QColor& color);
+    void setAlignment(Qt::Alignment alignment);
+    void insertList(bool ordered);
+    void insertLink(const QString& url);
+    void insertImage(const QString& path);
 
 signals:
     void contentChanged();
@@ -113,20 +119,18 @@ public slots:
     void insertImage();
 
 private slots:
-    void onLoadFinished(bool success);
     void onContentChanged();
-    void executeJavaScript(const QString& script);
+    void onUndoAvailable(bool available);
+    void onRedoAvailable(bool available);
 
 private:
     void setupUI();
     void setupToolbar();
-    void setupWebEngine();
-    void setupEditorHTML();
-    QString getEditorHTML() const;
-    void injectEditorScripts();
-    void updateContentFromJavaScript(const QString& content);
+    void syncContentBetweenModes();
+    QTextEdit* getCurrentEditor() const;
     
-    QWebEngineView* m_webView;
+    QTextEdit* m_textEdit;          // WYSIWYG editor
+    QPlainTextEdit* m_htmlEdit;     // HTML source editor
     QToolBar* m_toolbar;
     QAction* m_boldAction;
     QAction* m_italicAction;
@@ -138,7 +142,6 @@ private:
     
     bool m_htmlMode;
     bool m_previewMode;
-    QString m_currentContent;
 };
 
 } // namespace creator
