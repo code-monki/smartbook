@@ -63,18 +63,7 @@ else()
 endif()
 
 # Find Qt6 Test and Sql
-find_package(Qt6 COMPONENTS Test Sql Gui Widgets)
-# Qt6WebEngine is a meta-package; find individual components if meta-package not available
-find_package(Qt6 COMPONENTS WebEngine QUIET)
-if(NOT Qt6WebEngine_FOUND)
-    # Fallback to individual WebEngine components
-    find_package(Qt6 REQUIRED COMPONENTS WebEngineCore WebEngineWidgets)
-    # Create alias for compatibility
-    if(TARGET Qt6::WebEngineCore AND TARGET Qt6::WebEngineWidgets)
-        add_library(Qt6::WebEngine INTERFACE IMPORTED)
-        target_link_libraries(Qt6::WebEngine INTERFACE Qt6::WebEngineCore Qt6::WebEngineWidgets)
-    endif()
-endif()
+find_package(Qt6 COMPONENTS Test Sql Gui Widgets Quick QuickWidgets Qml Network)
 if(Qt6Test_FOUND AND Qt6Sql_FOUND)
     message(STATUS "Qt6 Test and Sql found - unit tests enabled")
     set(QT_TEST_AVAILABLE TRUE)
@@ -327,9 +316,7 @@ if(QT_TEST_AVAILABLE)
     add_executable(test_readerview_content
         unit/test_readerview_content.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ReaderView.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/WebChannelBridge.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ReaderView.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/WebChannelBridge.h
     )
     set_target_properties(test_readerview_content PROPERTIES AUTOMOC ON)
     target_include_directories(test_readerview_content PRIVATE
@@ -342,8 +329,6 @@ if(QT_TEST_AVAILABLE)
         Qt6::Sql
         Qt6::Gui
         Qt6::Widgets
-        Qt6::WebEngine
-        Qt6::WebChannel
         smartbook_common
     )
     add_test(NAME TestReaderViewContent COMMAND test_readerview_content)
@@ -402,8 +387,6 @@ if(QT_TEST_AVAILABLE)
         Qt6::Sql
         Qt6::Gui
         Qt6::Widgets
-        Qt6::WebEngine
-        Qt6::WebChannel
         smartbook_common
     )
     add_test(NAME TestContentEditor COMMAND test_contenteditor)
@@ -448,8 +431,6 @@ if(QT_TEST_AVAILABLE)
         Qt6::Sql
         Qt6::Gui
         Qt6::Widgets
-        Qt6::WebEngine
-        Qt6::WebChannel
         smartbook_common
     )
     add_test(NAME TestContentEditorPageManagerIntegration COMMAND test_contenteditor_pagemanager_integration)
@@ -578,8 +559,6 @@ if(QT_TEST_AVAILABLE)
         Qt6::Sql
         Qt6::Gui
         Qt6::Widgets
-        Qt6::WebEngine
-        Qt6::WebChannel
         smartbook_common
     )
     add_test(NAME TestContentEditorFormIntegration COMMAND test_contenteditor_form_integration)
@@ -641,43 +620,42 @@ if(QT_TEST_AVAILABLE)
     )
     add_test(NAME TestImportManager COMMAND test_importmanager)
     
-    # test_webchannelbridge
-    add_executable(test_webchannelbridge
-        unit/test_webchannelbridge.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/WebChannelBridge.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ConsentDialog.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/WebChannelBridge.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ConsentDialog.h
-    )
-    set_target_properties(test_webchannelbridge PROPERTIES AUTOMOC ON)
-    target_include_directories(test_webchannelbridge PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/unit
-    )
-    target_link_libraries(test_webchannelbridge PRIVATE
-        Qt6::Test
-        Qt6::Core
-        Qt6::Sql
-        Qt6::Gui
-        Qt6::Widgets
-        Qt6::WebChannel
-        smartbook_common
-        test_helpers
-    )
-    add_test(NAME TestWebChannelBridge COMMAND test_webchannelbridge)
+    # test_webchannelbridge - DEPRECATED: WebChannelBridge removed in Phase 5
+    # This test will be replaced in Phase 4 with QmlAppBridge tests
+    # add_executable(test_webchannelbridge
+    #     unit/test_webchannelbridge.cpp
+    #     ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/WebChannelBridge.cpp
+    #     ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ConsentDialog.cpp
+    #     ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/WebChannelBridge.h
+    #     ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ConsentDialog.h
+    # )
+    # set_target_properties(test_webchannelbridge PROPERTIES AUTOMOC ON)
+    # target_include_directories(test_webchannelbridge PRIVATE
+    #     ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+    #     ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include
+    #     ${CMAKE_CURRENT_SOURCE_DIR}/unit
+    # )
+    # target_link_libraries(test_webchannelbridge PRIVATE
+    #     Qt6::Test
+    #     Qt6::Core
+    #     Qt6::Sql
+    #     Qt6::Gui
+    #     Qt6::Widgets
+    #     Qt6::WebChannel
+    #     smartbook_common
+    #     test_helpers
+    # )
+    # add_test(NAME TestWebChannelBridge COMMAND test_webchannelbridge)
     
     # test_readerviewwindow_windowstate
     add_executable(test_readerviewwindow_windowstate
         unit/test_readerviewwindow_windowstate.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ReaderViewWindow.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ReaderView.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/WebChannelBridge.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ConsentDialog.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/SecurityErrorDialog.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ReaderViewWindow.h
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ReaderView.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/WebChannelBridge.h
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ConsentDialog.h
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/SecurityErrorDialog.h
     )
@@ -693,8 +671,6 @@ if(QT_TEST_AVAILABLE)
         Qt6::Sql
         Qt6::Gui
         Qt6::Widgets
-        Qt6::WebEngine
-        Qt6::WebChannel
         smartbook_common
         test_helpers
     )
@@ -930,7 +906,6 @@ if(QT_TEST_AVAILABLE)
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/LibraryManager.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ReaderView.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/LibraryView.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/WebChannelBridge.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ConsentDialog.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/SecurityErrorDialog.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ImportManager.cpp
@@ -939,7 +914,6 @@ if(QT_TEST_AVAILABLE)
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/LibraryManager.h
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ReaderView.h
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/LibraryView.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/WebChannelBridge.h
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ConsentDialog.h
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/SecurityErrorDialog.h
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ImportManager.h
@@ -957,45 +931,42 @@ if(QT_TEST_AVAILABLE)
         Qt6::Sql
         Qt6::Gui
         Qt6::Widgets
-        Qt6::WebEngine
-        Qt6::WebChannel
         smartbook_common
         test_helpers
     )
     add_test(NAME TestMultiWindowIsolation COMMAND test_multiwindow_isolation)
     
-    # test_form_data_persistence
-    add_executable(test_form_data_persistence
-        integration/test_form_data_persistence.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ReaderViewWindow.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/WebChannelBridge.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ReaderView.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ConsentDialog.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/SecurityErrorDialog.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ReaderViewWindow.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/WebChannelBridge.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ReaderView.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ConsentDialog.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/SecurityErrorDialog.h
-    )
-    set_target_properties(test_form_data_persistence PROPERTIES AUTOMOC ON)
-    target_include_directories(test_form_data_persistence PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/unit
-    )
-    target_link_libraries(test_form_data_persistence PRIVATE
-        Qt6::Test
-        Qt6::Core
-        Qt6::Sql
-        Qt6::Gui
-        Qt6::Widgets
-        Qt6::WebEngine
-        Qt6::WebChannel
-        smartbook_common
-        test_helpers
-    )
-    add_test(NAME TestFormDataPersistence COMMAND test_form_data_persistence)
+    # test_form_data_persistence - DEPRECATED: Uses WebChannelBridge
+    # This test needs to be updated in Phase 4 to use QmlAppBridge or direct API
+    # add_executable(test_form_data_persistence
+    #     integration/test_form_data_persistence.cpp
+    #     ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ReaderViewWindow.cpp
+    #     ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ReaderView.cpp
+    #     ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ConsentDialog.cpp
+    #     ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/SecurityErrorDialog.cpp
+    #     ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ReaderViewWindow.h
+    #     ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ReaderView.h
+    #     ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ConsentDialog.h
+    #     ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/SecurityErrorDialog.h
+    # )
+    # set_target_properties(test_form_data_persistence PROPERTIES AUTOMOC ON)
+    # target_include_directories(test_form_data_persistence PRIVATE
+    #     ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+    #     ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include
+    #     ${CMAKE_CURRENT_SOURCE_DIR}/unit
+    # )
+    # target_link_libraries(test_form_data_persistence PRIVATE
+    #     Qt6::Test
+    #     Qt6::Core
+    #     Qt6::Sql
+    #     Qt6::Gui
+    #     Qt6::Widgets
+    #     smartbook_common
+    #     test_helpers
+    # )
+    # NOTE: test_form_data_persistence uses WebChannelBridge which is deprecated
+    # This test needs to be updated in Phase 4 to use QmlAppBridge or direct API
+    # add_test(NAME TestFormDataPersistence COMMAND test_form_data_persistence)
     
     # test_settings_application
     add_executable(test_settings_application
@@ -1004,12 +975,10 @@ if(QT_TEST_AVAILABLE)
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ReaderView.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ConsentDialog.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/SecurityErrorDialog.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/WebChannelBridge.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ReaderViewWindow.h
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ReaderView.h
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ConsentDialog.h
         ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/SecurityErrorDialog.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/WebChannelBridge.h
     )
     set_target_properties(test_settings_application PROPERTIES AUTOMOC ON)
     target_include_directories(test_settings_application PRIVATE
@@ -1023,8 +992,6 @@ if(QT_TEST_AVAILABLE)
         Qt6::Sql
         Qt6::Gui
         Qt6::Widgets
-        Qt6::WebEngine
-        Qt6::WebChannel
         smartbook_common
         test_helpers
     )

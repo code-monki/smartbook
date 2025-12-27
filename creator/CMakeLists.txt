@@ -61,18 +61,7 @@ else()
         endif()
     endif()
 endif()
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets WebChannel Sql)
-# Qt6WebEngine is a meta-package; find individual components if meta-package not available
-find_package(Qt6 COMPONENTS WebEngine QUIET)
-if(NOT Qt6WebEngine_FOUND)
-    # Fallback to individual WebEngine components
-    find_package(Qt6 REQUIRED COMPONENTS WebEngineCore WebEngineWidgets)
-    # Create alias for compatibility
-    if(TARGET Qt6::WebEngineCore AND TARGET Qt6::WebEngineWidgets)
-        add_library(Qt6::WebEngine INTERFACE IMPORTED)
-        target_link_libraries(Qt6::WebEngine INTERFACE Qt6::WebEngineCore Qt6::WebEngineWidgets)
-    endif()
-endif()
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Sql)
 
 # Find OpenSSL for cryptographic signing
 find_package(OpenSSL REQUIRED)
@@ -138,8 +127,6 @@ target_link_libraries(smartbook-creator PRIVATE
     Qt6::Core
     Qt6::Gui
     Qt6::Widgets
-    Qt6::WebEngine
-    Qt6::WebChannel
     Qt6::Sql
     OpenSSL::SSL
     OpenSSL::Crypto
