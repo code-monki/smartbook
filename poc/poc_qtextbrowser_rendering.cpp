@@ -52,11 +52,13 @@ private slots:
 
     void onFontSizeChanged(int size)
     {
+        Q_UNUSED(size);
         applySettings();
     }
 
     void onFontFamilyChanged(const QString& family)
     {
+        Q_UNUSED(family);
         applySettings();
     }
 
@@ -285,8 +287,8 @@ private:
         
         // Update font size and family in HTML
         // This is a simplified approach - in production, we'd parse and update the HTML properly
-        int fontSize = m_fontSizeSpin->value();
-        QString fontFamily = m_fontFamilyCombo->currentText();
+        Q_UNUSED(m_fontSizeSpin->value());
+        Q_UNUSED(m_fontFamilyCombo->currentText());
         
         // Reload with updated settings
         // Note: In production, we'd apply settings more elegantly

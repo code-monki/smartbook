@@ -86,6 +86,7 @@ public slots:
 
     void saveSandboxFile(const QString& filename, const QString& data)
     {
+        Q_UNUSED(data);
         qDebug() << "QML App: saveSandboxFile called - filename:" << filename;
         emit sandboxFileSaved(filename, true, "");
     }
@@ -324,10 +325,12 @@ private:
         
         // Connect bridge signals for testing
         connect(m_bridge, &QmlAppBridge::formDataSaved, this, [](const QString& formId, bool success, const QString& error) {
+            Q_UNUSED(error);
             qDebug() << "Form data saved - formId:" << formId << "success:" << success;
         });
         
         connect(m_bridge, &QmlAppBridge::formDataLoaded, this, [](const QString& formId, const QString& data, const QString& error) {
+            Q_UNUSED(error);
             qDebug() << "Form data loaded - formId:" << formId << "data:" << data;
         });
     }
