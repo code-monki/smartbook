@@ -62,10 +62,7 @@ private:
 
 void TestWebChannelBridge::initTestCase()
 {
-    // QApplication is required for QWidget-based classes (ConsentDialog)
-    static int argc = 1;
-    static char* argv[] = { const_cast<char*>("test") };
-    static QApplication app(argc, argv);
+    // QTEST_MAIN creates QApplication automatically, no need to create manually
     
     m_tempDir = new QTemporaryDir();
     QVERIFY(m_tempDir->isValid());

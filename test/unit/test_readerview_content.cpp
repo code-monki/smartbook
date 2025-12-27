@@ -34,10 +34,7 @@ private:
 
 void TestReaderViewContent::initTestCase()
 {
-    // QApplication is required for QWidget-based classes
-    static int argc = 1;
-    static char* argv[] = { const_cast<char*>("test") };
-    static QApplication app(argc, argv);
+    // QApplication is created by custom main() function, no need to create here
     
     m_tempDir = new QTemporaryDir();
     QVERIFY(m_tempDir->isValid());

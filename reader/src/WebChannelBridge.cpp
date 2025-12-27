@@ -10,6 +10,7 @@
 #include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QApplication>
 #include <QDebug>
 
 namespace smartbook {
