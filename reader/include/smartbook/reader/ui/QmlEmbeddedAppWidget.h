@@ -96,7 +96,6 @@ private:
     
     QQuickWidget* m_quickWidget;
     QQmlEngine* m_qmlEngine;
-    QQmlComponent* m_qmlComponent;
     QmlAppBridge* m_bridge;
     
     QString m_cartridgePath;

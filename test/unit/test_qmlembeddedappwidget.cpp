@@ -42,23 +42,27 @@ namespace {
         
         QSqlQuery query(db);
         
-        // Create Metadata table
+        // Create Metadata table with all required columns
         query.exec(R"(
             CREATE TABLE Metadata (
                 cartridge_guid TEXT PRIMARY KEY,
                 title TEXT NOT NULL,
                 author TEXT,
+                publisher TEXT,
                 version TEXT,
-                schema_version TEXT
+                schema_version TEXT,
+                publication_year INTEGER
             )
         )");
         
-        query.prepare("INSERT INTO Metadata (cartridge_guid, title, author, version, schema_version) VALUES (?, ?, ?, ?, ?)");
+        query.prepare("INSERT INTO Metadata (cartridge_guid, title, author, publisher, version, schema_version, publication_year) VALUES (?, ?, ?, ?, ?, ?, ?)");
         query.addBindValue(guid);
         query.addBindValue("Test Cartridge");
         query.addBindValue("Test Author");
+        query.addBindValue("Test Publisher");
         query.addBindValue("1.0");
         query.addBindValue("1.0");
+        query.addBindValue(2024);
         query.exec();
         
         // Create Embedded_Apps table (with qml_code column for QML apps)
@@ -113,8 +117,12 @@ namespace {
         query.addBindValue(QByteArray());
         query.exec();
         
+        // Close database properly
         db.close();
-        QSqlDatabase::removeDatabase("test_qml_" + guid);
+        
+        // Remove database connection (must be done after close)
+        QString connectionName = db.connectionName();
+        QSqlDatabase::removeDatabase(connectionName);
         
         return path;
     }
@@ -209,29 +217,40 @@ void TestQmlEmbeddedAppWidget::cleanup()
 
 void TestQmlEmbeddedAppWidget::testLoadQmlAppFromDatabase()
 {
-    smartbook::reader::ui::QmlEmbeddedAppWidget widget;
+    smartbook::reader::QmlEmbeddedAppWidget widget;
+    
+    // Show widget (required for QQuickWidget to initialize properly)
+    widget.show();
+    QApplication::processEvents();
     
     bool loaded = widget.loadApp(m_testCartridgePath, m_testAppId);
     QVERIFY(loaded);
     
-    // Verify widget is visible and has content
-    QVERIFY(widget.isVisible() || widget.size().width() > 0);
+    // Verify app is loaded
+    QVERIFY(widget.isAppLoaded());
+    QVERIFY(!widget.hasError());
 }
 
 void TestQmlEmbeddedAppWidget::testLoadQmlAppWithInvalidAppId()
 {
-    smartbook::reader::ui::QmlEmbeddedAppWidget widget;
+    smartbook::reader::QmlEmbeddedAppWidget widget;
+    widget.show();
+    QApplication::processEvents();
     
     bool loaded = widget.loadApp(m_testCartridgePath, "nonexistent_app");
     QVERIFY(!loaded);
+    QVERIFY(widget.hasError());
 }
 
 void TestQmlEmbeddedAppWidget::testLoadQmlAppWithInvalidCartridge()
 {
-    smartbook::reader::ui::QmlEmbeddedAppWidget widget;
+    smartbook::reader::QmlEmbeddedAppWidget widget;
+    widget.show();
+    QApplication::processEvents();
     
     bool loaded = widget.loadApp("/nonexistent/path.cartridge", m_testAppId);
     QVERIFY(!loaded);
+    QVERIFY(widget.hasError());
 }
 
 void TestQmlEmbeddedAppWidget::testLoadQmlAppWithQmlErrors()
@@ -240,7 +259,7 @@ void TestQmlEmbeddedAppWidget::testLoadQmlAppWithQmlErrors()
     QString invalidQml = "Invalid QML Code { broken syntax }";
     QString path = createTestCartridge(QUuid::createUuid().toString(QUuid::WithoutBraces), "invalid_app", invalidQml);
     
-    smartbook::reader::ui::QmlEmbeddedAppWidget widget;
+    smartbook::reader::QmlEmbeddedAppWidget widget;
     
     bool loaded = widget.loadApp(path, "invalid_app");
     // Should handle error gracefully (either return false or show error state)
@@ -251,7 +270,9 @@ void TestQmlEmbeddedAppWidget::testLoadQmlAppWithQmlErrors()
 
 void TestQmlEmbeddedAppWidget::testBridgeExposedToQml()
 {
-    smartbook::reader::ui::QmlEmbeddedAppWidget widget;
+    smartbook::reader::QmlEmbeddedAppWidget widget;
+    widget.show();
+    QApplication::processEvents();
     
     bool loaded = widget.loadApp(m_testCartridgePath, m_testAppId);
     QVERIFY(loaded);
@@ -263,7 +284,9 @@ void TestQmlEmbeddedAppWidget::testBridgeExposedToQml()
 
 void TestQmlEmbeddedAppWidget::testBridgeCartridgeInfo()
 {
-    smartbook::reader::ui::QmlEmbeddedAppWidget widget;
+    smartbook::reader::QmlEmbeddedAppWidget widget;
+    widget.show();
+    QApplication::processEvents();
     
     widget.setCartridgeInfo(m_testCartridgePath, m_testGuid);
     bool loaded = widget.loadApp(m_testCartridgePath, m_testAppId);
@@ -272,11 +295,14 @@ void TestQmlEmbeddedAppWidget::testBridgeCartridgeInfo()
     // Verify cartridge info is set (would need bridge access for full test)
     QCOMPARE(widget.cartridgePath(), m_testCartridgePath);
     QCOMPARE(widget.cartridgeGuid(), m_testGuid);
+    QVERIFY(widget.isAppLoaded());
 }
 
 void TestQmlEmbeddedAppWidget::testBridgeFormDataOperations()
 {
-    smartbook::reader::ui::QmlEmbeddedAppWidget widget;
+    smartbook::reader::QmlEmbeddedAppWidget widget;
+    widget.show();
+    QApplication::processEvents();
     
     bool loaded = widget.loadApp(m_testCartridgePath, m_testAppId);
     QVERIFY(loaded);
@@ -289,7 +315,9 @@ void TestQmlEmbeddedAppWidget::testBridgeFormDataOperations()
 
 void TestQmlEmbeddedAppWidget::testBridgeSandboxOperations()
 {
-    smartbook::reader::ui::QmlEmbeddedAppWidget widget;
+    smartbook::reader::QmlEmbeddedAppWidget widget;
+    widget.show();
+    QApplication::processEvents();
     
     bool loaded = widget.loadApp(m_testCartridgePath, m_testAppId);
     QVERIFY(loaded);
@@ -302,7 +330,9 @@ void TestQmlEmbeddedAppWidget::testBridgeSandboxOperations()
 
 void TestQmlEmbeddedAppWidget::testAppUnload()
 {
-    smartbook::reader::ui::QmlEmbeddedAppWidget widget;
+    smartbook::reader::QmlEmbeddedAppWidget widget;
+    widget.show();
+    QApplication::processEvents();
     
     bool loaded = widget.loadApp(m_testCartridgePath, m_testAppId);
     QVERIFY(loaded);
@@ -314,7 +344,9 @@ void TestQmlEmbeddedAppWidget::testAppUnload()
 
 void TestQmlEmbeddedAppWidget::testAppReload()
 {
-    smartbook::reader::ui::QmlEmbeddedAppWidget widget;
+    smartbook::reader::QmlEmbeddedAppWidget widget;
+    widget.show();
+    QApplication::processEvents();
     
     bool loaded1 = widget.loadApp(m_testCartridgePath, m_testAppId);
     QVERIFY(loaded1);
@@ -347,8 +379,12 @@ void TestQmlEmbeddedAppWidget::testMultipleApps()
         connector.closeCartridge();
     }
     
-    smartbook::reader::ui::QmlEmbeddedAppWidget widget1;
-    smartbook::reader::ui::QmlEmbeddedAppWidget widget2;
+    smartbook::reader::QmlEmbeddedAppWidget widget1;
+    smartbook::reader::QmlEmbeddedAppWidget widget2;
+    
+    widget1.show();
+    widget2.show();
+    QApplication::processEvents();
     
     bool loaded1 = widget1.loadApp(m_testCartridgePath, m_testAppId);
     bool loaded2 = widget2.loadApp(m_testCartridgePath, "test_app_2");

@@ -22,7 +22,6 @@ QmlEmbeddedAppWidget::QmlEmbeddedAppWidget(QWidget* parent)
     : QWidget(parent)
     , m_quickWidget(nullptr)
     , m_qmlEngine(nullptr)
-    , m_qmlComponent(nullptr)
     , m_bridge(nullptr)
     , m_appLoaded(false)
     , m_hasError(false)
@@ -67,11 +66,6 @@ void QmlEmbeddedAppWidget::cleanupQmlEngine()
         m_quickWidget = nullptr;
     }
     
-    if (m_qmlComponent) {
-        delete m_qmlComponent;
-        m_qmlComponent = nullptr;
-    }
-    
     // QML engine will be deleted by parent
     m_qmlEngine = nullptr;
     
@@ -99,10 +93,15 @@ bool QmlEmbeddedAppWidget::loadApp(const QString& cartridgePath, const QString& 
         return false;
     }
     
-    // Set cartridge info on bridge
-    setCartridgeInfo(cartridgePath, QString()); // GUID will be set separately if needed
+    // Set cartridge info on bridge (use existing values if already set)
     if (m_bridge) {
         m_bridge->setAppId(appId);
+        // Only update if not already set
+        if (m_cartridgePath.isEmpty()) {
+            setCartridgeInfo(cartridgePath, QString()); // GUID will be set separately if needed
+        }
+    } else {
+        setCartridgeInfo(cartridgePath, QString());
     }
     
     // Create temporary QML file
@@ -118,39 +117,22 @@ bool QmlEmbeddedAppWidget::loadApp(const QString& cartridgePath, const QString& 
     out << qmlCode;
     tempFile.close();
     
-    // Load QML component
+    // Load QML from file using setSource (simpler approach, matches PoC)
     QUrl qmlUrl = QUrl::fromLocalFile(tempFile.fileName());
-    m_qmlComponent = new QQmlComponent(m_qmlEngine, qmlUrl, this);
+    m_quickWidget->setSource(qmlUrl);
     
     // Check for errors
-    if (m_qmlComponent->isError()) {
+    if (m_quickWidget->status() == QQuickWidget::Error) {
         QStringList errors;
-        for (const QQmlError& error : m_qmlComponent->errors()) {
+        for (const QQmlError& error : m_quickWidget->errors()) {
             errors << error.toString();
         }
         m_hasError = true;
         m_errorMessage = "QML compilation errors:\n" + errors.join("\n");
         qWarning() << m_errorMessage;
         emit appLoadError(m_errorMessage);
-        delete m_qmlComponent;
-        m_qmlComponent = nullptr;
         return false;
     }
-    
-    // Create root object
-    QObject* rootObject = m_qmlComponent->create();
-    if (!rootObject) {
-        m_hasError = true;
-        m_errorMessage = "Failed to create QML root object";
-        qWarning() << m_errorMessage;
-        emit appLoadError(m_errorMessage);
-        delete m_qmlComponent;
-        m_qmlComponent = nullptr;
-        return false;
-    }
-    
-    // Set root object in QQuickWidget
-    m_quickWidget->setContent(qmlUrl, m_qmlComponent, rootObject);
     
     m_currentAppId = appId;
     m_appLoaded = true;
@@ -168,11 +150,6 @@ void QmlEmbeddedAppWidget::unloadApp()
     // Clear QML component
     if (m_quickWidget) {
         m_quickWidget->setSource(QUrl());
-    }
-    
-    if (m_qmlComponent) {
-        delete m_qmlComponent;
-        m_qmlComponent = nullptr;
     }
     
     m_currentAppId.clear();

@@ -477,6 +477,34 @@ if(QT_TEST_AVAILABLE)
     )
     add_test(NAME TestFormBuilder COMMAND test_formbuilder)
     
+    # test_qmlembeddedappwidget
+    add_executable(test_qmlembeddedappwidget
+        unit/test_qmlembeddedappwidget.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/QmlAppBridge.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/QmlEmbeddedAppWidget.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ConsentDialog.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/QmlAppBridge.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/QmlEmbeddedAppWidget.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ConsentDialog.h
+    )
+    set_target_properties(test_qmlembeddedappwidget PROPERTIES AUTOMOC ON)
+    target_include_directories(test_qmlembeddedappwidget PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include
+    )
+    target_link_libraries(test_qmlembeddedappwidget PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        Qt6::Gui
+        Qt6::Widgets
+        Qt6::Quick
+        Qt6::QuickWidgets
+        Qt6::Qml
+        smartbook_common
+    )
+    add_test(NAME TestQmlEmbeddedAppWidget COMMAND test_qmlembeddedappwidget)
+    
     # test_contenteditor_form_integration
     add_executable(test_contenteditor_form_integration
         unit/test_contenteditor_form_integration.cpp
