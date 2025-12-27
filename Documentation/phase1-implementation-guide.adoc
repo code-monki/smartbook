@@ -563,7 +563,8 @@ The implementation should follow this priority order to ensure dependencies are 
 == Dependencies and Prerequisites
 
 === External Dependencies
-* Qt 6.x (Core, Widgets, WebEngine, WebChannel, Network)
+* Qt 6.x (Core, Widgets, Quick, QuickWidgets, Network)
+* **Note:** WebEngine dependency removed - using QTextDocument + QML instead
 * SQLite 3.51 or higher
 * C++17 or higher compiler
 * CMake 3.20 or higher
@@ -585,6 +586,25 @@ During implementation, document:
 [ ] Error handling strategies
 
 **Reference:** `dev-journal/journal.adoc` for ADR format
+
+== Content Rendering Architecture Migration
+
+**Status:** ⚠️ **PENDING MIGRATION**
+
+**Decision:** Migrate from Qt WebEngine to QTextDocument + Qt Quick/QML architecture.
+
+**Rationale:** See `content-rendering-decision-analysis.adoc` and `2025-12-26_content_rendering_architecture_decision.adoc`.
+
+**Implementation Plan:** See `content-rendering-implementation-plan.adoc`.
+
+**Impact:**
+* Reader View: Migrate from `QWebEngineView` to `QTextBrowser`
+* Content Editor: Migrate from `QWebEngineView` to `QTextEdit`
+* Embedded Apps: Migrate from JavaScript SPAs to QML applications
+* Forms: Migrate from JavaScript forms to Qt Widgets
+* WebChannel Bridge: Replace with QML property binding
+
+**Note:** Current Phase 1 implementation uses WebEngine. Migration is required before Phase 1 completion.
 
 == Success Criteria
 
