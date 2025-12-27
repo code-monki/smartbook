@@ -294,11 +294,20 @@ void ContentEditor::setBold(bool enabled) {
     if (!editor) return;
     
     QTextCursor cursor = editor->textCursor();
-    QTextCharFormat format = cursor.charFormat();
-    format.setFontWeight(enabled ? QFont::Bold : QFont::Normal);
-    cursor.setCharFormat(format);
-    editor->setTextCursor(cursor);
     
+    if (cursor.hasSelection()) {
+        // Apply to selected text
+        QTextCharFormat format = cursor.charFormat();
+        format.setFontWeight(enabled ? QFont::Bold : QFont::Normal);
+        cursor.mergeCharFormat(format);
+    } else {
+        // Apply to current format (for future text)
+        QTextCharFormat format = cursor.charFormat();
+        format.setFontWeight(enabled ? QFont::Bold : QFont::Normal);
+        cursor.setCharFormat(format);
+    }
+    
+    editor->setTextCursor(cursor);
     m_boldAction->setChecked(enabled);
     emit contentChanged();
 }
@@ -308,11 +317,20 @@ void ContentEditor::setItalic(bool enabled) {
     if (!editor) return;
     
     QTextCursor cursor = editor->textCursor();
-    QTextCharFormat format = cursor.charFormat();
-    format.setFontItalic(enabled);
-    cursor.setCharFormat(format);
-    editor->setTextCursor(cursor);
     
+    if (cursor.hasSelection()) {
+        // Apply to selected text
+        QTextCharFormat format = cursor.charFormat();
+        format.setFontItalic(enabled);
+        cursor.mergeCharFormat(format);
+    } else {
+        // Apply to current format (for future text)
+        QTextCharFormat format = cursor.charFormat();
+        format.setFontItalic(enabled);
+        cursor.setCharFormat(format);
+    }
+    
+    editor->setTextCursor(cursor);
     m_italicAction->setChecked(enabled);
     emit contentChanged();
 }
@@ -322,11 +340,20 @@ void ContentEditor::setUnderline(bool enabled) {
     if (!editor) return;
     
     QTextCursor cursor = editor->textCursor();
-    QTextCharFormat format = cursor.charFormat();
-    format.setUnderlineStyle(enabled ? QTextCharFormat::SingleUnderline : QTextCharFormat::NoUnderline);
-    cursor.setCharFormat(format);
-    editor->setTextCursor(cursor);
     
+    if (cursor.hasSelection()) {
+        // Apply to selected text
+        QTextCharFormat format = cursor.charFormat();
+        format.setUnderlineStyle(enabled ? QTextCharFormat::SingleUnderline : QTextCharFormat::NoUnderline);
+        cursor.mergeCharFormat(format);
+    } else {
+        // Apply to current format (for future text)
+        QTextCharFormat format = cursor.charFormat();
+        format.setUnderlineStyle(enabled ? QTextCharFormat::SingleUnderline : QTextCharFormat::NoUnderline);
+        cursor.setCharFormat(format);
+    }
+    
+    editor->setTextCursor(cursor);
     m_underlineAction->setChecked(enabled);
     emit contentChanged();
 }
@@ -362,11 +389,20 @@ void ContentEditor::setTextColor(const QColor& color) {
     if (!editor) return;
     
     QTextCursor cursor = editor->textCursor();
-    QTextCharFormat format = cursor.charFormat();
-    format.setForeground(color);
-    cursor.setCharFormat(format);
-    editor->setTextCursor(cursor);
     
+    if (cursor.hasSelection()) {
+        // Apply to selected text
+        QTextCharFormat format = cursor.charFormat();
+        format.setForeground(color);
+        cursor.mergeCharFormat(format);
+    } else {
+        // Apply to current format (for future text)
+        QTextCharFormat format = cursor.charFormat();
+        format.setForeground(color);
+        cursor.setCharFormat(format);
+    }
+    
+    editor->setTextCursor(cursor);
     emit contentChanged();
 }
 
@@ -388,6 +424,26 @@ void ContentEditor::insertList(bool ordered) {
     if (!editor) return;
     
     QTextCursor cursor = editor->textCursor();
+    
+    // If cursor is in a list, remove it first
+    QTextList* currentList = cursor.currentList();
+    if (currentList) {
+        QTextListFormat listFormat = currentList->format();
+        if ((ordered && listFormat.style() == QTextListFormat::ListDecimal) ||
+            (!ordered && listFormat.style() == QTextListFormat::ListDisc)) {
+            // Already in the correct list type, just return
+            emit contentChanged();
+            return;
+        }
+        // Remove from current list
+        cursor.beginEditBlock();
+        QTextBlockFormat blockFormat = cursor.blockFormat();
+        blockFormat.setIndent(0);
+        cursor.setBlockFormat(blockFormat);
+        cursor.endEditBlock();
+    }
+    
+    // Create new list
     QTextListFormat listFormat;
     if (ordered) {
         listFormat.setStyle(QTextListFormat::ListDecimal);
@@ -477,9 +533,17 @@ bool ContentEditor::insertFormMarker(const QString& formId) {
         return false;
     }
     
-    QString marker = QString(R"(<div data-smartbook-form="%1"></div>)").arg(formId);
+    // Escape formId for HTML
+    QString escapedFormId = formId;
+    escapedFormId.replace("&", "&amp;");
+    escapedFormId.replace("<", "&lt;");
+    escapedFormId.replace(">", "&gt;");
+    escapedFormId.replace("\"", "&quot;");
+    
+    QString marker = QString(R"(<div data-smartbook-form="%1"></div>)").arg(escapedFormId);
     QTextCursor cursor = editor->textCursor();
     cursor.insertHtml(marker);
+    editor->setTextCursor(cursor);
     
     emit contentChanged();
     return true;
