@@ -791,10 +791,29 @@ if(QT_TEST_AVAILABLE)
 endif()
 
 # Integration tests
-# add_executable(test_integration
-#     integration/test_cartridge_loading.cpp
-# )
-# target_link_libraries(test_integration PRIVATE
-#     Qt6::Core
-#     ${SMARTBOOK_COMMON_LIB}
-# )
+if(QT_TEST_AVAILABLE)
+    # test_import_workflow
+    add_executable(test_import_workflow
+        integration/test_import_workflow.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ImportManager.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ImportDialog.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ImportManager.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ImportDialog.h
+    )
+    set_target_properties(test_import_workflow PROPERTIES AUTOMOC ON)
+    target_include_directories(test_import_workflow PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/unit
+    )
+    target_link_libraries(test_import_workflow PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        Qt6::Gui
+        Qt6::Widgets
+        smartbook_common
+        test_helpers
+    )
+    add_test(NAME TestImportWorkflow COMMAND test_import_workflow)
+endif()
