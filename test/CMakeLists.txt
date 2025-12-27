@@ -816,4 +816,32 @@ if(QT_TEST_AVAILABLE)
         test_helpers
     )
     add_test(NAME TestImportWorkflow COMMAND test_import_workflow)
+    
+    # test_security_workflow
+    find_package(OpenSSL)
+    if(OpenSSL_FOUND)
+        add_executable(test_security_workflow
+            integration/test_security_workflow.cpp
+        )
+        set_target_properties(test_security_workflow PROPERTIES AUTOMOC ON)
+        target_include_directories(test_security_workflow PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+            ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include
+            ${CMAKE_CURRENT_SOURCE_DIR}/unit
+        )
+        target_link_libraries(test_security_workflow PRIVATE
+            Qt6::Test
+            Qt6::Core
+            Qt6::Sql
+            Qt6::Gui
+            Qt6::Widgets
+            smartbook_common
+            test_helpers
+            OpenSSL::SSL
+            OpenSSL::Crypto
+        )
+        add_test(NAME TestSecurityWorkflow COMMAND test_security_workflow)
+    else()
+        message(WARNING "OpenSSL not found - skipping test_security_workflow")
+    endif()
 endif()
