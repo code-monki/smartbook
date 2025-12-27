@@ -14,12 +14,16 @@ namespace settings {
 
 namespace reader {
 
+class ContentParser;
+class QmlEmbeddedAppWidget;
+
 /**
  * @brief Reader view widget - displays cartridge content
  * 
  * Uses QTextBrowser to render HTML4/CSS 2.1 content with embedded QML applications.
  * Loads content from Content_Pages table in the cartridge database.
  * Applies settings (author defaults and user overrides) to content rendering.
+ * Detects and processes QML app markers using ContentParser.
  */
 class ReaderView : public QWidget {
     Q_OBJECT
@@ -56,9 +60,13 @@ private:
     QString buildHtmlDocument(const QString& htmlContent, const QString& css);
     QString applySettingsToHtml(const QString& html);
     void applyTheme();
+    void processQmlAppMarkers(const QString& htmlContent);
+    void cleanupQmlAppWidgets();
     
     QTextBrowser* m_textBrowser;
+    ContentParser* m_contentParser;
     common::settings::SettingsManager* m_settingsManager;
+    QList<QmlEmbeddedAppWidget*> m_qmlAppWidgets;
     QString m_cartridgePath;
     QString m_cartridgeGuid;
     int m_currentPageId = -1;

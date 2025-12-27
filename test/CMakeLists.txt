@@ -524,6 +524,37 @@ if(QT_TEST_AVAILABLE)
     )
     add_test(NAME TestContentParser COMMAND test_contentparser)
     
+    # test_readerview_qml_integration
+    add_executable(test_readerview_qml_integration
+        unit/test_readerview_qml_integration.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ReaderView.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/QmlEmbeddedAppWidget.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ConsentDialog.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/QmlAppBridge.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ContentParser.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ReaderView.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/QmlEmbeddedAppWidget.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ConsentDialog.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/QmlAppBridge.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ContentParser.h
+    )
+    set_target_properties(test_readerview_qml_integration PROPERTIES AUTOMOC ON)
+    target_include_directories(test_readerview_qml_integration PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include
+    )
+    target_link_libraries(test_readerview_qml_integration PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        Qt6::Gui
+        Qt6::Widgets
+        Qt6::QuickWidgets
+        Qt6::Qml
+        smartbook_common
+    )
+    add_test(NAME TestReaderViewQmlIntegration COMMAND test_readerview_qml_integration)
+    
     # test_contenteditor_form_integration
     add_executable(test_contenteditor_form_integration
         unit/test_contenteditor_form_integration.cpp

@@ -1,4 +1,6 @@
 #include "smartbook/reader/ui/ReaderView.h"
+#include "smartbook/reader/ContentParser.h"
+#include "smartbook/reader/ui/QmlEmbeddedAppWidget.h"
 #include "smartbook/common/database/CartridgeDBConnector.h"
 #include "smartbook/common/settings/SettingsManager.h"
 #include <QTextBrowser>
@@ -15,6 +17,7 @@ namespace reader {
 ReaderView::ReaderView(QWidget* parent)
     : QWidget(parent)
     , m_textBrowser(nullptr)
+    , m_contentParser(nullptr)
     , m_settingsManager(nullptr)
     , m_currentPageId(-1)
 {
@@ -25,10 +28,12 @@ ReaderView::ReaderView(QWidget* parent)
     m_textBrowser->setOpenExternalLinks(true);
     layout->addWidget(m_textBrowser);
     
+    m_contentParser = new ContentParser();
     m_settingsManager = new common::settings::SettingsManager(this);
 }
 
 ReaderView::~ReaderView() {
+    cleanupQmlAppWidgets();
     // QTextBrowser cleanup is handled by Qt's parent-child relationship
 }
 
@@ -96,8 +101,14 @@ void ReaderView::loadContentFromDatabase() {
     
     m_currentPageId = pageId;
     
+    // Process QML app markers before building HTML document
+    processQmlAppMarkers(htmlContent);
+    
+    // Clean HTML content (remove QML markers)
+    QString cleanedHtml = m_contentParser->cleanHtml(htmlContent);
+    
     // Build complete HTML document with CSS
-    QString fullHtml = buildHtmlDocument(htmlContent, css);
+    QString fullHtml = buildHtmlDocument(cleanedHtml, css);
     
     // Apply settings (font size, font family, theme, etc.) to HTML
     fullHtml = applySettingsToHtml(fullHtml);
@@ -211,6 +222,55 @@ void ReaderView::applyTheme() {
     
     // Force single atomic repaint
     m_textBrowser->update();
+}
+
+void ReaderView::processQmlAppMarkers(const QString& htmlContent)
+{
+    // Clean up existing QML app widgets
+    cleanupQmlAppWidgets();
+    
+    if (!m_contentParser) {
+        return;
+    }
+    
+    // Parse HTML for QML app markers
+    QList<ContentParser::QmlAppMarker> markers = m_contentParser->parseContent(htmlContent);
+    
+    if (markers.isEmpty()) {
+        return;
+    }
+    
+    // Create QmlEmbeddedAppWidget for each marker
+    for (const ContentParser::QmlAppMarker& marker : markers) {
+        if (marker.appId.isEmpty()) {
+            continue;
+        }
+        
+        QmlEmbeddedAppWidget* appWidget = new QmlEmbeddedAppWidget(this);
+        appWidget->setCartridgeInfo(m_cartridgePath, m_cartridgeGuid);
+        
+        // Load the QML app
+        bool loaded = appWidget->loadApp(m_cartridgePath, marker.appId);
+        if (loaded) {
+            m_qmlAppWidgets.append(appWidget);
+            // Note: Widget positioning will be handled in a future update
+            // For now, widgets are created but not positioned in layout
+            // This is a placeholder for the actual embedding mechanism
+        } else {
+            qWarning() << "Failed to load QML app:" << marker.appId << appWidget->errorMessage();
+            delete appWidget;
+        }
+    }
+}
+
+void ReaderView::cleanupQmlAppWidgets()
+{
+    for (QmlEmbeddedAppWidget* widget : m_qmlAppWidgets) {
+        if (widget) {
+            widget->deleteLater();
+        }
+    }
+    m_qmlAppWidgets.clear();
 }
 
 } // namespace reader
