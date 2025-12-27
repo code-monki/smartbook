@@ -664,6 +664,119 @@ if(QT_TEST_AVAILABLE)
     )
     add_test(NAME TestSecurityErrorDialog COMMAND test_securityerrordialog)
     
+    # test_cartridgeexporter
+    # Find OpenSSL for CartridgeExporter signing
+    find_package(OpenSSL)
+    if(OpenSSL_FOUND)
+        add_executable(test_cartridgeexporter
+            unit/test_cartridgeexporter.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/../creator/src/CartridgeExporter.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/../creator/src/CertificateManager.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/../creator/include/smartbook/creator/CartridgeExporter.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/../creator/include/smartbook/creator/CertificateManager.h
+        )
+        set_target_properties(test_cartridgeexporter PROPERTIES AUTOMOC ON)
+        target_include_directories(test_cartridgeexporter PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+            ${CMAKE_CURRENT_SOURCE_DIR}/../creator/include
+            ${CMAKE_CURRENT_SOURCE_DIR}/unit
+        )
+        target_link_libraries(test_cartridgeexporter PRIVATE
+            Qt6::Test
+            Qt6::Core
+            Qt6::Sql
+            Qt6::Network
+            Qt6::Gui
+            Qt6::Widgets
+            smartbook_common
+            test_helpers
+            OpenSSL::SSL
+            OpenSSL::Crypto
+        )
+        add_test(NAME TestCartridgeExporter COMMAND test_cartridgeexporter)
+    else()
+        message(WARNING "OpenSSL not found - skipping test_cartridgeexporter")
+    endif()
+    
+    # test_metadataeditor
+    # Note: MetadataEditor and ResourceManager are part of creator executable, not a library
+    # We compile the source files directly, but need to ensure Qt Widgets is properly linked
+    add_executable(test_metadataeditor
+        unit/test_metadataeditor.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/src/MetadataEditor.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/src/ResourceManager.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/include/smartbook/creator/MetadataEditor.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/include/smartbook/creator/ResourceManager.h
+    )
+    set_target_properties(test_metadataeditor PROPERTIES AUTOMOC ON)
+    target_include_directories(test_metadataeditor PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/unit
+    )
+    target_link_libraries(test_metadataeditor PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        Qt6::Gui
+        Qt6::Widgets
+        smartbook_common
+        test_helpers
+    )
+    add_test(NAME TestMetadataEditor COMMAND test_metadataeditor)
+    
+    # test_resourcemanager
+    add_executable(test_resourcemanager
+        unit/test_resourcemanager.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/src/ResourceManager.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/include/smartbook/creator/ResourceManager.h
+    )
+    set_target_properties(test_resourcemanager PROPERTIES AUTOMOC ON)
+    target_include_directories(test_resourcemanager PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../creator/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/unit
+    )
+    target_link_libraries(test_resourcemanager PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        Qt6::Gui
+        Qt6::Widgets
+        smartbook_common
+        test_helpers
+    )
+    add_test(NAME TestResourceManager COMMAND test_resourcemanager)
+    
+    # test_certificatemanager
+    find_package(OpenSSL)
+    if(OpenSSL_FOUND)
+        add_executable(test_certificatemanager
+            unit/test_certificatemanager.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/../creator/src/CertificateManager.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/../creator/include/smartbook/creator/CertificateManager.h
+        )
+        set_target_properties(test_certificatemanager PROPERTIES AUTOMOC ON)
+        target_include_directories(test_certificatemanager PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+            ${CMAKE_CURRENT_SOURCE_DIR}/../creator/include
+            ${CMAKE_CURRENT_SOURCE_DIR}/unit
+        )
+        target_link_libraries(test_certificatemanager PRIVATE
+            Qt6::Test
+            Qt6::Core
+            Qt6::Network
+            Qt6::Gui
+            Qt6::Widgets
+            smartbook_common
+            OpenSSL::SSL
+            OpenSSL::Crypto
+        )
+        add_test(NAME TestCertificateManager COMMAND test_certificatemanager)
+    else()
+        message(WARNING "OpenSSL not found - skipping test_certificatemanager")
+    endif()
+    
     # Test helpers library (shared by multiple test executables)
     add_library(test_helpers STATIC
         unit/test_helpers.cpp
