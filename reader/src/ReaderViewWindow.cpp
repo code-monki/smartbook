@@ -82,11 +82,12 @@ void ReaderViewWindow::setupUI() {
     // Connect theme actions
     connect(themeGroup, &QActionGroup::triggered, this, [this](QAction* action) {
         QString theme = action->data().toString();
+        qDebug() << "ReaderViewWindow: Theme menu triggered, theme=" << theme;
         if (m_readerView) {
-            // Get settings manager from ReaderView and update theme
-            // We need to access the SettingsManager through ReaderView
-            // For now, we'll add a method to ReaderView to change theme
             m_readerView->setTheme(theme);
+            qDebug() << "ReaderViewWindow: Theme set successfully";
+        } else {
+            qWarning() << "ReaderViewWindow: m_readerView is null, cannot set theme";
         }
     });
 }

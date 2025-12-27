@@ -21,6 +21,7 @@ ReaderView::ReaderView(QWidget* parent)
     , m_contentParser(nullptr)
     , m_settingsManager(nullptr)
     , m_currentPageId(-1)
+    , m_tempTheme()
 {
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
@@ -46,6 +47,12 @@ void ReaderView::loadCartridge(const QString& cartridgePath, const QString& cart
     // Load settings if cartridge GUID is provided
     if (!m_cartridgeGuid.isEmpty() && m_settingsManager) {
         m_settingsManager->loadSettings(m_cartridgeGuid, cartridgePath);
+        
+        // If we had a temporary theme set before cartridge loaded, save it now
+        if (!m_tempTheme.isEmpty()) {
+            m_settingsManager->setUserOverride("default_theme", m_tempTheme);
+            m_tempTheme.clear();
+        }
     }
     
     // Load first page (lowest page_order)
@@ -58,17 +65,32 @@ void ReaderView::loadPage(int pageId) {
 }
 
 void ReaderView::loadContentFromDatabase() {
+    qDebug() << "ReaderView::loadContentFromDatabase: Starting, cartridgePath=" << m_cartridgePath << ", pageId=" << m_currentPageId;
+    
     if (m_cartridgePath.isEmpty()) {
-        emit errorOccurred("No cartridge path specified");
+        QString error = "No cartridge path specified";
+        qWarning() << "ReaderView::loadContentFromDatabase:" << error;
+        emit errorOccurred(error);
+        return;
+    }
+    
+    if (!m_textBrowser) {
+        QString error = "QTextBrowser widget is null";
+        qWarning() << "ReaderView::loadContentFromDatabase:" << error;
+        emit errorOccurred(error);
         return;
     }
     
     // Open cartridge database
     common::database::CartridgeDBConnector connector(this);
     if (!connector.openCartridge(m_cartridgePath)) {
-        emit errorOccurred("Failed to open cartridge: " + m_cartridgePath);
+        QString error = "Failed to open cartridge: " + m_cartridgePath;
+        qWarning() << "ReaderView::loadContentFromDatabase:" << error;
+        emit errorOccurred(error);
         return;
     }
+    
+    qDebug() << "ReaderView::loadContentFromDatabase: Cartridge opened successfully";
     
     // Query Content_Pages table
     // If pageId is -1, load first page (lowest page_order)
@@ -88,17 +110,28 @@ void ReaderView::loadContentFromDatabase() {
         )").arg(m_currentPageId);
     }
     
-    QSqlQuery query = connector.executeQuery(queryString);
+    QSqlQuery query(connector.getDatabase());
+    if (!query.exec(queryString)) {
+        QString error = "Failed to query content: " + query.lastError().text();
+        qWarning() << "ReaderView::loadContentFromDatabase:" << error;
+        connector.closeCartridge();
+        emit errorOccurred(error);
+        return;
+    }
     
     if (!query.next()) {
+        QString error = "No content pages found in cartridge";
+        qWarning() << "ReaderView::loadContentFromDatabase:" << error;
         connector.closeCartridge();
-        emit errorOccurred("No content pages found in cartridge");
+        emit errorOccurred(error);
         return;
     }
     
     int pageId = query.value(0).toInt();
     QString htmlContent = query.value(1).toString();
     QString css = query.value(2).toString();
+    
+    qDebug() << "ReaderView::loadContentFromDatabase: Loaded page" << pageId << "with" << htmlContent.length() << "chars of HTML";
     
     m_currentPageId = pageId;
     
@@ -108,6 +141,7 @@ void ReaderView::loadContentFromDatabase() {
     
     // Clean HTML content (remove QML and form markers)
     QString cleanedHtml = m_contentParser->cleanHtml(htmlContent);
+    qDebug() << "ReaderView::loadContentFromDatabase: Cleaned HTML length:" << cleanedHtml.length();
     
     // Build complete HTML document with CSS
     QString fullHtml = buildHtmlDocument(cleanedHtml, css);
@@ -115,11 +149,15 @@ void ReaderView::loadContentFromDatabase() {
     // Apply settings (font size, font family, theme, etc.) to HTML
     fullHtml = applySettingsToHtml(fullHtml);
     
+    qDebug() << "ReaderView::loadContentFromDatabase: Setting HTML content, length:" << fullHtml.length();
+    
     // Load into QTextBrowser (synchronous)
     m_textBrowser->setHtml(fullHtml);
     
     // Apply theme to QTextBrowser widget
     applyTheme();
+    
+    qDebug() << "ReaderView::loadContentFromDatabase: Content loaded successfully";
     
     // Emit contentLoaded signal immediately (QTextBrowser loads synchronously)
     emit contentLoaded();
@@ -194,11 +232,22 @@ QString ReaderView::applySettingsToHtml(const QString& html) {
 }
 
 void ReaderView::applyTheme() {
-    if (!m_textBrowser || !m_settingsManager) {
+    if (!m_textBrowser) {
+        qWarning() << "ReaderView::applyTheme: m_textBrowser is null";
         return;
     }
     
-    QString theme = m_settingsManager->getSetting("default_theme", "light");
+    QString theme = "light"; // Default
+    // Check for temporary theme first (set before cartridge loads)
+    if (!m_tempTheme.isEmpty()) {
+        theme = m_tempTheme;
+        qDebug() << "ReaderView::applyTheme: Using temporary theme" << theme;
+    } else if (m_settingsManager) {
+        theme = m_settingsManager->getSetting("default_theme", "light");
+    }
+    
+    qDebug() << "ReaderView::applyTheme: Applying theme" << theme;
+    
     QColor bgColor, textColor;
     
     if (theme == "dark") {
@@ -224,15 +273,24 @@ void ReaderView::applyTheme() {
     
     // Force single atomic repaint
     m_textBrowser->update();
+    qDebug() << "ReaderView::applyTheme: Theme applied successfully";
 }
 
 void ReaderView::setTheme(const QString& theme) {
-    if (!m_settingsManager || m_cartridgeGuid.isEmpty()) {
-        return;
-    }
+    qDebug() << "ReaderView::setTheme: Called with theme=" << theme << ", cartridgeGuid=" << m_cartridgeGuid;
     
-    // Save theme as user override
-    m_settingsManager->setUserOverride("default_theme", theme);
+    // Store theme temporarily for immediate application
+    m_tempTheme = theme;
+    
+    // Save theme as user override if cartridge is loaded
+    if (!m_cartridgeGuid.isEmpty() && m_settingsManager) {
+        bool success = m_settingsManager->setUserOverride("default_theme", theme);
+        qDebug() << "ReaderView::setTheme: setUserOverride returned" << success;
+        // Clear temp theme since we've saved it
+        m_tempTheme.clear();
+    } else {
+        qDebug() << "ReaderView::setTheme: No cartridge GUID, storing theme temporarily";
+    }
     
     // Apply theme immediately
     applyTheme();

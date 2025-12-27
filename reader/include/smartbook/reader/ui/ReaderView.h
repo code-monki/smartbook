@@ -80,6 +80,7 @@ private:
     QString m_cartridgePath;
     QString m_cartridgeGuid;
     int m_currentPageId = -1;
+    QString m_tempTheme; // Temporary theme storage when cartridgeGuid isn't set yet
 };
 
 } // namespace reader
