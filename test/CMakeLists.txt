@@ -505,6 +505,25 @@ if(QT_TEST_AVAILABLE)
     )
     add_test(NAME TestQmlEmbeddedAppWidget COMMAND test_qmlembeddedappwidget)
     
+    # test_contentparser
+    add_executable(test_contentparser
+        unit/test_contentparser.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ContentParser.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ContentParser.h
+    )
+    set_target_properties(test_contentparser PROPERTIES AUTOMOC ON)
+    target_include_directories(test_contentparser PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include
+    )
+    target_link_libraries(test_contentparser PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Gui
+        smartbook_common
+    )
+    add_test(NAME TestContentParser COMMAND test_contentparser)
+    
     # test_contenteditor_form_integration
     add_executable(test_contenteditor_form_integration
         unit/test_contenteditor_form_integration.cpp

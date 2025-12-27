@@ -90,6 +90,7 @@ set(READER_SOURCES
     src/ReaderViewWindow.cpp
     src/WebChannelBridge.cpp
     src/QmlAppBridge.cpp
+    src/ContentParser.cpp
     src/ui/LibraryView.cpp
     src/ui/ReaderView.cpp
     src/ui/QmlEmbeddedAppWidget.cpp
@@ -105,6 +106,7 @@ set(READER_HEADERS
     include/smartbook/reader/ReaderViewWindow.h
     include/smartbook/reader/WebChannelBridge.h
     include/smartbook/reader/QmlAppBridge.h
+    include/smartbook/reader/ContentParser.h
     include/smartbook/reader/ui/LibraryView.h
     include/smartbook/reader/ui/ReaderView.h
     include/smartbook/reader/ui/QmlEmbeddedAppWidget.h
