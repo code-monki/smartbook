@@ -1,0 +1,148 @@
+= Phase 1.6 Integration Testing - Import Workflow
+:author: [Gemini]
+:revdate: 2025-12-26
+:doctype: article
+
+== Summary
+
+Started Phase 1.6: Testing and Integration by creating the first comprehensive integration test for the end-to-end import workflow. Fixed issues in ImportManager and MetadataExtractor that were discovered during integration testing.
+
+== Work Completed
+
+=== Integration Test: End-to-End Import Workflow
+
+**File:** `test/integration/test_import_workflow.cpp`
+
+Created comprehensive integration test covering the complete import workflow:
+
+* **Test Cases (9 total):**
+  * `testImportNewCartridge()` - Successful import of new cartridge
+  * `testImportDuplicateSkip()` - Duplicate handling with Skip action
+  * `testImportDuplicateReplace()` - Duplicate handling with Replace action
+  * `testImportDuplicateKeepBoth()` - Duplicate handling with KeepBoth action
+  * `testImportMultipleCartridges()` - Batch import of multiple cartridges
+  * `testImportWithInvalidFile()` - Error handling for non-SQLite files
+  * `testImportWithCorruptedFile()` - Error handling for corrupted SQLite files
+
+* **Workflow Coverage:**
+  * File validation
+  * Metadata extraction
+  * Duplicate detection
+  * File copying to library directory
+  * Manifest entry creation/update
+  * Error handling and reporting
+
+* **Test Results:** 9 passed, 0 failed
+
+**Requirements Addressed:**
+* FR-2.5.6: Import mechanisms
+* FR-2.5.7: Import storage location
+* FR-2.5.9: Duplicate detection
+* FR-2.5.10: Import validation
+* FR-2.5.11: Import completion
+
+=== ImportManager Fixes
+
+**File:** `reader/src/ImportManager.cpp`
+
+Fixed issues discovered during integration testing:
+
+* **KeepBoth Handling:**
+  * Fixed manifest entry creation to update existing entry instead of failing
+  * When `KeepBoth` is selected, updates manifest entry with new file path
+  * Prevents `ManifestFailed` error when duplicate GUID exists
+
+* **Error Reporting:**
+  * Enhanced `validateCartridge()` to report specific validation errors
+  * Added detailed error messages for debugging
+
+**Requirements Addressed:**
+* FR-2.5.9: Duplicate detection and handling
+* FR-2.5.10: Import validation with error reporting
+
+=== MetadataExtractor Fixes
+
+**File:** `common/src/metadata/MetadataExtractor.cpp`
+
+Fixed database connection management issues:
+
+* **Connection Name Conflicts:**
+  * Changed from hardcoded "MetadataExtract" to unique connection names
+  * Changed from hardcoded "HashCalc" to unique connection names
+  * Prevents "connection still in use" errors in test environments
+
+* **Query Robustness:**
+  * Split metadata extraction query into required and optional columns
+  * Required columns: `cartridge_guid`, `title`, `author`, `publisher`, `version`, `publication_year`, `schema_version`
+  * Optional columns (`series_name`, `edition_name`, `series_order`) queried separately
+  * Prevents query failures when optional columns don't exist
+
+* **Error Reporting:**
+  * Added detailed error messages for query failures
+  * Improved debugging information
+
+**Requirements Addressed:**
+* FR-2.5.2: Mandatory metadata storage
+* FR-2.5.3: Manifest update
+
+== Technical Challenges
+
+=== Database Connection Management
+
+**Problem:** `MetadataExtractor` used hardcoded connection names ("MetadataExtract", "HashCalc"), causing conflicts when multiple extractions happened in quick succession during tests.
+
+**Solution:**
+* Use unique connection names with UUIDs
+* Properly close and remove connections after use
+* Prevents "connection still in use" warnings and errors
+
+=== Manifest Entry Updates for KeepBoth
+
+**Problem:** When `KeepBoth` action was selected, the code tried to create a new manifest entry with the same GUID, causing a `ManifestFailed` error.
+
+**Solution:**
+* Check if manifest entry exists before creating
+* For `KeepBoth`, update existing entry with new file path instead of creating duplicate
+* Maintains single manifest entry per GUID while allowing multiple file copies
+
+=== Query Column Handling
+
+**Problem:** `MetadataExtractor` queried optional columns that might not exist in all cartridges, causing silent query failures.
+
+**Solution:**
+* Split query into required and optional columns
+* Query required columns first (always present)
+* Query optional columns separately (gracefully handles missing columns)
+
+== Test Infrastructure
+
+**CMake Integration:**
+* Added `test_import_workflow` executable to `test/CMakeLists.txt`
+* Integrated into CMake test suite
+* Links against `ImportManager`, `ImportDialog`, `smartbook_common`, `test_helpers`
+
+**Test Helpers:**
+* Uses `TestHelpers::createMinimalCartridge()` for test cartridge creation
+* Verifies manifest entries directly using `ManifestManager`
+* Verifies file existence and location
+
+== Commits
+
+1. `test(phase1.6): Add integration test for end-to-end import workflow`
+2. `fix: Improve import workflow and metadata extraction`
+
+== Next Steps
+
+Continue Phase 1.6 integration testing:
+* Security verification workflow integration test
+* Multi-window isolation integration test
+* Form data persistence integration test
+* Settings application integration test
+* Error handling test suite
+
+== References
+
+* `Documentation/test-plan.adoc` - Test case specifications
+* `Documentation/phase1-implementation-guide.adoc` - Phase 1.6 requirements
+* `Documentation/ddd.adoc` - Import algorithm specification
+
