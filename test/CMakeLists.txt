@@ -1072,6 +1072,46 @@ if(QT_TEST_AVAILABLE)
     )
     add_test(NAME TestFormDataPersistence COMMAND test_form_data_persistence)
     
+    # test_qml_embedded_app - Integration test for QML embedded apps (Phase 6.2.1)
+    add_executable(test_qml_embedded_app
+        integration/test_qml_embedded_app.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ReaderViewWindow.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ReaderView.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ContentParser.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/QmlEmbeddedAppWidget.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/QmlAppBridge.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/FormEmbeddedWidget.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ConsentDialog.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/SecurityErrorDialog.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ReaderViewWindow.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ReaderView.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ContentParser.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/QmlEmbeddedAppWidget.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/QmlAppBridge.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/FormEmbeddedWidget.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ConsentDialog.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/SecurityErrorDialog.h
+    )
+    set_target_properties(test_qml_embedded_app PROPERTIES AUTOMOC ON)
+    target_include_directories(test_qml_embedded_app PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/unit
+    )
+    target_link_libraries(test_qml_embedded_app PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        Qt6::Gui
+        Qt6::Widgets
+        Qt6::Quick
+        Qt6::QuickWidgets
+        Qt6::Qml
+        smartbook_common
+        test_helpers
+    )
+    add_test(NAME TestQmlEmbeddedApp COMMAND test_qml_embedded_app)
+    
     # test_settings_application
     add_executable(test_settings_application
         integration/test_settings_application.cpp
