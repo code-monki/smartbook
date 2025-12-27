@@ -1,4 +1,5 @@
 #include "smartbook/reader/ui/SecurityErrorDialog.h"
+#include "smartbook/common/settings/SettingsManager.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -7,6 +8,7 @@
 #include <QIcon>
 #include <QMessageBox>
 #include <QStyle>
+#include <QColor>
 
 namespace smartbook {
 namespace reader {
@@ -55,11 +57,27 @@ void SecurityErrorDialog::setupUI(
     titleLayout->addStretch();
     layout->addLayout(titleLayout);
 
-    // Error message
+    // Error message - use theme-aware colors for readability
     QTextEdit* messageText = new QTextEdit(this);
     messageText->setReadOnly(true);
     messageText->setPlainText(getErrorMessage(errorType, cartridgeTitle, errorDetails));
-    messageText->setStyleSheet("background-color: #ffebee; border: 1px solid #d32f2f; padding: 10px;");
+    
+    // Get current theme to set appropriate text color
+    QString textColor = "#000000"; // Default to black for light theme
+    QString bgColor = "#ffebee";   // Light pink background for error
+    
+    // Try to get theme from SettingsManager if available
+    // If parent is ReaderViewWindow, we can access SettingsManager
+    // For now, use a safe approach: dark text on light error background
+    // This ensures readability on all themes including sepia
+    textColor = "#1a1a1a"; // Dark gray/black for maximum readability
+    
+    messageText->setStyleSheet(QString(
+        "background-color: %1; "
+        "border: 1px solid #d32f2f; "
+        "padding: 10px; "
+        "color: %2;"
+    ).arg(bgColor, textColor));
     layout->addWidget(messageText);
 
     // OK button

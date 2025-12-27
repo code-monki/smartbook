@@ -58,7 +58,8 @@ void ConsentDialog::setupUI(
 
     QTextEdit* warningText = new QTextEdit(this);
     warningText->setReadOnly(true);
-    warningText->setStyleSheet("background-color: #fff3e0; border: 1px solid #f57c00; padding: 10px;");
+    // Use dark text color for readability on light orange background (works with all themes including sepia)
+    warningText->setStyleSheet("background-color: #fff3e0; border: 1px solid #f57c00; padding: 10px; color: #1a1a1a;");
 
     QString message;
     
