@@ -527,12 +527,15 @@ bool CartridgeExporter::createCartridgeSchema(const QString& cartridgePath) {
     }
 
     // Create Embedded_Apps table
+    // Note: javascript_code and app_config_json kept for backward compatibility
+    // qml_code added for QML embedded applications (Phase 5.2)
     QString embeddedAppsTable = R"(
         CREATE TABLE IF NOT EXISTS Embedded_Apps (
             app_id TEXT PRIMARY KEY,
             app_name TEXT NOT NULL,
-            javascript_code TEXT NOT NULL,
-            app_config_json TEXT
+            javascript_code TEXT,
+            app_config_json TEXT,
+            qml_code TEXT
         )
     )";
 
