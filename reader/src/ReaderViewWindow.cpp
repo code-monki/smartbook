@@ -2,7 +2,6 @@
 #include "smartbook/reader/ui/ReaderView.h"
 #include "smartbook/reader/ui/ConsentDialog.h"
 #include "smartbook/reader/ui/SecurityErrorDialog.h"
-#include "smartbook/reader/WebChannelBridge.h"
 #include "smartbook/common/database/CartridgeDBConnector.h"
 #include "smartbook/common/database/LocalDBManager.h"
 #include "smartbook/common/manifest/ManifestManager.h"
@@ -26,7 +25,6 @@ ReaderViewWindow::ReaderViewWindow(const QString& cartridgeGuid, QWidget* parent
     : QMainWindow(parent)
     , m_cartridgeGuid(cartridgeGuid)
     , m_readerView(nullptr)
-    , m_webChannelBridge(nullptr)
     , m_signatureVerifier(new common::security::SignatureVerifier(this))
     , m_trustRegistry(new common::security::TrustRegistry(this))
 {

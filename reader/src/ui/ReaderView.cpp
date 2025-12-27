@@ -1,17 +1,12 @@
 #include "smartbook/reader/ui/ReaderView.h"
-#include "smartbook/reader/WebChannelBridge.h"
 #include "smartbook/common/database/CartridgeDBConnector.h"
 #include "smartbook/common/settings/SettingsManager.h"
-#include <QWebEngineView>
-#include <QWebEngineProfile>
-#include <QWebEngineSettings>
-#include <QWebEnginePage>
-#include <QWebChannel>
+#include <QTextBrowser>
 #include <QVBoxLayout>
-#include <QUrl>
 #include <QSqlQuery>
 #include <QSqlError>
-#include <QApplication>
+#include <QPalette>
+#include <QColor>
 #include <QDebug>
 
 namespace smartbook {
@@ -19,62 +14,22 @@ namespace reader {
 
 ReaderView::ReaderView(QWidget* parent)
     : QWidget(parent)
-    , m_webView(nullptr)
-    , m_webChannelBridge(nullptr)
+    , m_textBrowser(nullptr)
     , m_settingsManager(nullptr)
     , m_currentPageId(-1)
 {
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
-
-    setupWebEngine();
     
-    m_webView = new QWebEngineView(this);
-    layout->addWidget(m_webView);
+    m_textBrowser = new QTextBrowser(this);
+    m_textBrowser->setOpenExternalLinks(true);
+    layout->addWidget(m_textBrowser);
     
     m_settingsManager = new common::settings::SettingsManager(this);
-    
-    connect(m_webView, &QWebEngineView::loadFinished,
-            this, &ReaderView::onLoadFinished);
 }
 
 ReaderView::~ReaderView() {
-    // Ensure WebEngine view is properly destroyed before parent widget
-    if (m_webView) {
-        // Disconnect signals to prevent callbacks during destruction
-        disconnect(m_webView, nullptr, this, nullptr);
-        
-        // Clear WebChannel first
-        if (m_webView->page()) {
-            m_webView->page()->setWebChannel(nullptr);
-        }
-        
-        // Delete WebChannel bridge first
-        if (m_webChannelBridge) {
-            delete m_webChannelBridge;
-            m_webChannelBridge = nullptr;
-        }
-        
-        // Delete settings manager
-        if (m_settingsManager) {
-            delete m_settingsManager;
-            m_settingsManager = nullptr;
-        }
-        
-        // Load blank page to trigger cleanup
-        m_webView->setHtml("<!DOCTYPE html><html><body></body></html>");
-        QApplication::processEvents();
-        
-        // Delete web view (this will trigger WebEngine cleanup)
-        delete m_webView;
-        m_webView = nullptr;
-    }
-}
-
-void ReaderView::setupWebEngine() {
-    // TODO: Configure WebEngine profile with security settings
-    // For now, use default profile
-    // DDD Section 5: WebEngine Profile Configuration
+    // QTextBrowser cleanup is handled by Qt's parent-child relationship
 }
 
 void ReaderView::loadCartridge(const QString& cartridgePath, const QString& cartridgeGuid) {
@@ -147,31 +102,25 @@ void ReaderView::loadContentFromDatabase() {
     // Apply settings (font size, font family, theme, etc.) to HTML
     fullHtml = applySettingsToHtml(fullHtml);
     
-    // Load into QWebEngineView
-    m_webView->setHtml(fullHtml);
+    // Load into QTextBrowser (synchronous)
+    m_textBrowser->setHtml(fullHtml);
     
-    // Setup WebChannel bridge if not already set up
-    if (!m_webChannelBridge) {
-        m_webChannelBridge = new WebChannelBridge(this);
-        m_webChannelBridge->setCartridgeInfo(m_cartridgePath, m_cartridgeGuid);
-        QWebChannel* channel = new QWebChannel(this);
-        m_webChannelBridge->setupWebChannel(channel);
-        m_webView->page()->setWebChannel(channel);
-    } else {
-        // Update cartridge info if bridge already exists
-        m_webChannelBridge->setCartridgeInfo(m_cartridgePath, m_cartridgeGuid);
-    }
+    // Apply theme to QTextBrowser widget
+    applyTheme();
+    
+    // Emit contentLoaded signal immediately (QTextBrowser loads synchronously)
+    emit contentLoaded();
     
     connector.closeCartridge();
 }
 
 QString ReaderView::buildHtmlDocument(const QString& htmlContent, const QString& css) {
-    QString html = R"(<!DOCTYPE html>
+    // Use HTML4 DOCTYPE for QTextBrowser compatibility
+    QString html = R"(<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <style type="text/css">
 )";
     
     if (!css.isEmpty()) {
@@ -202,24 +151,16 @@ QString ReaderView::applySettingsToHtml(const QString& html) {
     // Get settings with priority resolution
     QString fontSize = m_settingsManager->getSetting("default_font_size", "12");
     QString fontFamily = m_settingsManager->getSetting("default_font_family", "serif");
-    QString theme = m_settingsManager->getSetting("default_theme", "light");
     QString lineSpacing = m_settingsManager->getSetting("line_spacing", "1.5");
     QString textAlignment = m_settingsManager->getSetting("text_alignment", "left");
-    QString pageMargins = m_settingsManager->getSetting("page_margins", R"({"top": 20, "bottom": 20, "left": 30, "right": 30})");
     
-    // Inject settings as CSS variables and styles
+    // Inject settings as CSS 2.1 compatible styles (no CSS variables)
     QString settingsCss = QString(R"(
-        :root {
-            --font-size: %1pt;
-            --font-family: %2;
-            --line-spacing: %3;
-            --text-align: %4;
-        }
         body {
-            font-size: var(--font-size);
-            font-family: var(--font-family);
-            line-height: var(--line-spacing);
-            text-align: var(--text-align);
+            font-size: %1pt;
+            font-family: %2;
+            line-height: %3;
+            text-align: %4;
         }
     )").arg(fontSize, fontFamily, lineSpacing, textAlignment);
     
@@ -232,19 +173,44 @@ QString ReaderView::applySettingsToHtml(const QString& html) {
         // No style tag, add one in head
         int headEndPos = result.indexOf("</head>");
         if (headEndPos != -1) {
-            result.insert(headEndPos, "<style>" + settingsCss + "</style>");
+            result.insert(headEndPos, "<style type=\"text/css\">" + settingsCss + "</style>");
         }
     }
     
     return result;
 }
 
-void ReaderView::onLoadFinished(bool success) {
-    if (success) {
-        emit contentLoaded();
-    } else {
-        emit errorOccurred("Failed to load content page");
+void ReaderView::applyTheme() {
+    if (!m_textBrowser || !m_settingsManager) {
+        return;
     }
+    
+    QString theme = m_settingsManager->getSetting("default_theme", "light");
+    QColor bgColor, textColor;
+    
+    if (theme == "dark") {
+        bgColor = QColor(30, 30, 30);
+        textColor = QColor(212, 212, 212);
+    } else if (theme == "sepia") {
+        bgColor = QColor(244, 236, 216);
+        textColor = QColor(92, 75, 55);
+    } else { // light (default)
+        bgColor = QColor(255, 255, 255);
+        textColor = QColor(0, 0, 0);
+    }
+    
+    // Update palette atomically to minimize flash
+    QPalette palette = m_textBrowser->palette();
+    palette.setColor(QPalette::Base, bgColor);
+    palette.setColor(QPalette::Text, textColor);
+    
+    // Block repaints during palette change to prevent flash
+    m_textBrowser->setAttribute(Qt::WA_UpdatesDisabled, true);
+    m_textBrowser->setPalette(palette);
+    m_textBrowser->setAttribute(Qt::WA_UpdatesDisabled, false);
+    
+    // Force single atomic repaint
+    m_textBrowser->update();
 }
 
 } // namespace reader

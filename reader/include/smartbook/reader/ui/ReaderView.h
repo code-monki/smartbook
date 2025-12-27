@@ -2,7 +2,7 @@
 #define SMARTBOOK_READER_UI_READERVIEW_H
 
 #include <QWidget>
-#include <QWebEngineView>
+#include <QTextBrowser>
 #include <QString>
 
 namespace smartbook {
@@ -14,12 +14,10 @@ namespace settings {
 
 namespace reader {
 
-class WebChannelBridge;
-
 /**
  * @brief Reader view widget - displays cartridge content
  * 
- * Uses QWebEngineView to render HTML content with embedded applications.
+ * Uses QTextBrowser to render HTML4/CSS 2.1 content with embedded QML applications.
  * Loads content from Content_Pages table in the cartridge database.
  * Applies settings (author defaults and user overrides) to content rendering.
  */
@@ -53,17 +51,13 @@ signals:
     void contentLoaded();
     void errorOccurred(const QString& errorMessage);
 
-private slots:
-    void onLoadFinished(bool success);
-
 private:
-    void setupWebEngine();
     void loadContentFromDatabase();
     QString buildHtmlDocument(const QString& htmlContent, const QString& css);
     QString applySettingsToHtml(const QString& html);
+    void applyTheme();
     
-    QWebEngineView* m_webView;
-    WebChannelBridge* m_webChannelBridge;
+    QTextBrowser* m_textBrowser;
     common::settings::SettingsManager* m_settingsManager;
     QString m_cartridgePath;
     QString m_cartridgeGuid;

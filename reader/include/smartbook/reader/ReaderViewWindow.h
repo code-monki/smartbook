@@ -22,7 +22,6 @@ namespace ui {
 }
 
 class ReaderView;
-class WebChannelBridge;
 
 /**
  * @brief Reader View Window - container for a single opened cartridge
@@ -63,7 +62,6 @@ private:
 
     QString m_cartridgeGuid;
     ReaderView* m_readerView;
-    WebChannelBridge* m_webChannelBridge;
     common::security::SignatureVerifier* m_signatureVerifier;
     common::security::TrustRegistry* m_trustRegistry;
     

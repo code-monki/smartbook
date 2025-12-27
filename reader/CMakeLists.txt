@@ -61,12 +61,13 @@ else()
         endif()
     endif()
 endif()
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets WebChannel Sql)
-# Qt6WebEngine is a meta-package; find individual components if meta-package not available
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Sql)
+# WebChannel and WebEngine still needed for WebChannelBridge (will be replaced with QML bridge later)
+find_package(Qt6 COMPONENTS WebChannel QUIET)
 find_package(Qt6 COMPONENTS WebEngine QUIET)
 if(NOT Qt6WebEngine_FOUND)
     # Fallback to individual WebEngine components
-    find_package(Qt6 REQUIRED COMPONENTS WebEngineCore WebEngineWidgets)
+    find_package(Qt6 COMPONENTS WebEngineCore WebEngineWidgets QUIET)
     # Create alias for compatibility
     if(TARGET Qt6::WebEngineCore AND TARGET Qt6::WebEngineWidgets)
         add_library(Qt6::WebEngine INTERFACE IMPORTED)
@@ -126,11 +127,17 @@ target_link_libraries(smartbook-reader PRIVATE
     Qt6::Core
     Qt6::Gui
     Qt6::Widgets
-    Qt6::WebEngine
-    Qt6::WebChannel
     Qt6::Sql
     smartbook_common
 )
+
+# WebEngine and WebChannel only needed for WebChannelBridge (will be replaced with QML bridge later)
+if(TARGET Qt6::WebEngine)
+    target_link_libraries(smartbook-reader PRIVATE Qt6::WebEngine)
+endif()
+if(TARGET Qt6::WebChannel)
+    target_link_libraries(smartbook-reader PRIVATE Qt6::WebChannel)
+endif()
 
 # Platform-specific settings
 if(APPLE)
