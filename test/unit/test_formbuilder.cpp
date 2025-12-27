@@ -103,22 +103,37 @@ QString TestFormBuilder::createTestCartridge()
     
     QSqlQuery query(db);
     
-    // Create Metadata table
+    // Create Metadata table with all required columns
     query.exec(R"(
         CREATE TABLE IF NOT EXISTS Metadata (
             cartridge_guid TEXT PRIMARY KEY,
             title TEXT NOT NULL,
             author TEXT NOT NULL,
-            publication_year TEXT NOT NULL
+            publication_year TEXT NOT NULL,
+            version TEXT NOT NULL,
+            schema_version TEXT NOT NULL
         )
     )");
     
-    query.prepare("INSERT INTO Metadata (cartridge_guid, title, author, publication_year) VALUES (?, ?, ?, ?)");
+    query.prepare("INSERT INTO Metadata (cartridge_guid, title, author, publication_year, version, schema_version) VALUES (?, ?, ?, ?, ?, ?)");
     query.addBindValue(m_cartridgeGuid);
     query.addBindValue("Test Book");
     query.addBindValue("Test Author");
     query.addBindValue("2025");
+    query.addBindValue("1.0");
+    query.addBindValue("1.0");
     query.exec();
+    
+    // Create Content_Pages table (required by CartridgeDBConnector)
+    query.exec(R"(
+        CREATE TABLE IF NOT EXISTS Content_Pages (
+            page_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            page_order INTEGER NOT NULL UNIQUE,
+            chapter_title TEXT,
+            html_content TEXT NOT NULL,
+            associated_css TEXT
+        )
+    )");
     
     // Create Form_Definitions table
     query.exec(R"(
