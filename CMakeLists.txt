@@ -26,5 +26,11 @@ add_subdirectory(reader)
 add_subdirectory(creator)
 add_subdirectory(test)
 
+# PoC applications (optional, for development/testing)
+option(BUILD_POC "Build Proof of Concept applications" OFF)
+if(BUILD_POC)
+    add_subdirectory(poc)
+endif()
+
 # Phase 2: Server (commented out for now)
 # add_subdirectory(server)
