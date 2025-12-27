@@ -184,13 +184,15 @@ void WebChannelBridge::saveSandboxFile(const QString& filename, const QByteArray
     }
     
     // Validate filename (prevent directory traversal)
-    QFileInfo fileInfo(filename);
-    QString safeFilename = fileInfo.fileName(); // Remove any path components
-    if (safeFilename.contains("..") || safeFilename.contains("/") || safeFilename.contains("\\")) {
+    // Check original filename first before sanitizing
+    if (filename.contains("..") || filename.contains("/") || filename.contains("\\")) {
         qWarning() << "Invalid sandbox filename:" << filename;
         emit sandboxFileSaved(filename, false, "Invalid filename");
         return;
     }
+    
+    QFileInfo fileInfo(filename);
+    QString safeFilename = fileInfo.fileName(); // Remove any path components
     
     QString filePath = QDir(sandboxPath).filePath(safeFilename);
     QFile file(filePath);
@@ -232,13 +234,15 @@ void WebChannelBridge::loadSandboxFile(const QString& filename, const QString& /
     }
     
     // Validate filename (prevent directory traversal)
-    QFileInfo fileInfo(filename);
-    QString safeFilename = fileInfo.fileName();
-    if (safeFilename.contains("..") || safeFilename.contains("/") || safeFilename.contains("\\")) {
+    // Check original filename first before sanitizing
+    if (filename.contains("..") || filename.contains("/") || filename.contains("\\")) {
         qWarning() << "Invalid sandbox filename:" << filename;
         emit sandboxFileLoaded(filename, QByteArray(), "Invalid filename");
         return;
     }
+    
+    QFileInfo fileInfo(filename);
+    QString safeFilename = fileInfo.fileName();
     
     QString filePath = QDir(sandboxPath).filePath(safeFilename);
     QFile file(filePath);
@@ -308,13 +312,15 @@ void WebChannelBridge::deleteSandboxFile(const QString& filename, const QString&
     }
     
     // Validate filename (prevent directory traversal)
-    QFileInfo fileInfo(filename);
-    QString safeFilename = fileInfo.fileName();
-    if (safeFilename.contains("..") || safeFilename.contains("/") || safeFilename.contains("\\")) {
+    // Check original filename first before sanitizing
+    if (filename.contains("..") || filename.contains("/") || filename.contains("\\")) {
         qWarning() << "Invalid sandbox filename:" << filename;
         emit sandboxFileDeleted(filename, false, "Invalid filename");
         return;
     }
+    
+    QFileInfo fileInfo(filename);
+    QString safeFilename = fileInfo.fileName();
     
     QString filePath = QDir(sandboxPath).filePath(safeFilename);
     QFile file(filePath);

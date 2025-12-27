@@ -563,6 +563,32 @@ if(QT_TEST_AVAILABLE)
     )
     add_test(NAME TestImportManager COMMAND test_importmanager)
     
+    # test_webchannelbridge
+    add_executable(test_webchannelbridge
+        unit/test_webchannelbridge.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/WebChannelBridge.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ConsentDialog.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/WebChannelBridge.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ConsentDialog.h
+    )
+    set_target_properties(test_webchannelbridge PROPERTIES AUTOMOC ON)
+    target_include_directories(test_webchannelbridge PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/unit
+    )
+    target_link_libraries(test_webchannelbridge PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        Qt6::Gui
+        Qt6::Widgets
+        Qt6::WebChannel
+        smartbook_common
+        test_helpers
+    )
+    add_test(NAME TestWebChannelBridge COMMAND test_webchannelbridge)
+    
     # Test helpers library (shared by multiple test executables)
     add_library(test_helpers STATIC
         unit/test_helpers.cpp

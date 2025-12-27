@@ -32,6 +32,12 @@ public:
      * @param cartridgeGuid Cartridge GUID
      */
     void setCartridgeInfo(const QString& cartridgePath, const QString& cartridgeGuid);
+    
+    /**
+     * @brief Set app ID for sandbox operations
+     * @param appId Application identifier
+     */
+    void setAppId(const QString& appId) { m_appId = appId; }
 
 public slots:
     /**
