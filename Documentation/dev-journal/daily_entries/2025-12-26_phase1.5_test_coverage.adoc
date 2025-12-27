@@ -1,0 +1,156 @@
+= Phase 1.5 Test Coverage Completion
+:author: [Gemini]
+:revdate: 2025-12-26
+:doctype: article
+
+== Summary
+
+Completed comprehensive test coverage for Phase 1.5 (Creator Tool Core) components, specifically ResourceManager and CertificateManager. Also resolved all database connection issues in test_metadataeditor, ensuring all Phase 1.5 test suites are passing.
+
+== Work Completed
+
+=== ResourceManager Test Suite (T-CT-25, T-CT-26)
+
+**File:** `test/unit/test_resourcemanager.cpp`
+
+Implemented comprehensive unit tests for `ResourceManager` covering:
+
+* **T-CT-25: Asset Management (FR-CT-3.24)**
+  * `testResourceImport()` - Import resources from files
+  * `testResourceImportFromData()` - Import resources from byte arrays
+  * `testResourceReference()` - Resource reference and retrieval
+
+* **T-CT-26: Resource Storage (FR-CT-3.25)**
+  * `testResourceStorage()` - Multi-resource storage and persistence
+  * `testResourcePersistence()` - Resource persistence across cartridge open/close
+  * `testResourceDeletion()` - Resource deletion functionality
+  * `testResourceList()` - Resource listing and enumeration
+
+**Test Results:** 9 passed, 0 failed
+
+**Key Implementation Details:**
+- Uses unique cartridge paths per test to avoid conflicts
+- Tests cover both file-based and data-based resource import
+- Verifies resource persistence across cartridge lifecycle
+- Tests signal emissions for resource list changes
+
+=== CertificateManager Test Suite (T-CT-19)
+
+**File:** `test/unit/test_certificatemanager.cpp`
+
+Implemented comprehensive unit tests for `CertificateManager` covering:
+
+* **T-CT-19: Certificate Management (FR-CT-3.33)**
+  * `testCertificateImport()` - Certificate import from files
+  * `testSelfSignedCertificateGeneration()` - Self-signed certificate generation
+  * `testCertificateSelection()` - Certificate selection interface
+  * `testCertificateStorage()` - Certificate storage and management
+  * `testCertificateValidation()` - Certificate validation
+  * `testCertificateExpiration()` - Expiration checking
+  * `testCertificateDeletion()` - Certificate deletion
+  * `testCertificateList()` - Certificate listing
+
+**Test Results:** 10 passed, 0 failed
+
+**Key Implementation Details:**
+- Tests cover both import and generation workflows
+- Validates certificate storage and retrieval
+- Tests static validation and expiration checking methods
+- Verifies signal emissions for certificate lifecycle events
+
+=== test_metadataeditor Fixes
+
+**File:** `test/unit/test_metadataeditor.cpp`
+
+Resolved all database connection and test logic issues:
+
+**Issues Fixed:**
+1. **Missing Metadata Table Columns:** Updated test schema to include all columns expected by `MetadataEditor` (`publisher`, `tags_json`, `cover_image_path`)
+2. **Database Connection Cleanup:** Added proper connection cleanup with explicit `QSqlDatabase::removeDatabase()` calls and delays
+3. **GUID Persistence Test:** Fixed test logic to ensure clean database state using DELETE + INSERT pattern
+4. **Query Execution Issues:** Fixed UPDATE queries that were causing UNIQUE constraint violations
+
+**Test Results:** 7 passed, 0 failed (previously 3 passed, 4 failed)
+
+**Key Fixes:**
+- Added `QSqlError` include for proper error handling
+- Implemented proper connection lifecycle management
+- Added verification queries to ensure database state
+- Used unique connection names for verification queries
+
+=== Test Infrastructure Updates
+
+**File:** `test/unit/test_helpers.cpp`
+
+Enhanced test cartridge creation to support full schema:
+
+* Added `Resources` table to `createMinimalCartridge()`
+* Added missing Metadata columns: `publisher`, `tags_json`, `cover_image_path`
+* Ensures test cartridges match full schema expected by components
+
+**File:** `test/CMakeLists.txt`
+
+Added new test executables to build system:
+
+* `test_resourcemanager` - Links ResourceManager and required dependencies
+* `test_certificatemanager` - Links CertificateManager with OpenSSL dependencies
+* Both tests integrated into CMake test suite
+
+== Technical Challenges
+
+=== Database Connection Management
+
+**Problem:** Tests were experiencing "connection still in use" warnings and query failures due to improper connection cleanup.
+
+**Solution:**
+- Added explicit `QSqlDatabase::removeDatabase()` calls after closing connections
+- Added small delays (`QTest::qWait(10)`) to ensure connections are fully closed
+- Used unique connection names for each database operation
+- Ensured all queries complete before closing connections
+
+=== Test Data Isolation
+
+**Problem:** Tests were interfering with each other when using shared cartridge paths.
+
+**Solution:**
+- Used unique cartridge paths per test method
+- Implemented DELETE + INSERT pattern for clean state management
+- Added verification queries to confirm database state before assertions
+
+=== Schema Completeness
+
+**Problem:** Test cartridges were missing columns expected by `MetadataEditor`, causing query failures.
+
+**Solution:**
+- Updated `createMinimalCartridge()` to include all required columns
+- Ensured test schema matches production schema expectations
+
+== Test Coverage Summary
+
+=== Phase 1.5 Test Status
+
+* **test_cartridgeexporter:** 13 tests passing (previously completed)
+* **test_metadataeditor:** 7 tests passing (fixed)
+* **test_resourcemanager:** 9 tests passing (new)
+* **test_certificatemanager:** 10 tests passing (new)
+
+**Total Phase 1.5 Tests:** 39 tests, all passing
+
+== Commits
+
+1. `test: Add Resources table to test cartridge schema`
+2. `test: Add ResourceManager unit tests (T-CT-25, T-CT-26)`
+3. `test: Add CertificateManager unit tests (T-CT-19)`
+4. `test: Fix test_metadataeditor database connection issues`
+5. `test: Add test_resourcemanager and test_certificatemanager to build`
+
+== Next Steps
+
+Phase 1.5 test coverage is now complete. All test suites are passing with no technical debt. Ready to proceed with next phase of implementation.
+
+== References
+
+* `Documentation/test-plan.adoc` - Test case specifications
+* `Documentation/phase1-implementation-guide.adoc` - Phase 1.5 requirements
+* `Documentation/tdd-practices.adoc` - TDD standards
+
