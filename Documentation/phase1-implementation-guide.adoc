@@ -547,11 +547,11 @@ The implementation should follow this priority order to ensure dependencies are 
 **Reference:** `test-plan.adoc` T-PLAT-01 through T-PLAT-15
 
 ==== Error Handling Testing
-[ ] File not found errors
-[ ] Invalid cartridge format
-[ ] Database connection errors
-[ ] Signature verification errors
-[ ] Import errors
+[X] File not found errors
+[X] Invalid cartridge format
+[X] Database connection errors
+[X] Signature verification errors
+[X] Import errors
 
 **Reference:** `test-plan.adoc` T-ERR-01 through T-ERR-49
 
