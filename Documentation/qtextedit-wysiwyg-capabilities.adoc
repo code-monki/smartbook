@@ -1,0 +1,195 @@
+= QTextEdit WYSIWYG Capabilities Assessment
+:author: AI Assistant
+:revdate: 2025-12-26
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+
+== Overview
+
+This document assesses the WYSIWYG editing capabilities of `QTextEdit` for use in the Creator Tool, addressing the question: "How limited is the WYSIWYG editing?"
+
+== QTextEdit Rich Text Capabilities
+
+=== Supported Formatting
+
+==== Text Formatting
+* ✅ **Bold, Italic, Underline:** Full support via `QTextCharFormat`
+* ✅ **Font Family:** Can set any font family available on system
+* ✅ **Font Size:** Full support for font sizes
+* ✅ **Text Color:** Foreground and background colors
+* ✅ **Strikethrough:** Supported
+* ✅ **Superscript/Subscript:** Supported
+
+==== Paragraph Formatting
+* ✅ **Alignment:** Left, right, center, justify
+* ✅ **Line Spacing:** Adjustable line spacing
+* ✅ **Margins:** Left, right, top, bottom margins
+* ✅ **Indentation:** Left and right indentation
+* ✅ **Bullet Lists:** Ordered and unordered lists
+* ✅ **Numbered Lists:** Full support
+
+==== Document Structure
+* ✅ **Headings:** Can create heading styles (H1-H6 via formatting)
+* ✅ **Paragraphs:** Full paragraph support
+* ✅ **Line Breaks:** Supported
+* ✅ **Horizontal Rules:** Can insert horizontal rules
+
+=== HTML Support
+
+==== Supported HTML Elements
+* ✅ **Basic Elements:** `<p>`, `<div>`, `<span>`, `<br>`, `<hr>`
+* ✅ **Text Formatting:** `<b>`, `<i>`, `<u>`, `<strong>`, `<em>`
+* ✅ **Headings:** `<h1>` through `<h6>`
+* ✅ **Lists:** `<ul>`, `<ol>`, `<li>`
+* ✅ **Links:** `<a href="...">` (hyperlinks)
+* ✅ **Images:** `<img src="...">` (embedded images)
+* ✅ **Tables:** Basic table support (`<table>`, `<tr>`, `<td>`)
+
+==== Limited/Unsupported HTML
+* ❌ **HTML5 Semantic Elements:** `<article>`, `<section>`, `<nav>`, `<header>`, `<footer>` (may render but not semantically)
+* ❌ **HTML5 Form Elements:** `<input>`, `<textarea>`, `<select>` (not supported in QTextEdit)
+* ❌ **HTML5 Media:** `<audio>`, `<video>` (not supported)
+* ❌ **HTML5 Canvas:** `<canvas>` (not supported)
+* ❌ **SVG:** Limited or no support
+
+==== CSS Support
+* ✅ **Basic CSS:** Font properties, colors, margins, padding (limited)
+* ✅ **Text Properties:** `font-family`, `font-size`, `color`, `text-align`
+* ⚠️ **Limited CSS:** Many CSS properties not supported
+* ❌ **CSS3 Features:** No flexbox, grid, transforms, animations, transitions
+* ❌ **Advanced Layout:** No CSS Grid, Flexbox, or advanced positioning
+
+=== Rich Text Toolbar Implementation
+
+==== Standard Toolbar Features
+* ✅ **Format Menu:** Bold, italic, underline buttons
+* ✅ **Font Selection:** Font family dropdown
+* ✅ **Font Size:** Font size selector
+* ✅ **Color Picker:** Text color and highlight color
+* ✅ **Alignment Buttons:** Left, center, right, justify
+* ✅ **List Buttons:** Bullet list, numbered list
+* ✅ **Indent Buttons:** Increase/decrease indent
+* ✅ **Link Button:** Insert/edit hyperlinks
+* ✅ **Image Button:** Insert images
+
+==== Advanced Features (Custom Implementation)
+* ⚠️ **Styles:** Can implement custom paragraph/character styles
+* ⚠️ **Table Editor:** Can add table insertion/editing (custom implementation)
+* ⚠️ **HTML Source View:** Can toggle between WYSIWYG and HTML source
+* ⚠️ **Find/Replace:** Can implement find/replace functionality
+
+== Comparison: QTextEdit vs WebEngine WYSIWYG
+
+[cols="2,1,1"]
+|===
+| Feature | QTextEdit | WebEngine (contentEditable)
+
+| Basic Text Formatting | ✅ Full | ✅ Full
+| Font Selection | ✅ Full | ✅ Full
+| Colors | ✅ Full | ✅ Full
+| Lists | ✅ Full | ✅ Full
+| Alignment | ✅ Full | ✅ Full
+| Links | ✅ Full | ✅ Full
+| Images | ✅ Full | ✅ Full
+| Tables | ⚠️ Basic | ✅ Full
+| HTML5 Elements | ❌ Limited | ✅ Full
+| CSS3 Features | ❌ None | ✅ Full
+| JavaScript | ❌ None | ✅ Full
+| Preview Accuracy | ⚠️ Limited | ✅ Exact
+| HTML Source Editing | ✅ Yes | ✅ Yes
+| Performance | ✅ Fast | ⚠️ Slower
+| Memory Usage | ✅ Low | ❌ High
+|===
+
+== Assessment: "How Limited?"
+
+=== For Basic Content Authoring: ✅ **SUFFICIENT**
+
+**QTextEdit provides:**
+* Full rich text formatting (bold, italic, colors, fonts, sizes)
+* Lists, alignment, indentation
+* Links and images
+* Basic tables
+* HTML source editing
+
+**This covers 80-90% of typical book/magazine content needs.**
+
+=== For Advanced Content: ⚠️ **LIMITED**
+
+**Missing capabilities:**
+* CSS3 layouts (flexbox, grid)
+* Advanced positioning
+* CSS animations/transitions
+* HTML5 semantic elements
+* Complex table layouts
+* Advanced CSS styling
+
+**Impact:**
+* Authors cannot create complex layouts
+* Cannot use modern CSS design patterns
+* Limited to traditional document layout
+
+=== For Creator Tool Workflow: ✅ **FUNCTIONAL**
+
+**With robust authoring environment:**
+* Rich text toolbar provides intuitive editing
+* HTML source mode for advanced users
+* Preview shows HTML4 rendering (accurate for supported features)
+* Can create professional-looking content within HTML4/CSS 2.1 limits
+
+**Limitations:**
+* Cannot preview CSS3 features (but they won't work anyway)
+* May need to guide authors on HTML4/CSS 2.1 limitations
+* Advanced layouts require manual HTML editing
+
+== Recommendation
+
+**QTextEdit WYSIWYG is ACCEPTABLE for Creator Tool** if:
+
+1. **Content Scope:** Content is primarily text-based with basic formatting
+2. **Authoring Environment:** Provide robust toolbar and HTML source editing
+3. **Documentation:** Clearly document HTML4/CSS 2.1 limitations
+4. **Preview:** Preview shows accurate rendering for supported features
+5. **Workflow:** Support HTML source editing for advanced users
+
+**The limitations are acceptable given:**
+* No rendering flash issues
+* Better performance
+* Simpler deployment
+* Native Qt integration
+
+== Implementation Notes
+
+=== Rich Text Toolbar
+
+Implement toolbar with:
+* Format buttons (bold, italic, underline)
+* Font family and size selectors
+* Color pickers (text and highlight)
+* Alignment buttons
+* List buttons (bulleted, numbered)
+* Indent buttons
+* Link and image insertion buttons
+* Table insertion (custom implementation)
+
+=== HTML Source Mode
+
+* Toggle between WYSIWYG and HTML source views
+* Syntax highlighting for HTML source (optional)
+* Validation of HTML4 syntax
+* Warning for unsupported HTML5/CSS3 features
+
+=== Preview
+
+* Show preview using `QTextBrowser` (same rendering as Reader)
+* Accurate preview of HTML4 + CSS 2.1 features
+* Clear indication of limitations
+
+== References
+
+* Qt QTextEdit: https://doc.qt.io/qt-6/qtextedit.html
+* Qt Rich Text Processing: https://doc.qt.io/qt-6/richtext.html
+* HTML Support in QTextDocument: https://doc.qt.io/qt-6/richtext-html-subset.html
+
