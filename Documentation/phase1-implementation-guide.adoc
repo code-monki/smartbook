@@ -528,10 +528,10 @@ The implementation should follow this priority order to ensure dependencies are 
   [X] T-UI-02: Dual View (test_libraryview_dualview.cpp - 3 tests passing)
 [X] Creator Tool tests
   [X] T-CT-01 through T-CT-05: Content Editor (test_contenteditor.cpp - 7 tests passing)
-  [X] T-CT-27 through T-CT-30: Form Builder (test_formbuilder.cpp - tests exist, 1 failure in initTestCase)
+  [X] T-CT-27 through T-CT-30: Form Builder (test_formbuilder.cpp - 6 tests passing)
   [X] T-CT-10 through T-CT-21: Cartridge Exporter (test_cartridgeexporter.cpp - 13 tests passing)
   [X] T-CT-22 through T-CT-26: Metadata Editor (test_metadataeditor.cpp - 7 tests passing)
-  [X] Page Manager tests (test_pagemanager.cpp - tests exist, 1 failure)
+  [X] Page Manager tests (test_pagemanager.cpp - 6 tests passing)
   [X] Integration tests (test_contenteditor_pagemanager_integration.cpp, test_contenteditor_form_integration.cpp)
 
 **Reference:** `test-plan.adoc`
