@@ -492,14 +492,14 @@ The implementation should follow this priority order to ensure dependencies are 
 [X] Implement CertificateManager backend
 [X] Implement CertificateManagerDialog UI
 [X] Integrate certificate selection into export workflow
-  [ ] Certificate import
-  [ ] Self-signed certificate generation
-  [ ] Certificate selection interface
-  [ ] Certificate storage
-[ ] Implement certificate operations
-  [ ] Certificate validation
-  [ ] Certificate expiration checking
-  [ ] Certificate display
+  [X] Certificate import
+  [X] Self-signed certificate generation
+  [X] Certificate selection interface
+  [X] Certificate storage
+[X] Implement certificate operations
+  [X] Certificate validation
+  [X] Certificate expiration checking
+  [X] Certificate display
 
 **Reference:** DDD Section 6.2 (Certificate Validation), SRS FR-CT-3.33
 
