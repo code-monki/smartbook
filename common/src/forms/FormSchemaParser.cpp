@@ -91,6 +91,9 @@ QWidget* FormSchemaParser::parseSchema(const QString& jsonSchema)
             return nullptr;
         }
         
+        // Set objectName for FormDataSerializer
+        fieldWidget->setObjectName(fieldName);
+        
         // Add to layout
         layout->addRow(title, fieldWidget);
     }

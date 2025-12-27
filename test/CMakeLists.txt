@@ -1042,37 +1042,45 @@ if(QT_TEST_AVAILABLE)
     )
     add_test(NAME TestMultiWindowIsolation COMMAND test_multiwindow_isolation)
     
-    # test_form_data_persistence - DEPRECATED: Uses WebChannelBridge
-    # This test needs to be updated in Phase 4 to use QmlAppBridge or direct API
-    # add_executable(test_form_data_persistence
-    #     integration/test_form_data_persistence.cpp
-    #     ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ReaderViewWindow.cpp
-    #     ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ReaderView.cpp
-    #     ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ConsentDialog.cpp
-    #     ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/SecurityErrorDialog.cpp
-    #     ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ReaderViewWindow.h
-    #     ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ReaderView.h
-    #     ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ConsentDialog.h
-    #     ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/SecurityErrorDialog.h
-    # )
-    # set_target_properties(test_form_data_persistence PROPERTIES AUTOMOC ON)
-    # target_include_directories(test_form_data_persistence PRIVATE
-    #     ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
-    #     ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include
-    #     ${CMAKE_CURRENT_SOURCE_DIR}/unit
-    # )
-    # target_link_libraries(test_form_data_persistence PRIVATE
-    #     Qt6::Test
-    #     Qt6::Core
-    #     Qt6::Sql
-    #     Qt6::Gui
-    #     Qt6::Widgets
-    #     smartbook_common
-    #     test_helpers
-    # )
-    # NOTE: test_form_data_persistence uses WebChannelBridge which is deprecated
-    # This test needs to be updated in Phase 4 to use QmlAppBridge or direct API
-    # add_test(NAME TestFormDataPersistence COMMAND test_form_data_persistence)
+    # test_form_data_persistence - Updated for Qt Widgets forms (Phase 6.1)
+    add_executable(test_form_data_persistence
+        integration/test_form_data_persistence.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ReaderViewWindow.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ReaderView.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ContentParser.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/QmlEmbeddedAppWidget.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/QmlAppBridge.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/FormEmbeddedWidget.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/ConsentDialog.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/src/ui/SecurityErrorDialog.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ReaderViewWindow.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ReaderView.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ContentParser.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/QmlEmbeddedAppWidget.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/QmlAppBridge.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/FormEmbeddedWidget.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/ConsentDialog.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include/smartbook/reader/ui/SecurityErrorDialog.h
+    )
+    set_target_properties(test_form_data_persistence PROPERTIES AUTOMOC ON)
+    target_include_directories(test_form_data_persistence PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../reader/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/unit
+    )
+    target_link_libraries(test_form_data_persistence PRIVATE
+        Qt6::Test
+        Qt6::Core
+        Qt6::Sql
+        Qt6::Gui
+        Qt6::Widgets
+        Qt6::Quick
+        Qt6::QuickWidgets
+        Qt6::Qml
+        smartbook_common
+        test_helpers
+    )
+    add_test(NAME TestFormDataPersistence COMMAND test_form_data_persistence)
     
     # test_settings_application
     add_executable(test_settings_application
