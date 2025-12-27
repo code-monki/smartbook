@@ -1,0 +1,275 @@
+= Phase 1.4 Completion and Comprehensive Test Coverage
+:author: [Gemini]
+:revdate: 2025-12-26
+:doctype: article
+
+== Summary
+
+Completed remaining Phase 1.4 implementation work (WebChannelBridge, window state persistence) and added comprehensive test coverage for all Phase 1.4 components. Resolved test environment segfaults and ensured all tests are passing.
+
+== Work Completed
+
+=== WebChannelBridge Implementation Completion
+
+**File:** `reader/src/WebChannelBridge.cpp`, `reader/include/smartbook/reader/WebChannelBridge.h`
+
+Completed full implementation of `WebChannelBridge` class:
+
+* **Form Data Persistence (FR-2.7.4)**
+  * `saveFormData(formId, dataJson)` - Saves form data to `User_Data` table
+  * `loadFormData(formId)` - Loads form data from `User_Data` table
+  * Uses `CartridgeDBConnector` for database operations
+  * Proper error handling and signal emission
+
+* **Sandbox File Operations (FR-2.7.5)**
+  * `saveSandboxFile(filename, data)` - Saves file to isolated sandbox directory
+  * `loadSandboxFile(filename)` - Loads file from sandbox
+  * `listSandboxFiles()` - Lists all files in sandbox
+  * `deleteSandboxFile(filename)` - Deletes file from sandbox
+  * Sandbox path: `{app_data}/sandbox/{cartridge_guid}/{app_id}/sandbox/`
+  * **Security:** Filename validation to prevent directory traversal attacks
+  * Automatic directory creation
+
+* **App Consent Dialog (FR-2.7.6)**
+  * `requestAppConsent(appId, appName)` - Shows consent dialog for L2/L3 apps
+  * Checks `TrustRegistry` for existing trust decisions
+  * Shows `ConsentDialog` for user consent
+  * Stores trust decision (PERSISTENT, SESSION, REVOKED) based on user choice
+  * Returns consent status to JavaScript
+
+* **Log Message**
+  * `logMessage(level, message)` - Logs messages from JavaScript
+  * Forwards to Qt logging system
+
+* **Context Management**
+  * `setCartridgeInfo(cartridgePath, cartridgeGuid)` - Sets cartridge context
+  * `setAppId(appId)` - Sets embedded app context
+  * Required before sandbox operations
+
+**Integration:**
+* `ReaderView` updated to pass cartridge info to `WebChannelBridge`
+* Bridge registered as "SmartbookBridge" for JavaScript access
+* All methods exposed via Qt WebChannel
+
+**Requirements Addressed:**
+* DDD Section 8: Embedded Applications API
+* DDD Section 10: WebChannel Bridge API
+* SRS FR-2.7.4: Form Data Persistence
+* SRS FR-2.7.5: Sandbox File System
+* SRS FR-2.7.6: App Consent
+
+=== Window State Persistence Implementation
+
+**File:** `reader/src/ReaderViewWindow.cpp`, `common/src/database/LocalDBManager.cpp`
+
+Implemented window state persistence and restoration:
+
+* **Window State Persistence (FR-2.1.3)**
+  * `saveWindowState()` - Saves window geometry and state
+  * Saves: `window_width`, `window_height`, `window_x`, `window_y`, `is_maximized`
+  * Stores in `Local_Window_State` table
+  * Atomic transaction with reading position
+
+* **Window State Restoration (FR-2.1.4)**
+  * `restoreWindowState()` - Restores window geometry and state
+  * Validates geometry against screen bounds
+  * Falls back to default geometry if invalid
+  * Restores maximized state
+
+* **Reading Position Persistence (FR-2.8.6)**
+  * Saves: `page_id`, `anchor_id`, `scroll_position`
+  * Stores in `Local_Reading_Position` table
+  * Restores reading position on window open
+
+* **Database Schema Updates**
+  * Added `Local_Window_State` table to `LocalDBManager`
+  * Added `Local_Reading_Position` table to `LocalDBManager`
+  * Foreign key constraints to `Local_Library_Manifest`
+  * Indexes for performance
+
+**Requirements Addressed:**
+* DDD Section 11.1: Window State Management
+* SRS FR-2.1.1: Multi-window capability
+* SRS FR-2.1.3: Window state persistence
+* SRS FR-2.1.4: Window state restoration
+* SRS FR-2.8.6: Reading position persistence
+
+=== Comprehensive Test Coverage
+
+**WebChannelBridge Tests**
+
+**File:** `test/unit/test_webchannelbridge.cpp`
+
+* **16 test cases covering:**
+  * Form data persistence (save/load/not found/error handling)
+  * Sandbox file operations (save/load/list/delete)
+  * Filename validation (directory traversal prevention)
+  * App consent (persistent trust, revoked trust, error handling)
+  * Log message functionality
+
+* **Test Cases:** T-WEB-01 through T-WEB-14
+* **Test Results:** 16 passed, 0 failed
+
+**Key Test Features:**
+* Tests all WebChannelBridge methods
+* Tests error handling (no cartridge, no app ID)
+* Tests security (filename validation for directory traversal)
+* Tests trust scenarios (persistent, revoked, session)
+* Uses `QSignalSpy` to verify signal emissions
+
+**Window State Persistence Tests**
+
+**File:** `test/unit/test_readerviewwindow_windowstate.cpp`
+
+* **11 test cases covering:**
+  * Window state persistence (save geometry, maximized state)
+  * Window state restoration (restore geometry, validation)
+  * Reading position persistence (save/restore)
+  * Multi-window isolation (independent state per window)
+  * Transaction safety (atomic save with reading position)
+
+* **Test Cases:** FR-2.1.3, FR-2.1.4, FR-2.8.6, FR-2.1.1
+* **Test Results:** 11 passed, 0 failed
+
+**Key Test Features:**
+* Tests window geometry persistence and restoration
+* Tests maximized state handling
+* Tests reading position (page_id, scroll_position)
+* Tests multi-window state isolation
+* Verifies database state directly
+
+**ConsentDialog Tests**
+
+**File:** `test/unit/test_consentdialog.cpp`
+
+* **10 test cases covering:**
+  * Dialog creation for L2/L3 cartridges
+  * Dialog title and content verification
+  * User interaction scenarios (Always Trust, Session Only, Cancel)
+  * Dialog with/without parent widget
+  * Edge cases (empty author, long title)
+
+* **Test Results:** 10 passed, 0 failed
+
+**SecurityErrorDialog Tests**
+
+**File:** `test/unit/test_securityerrordialog.cpp`
+
+* **10 test cases covering:**
+  * All error types (Tampering, Invalid Certificate, File Corruption, Signature Invalid)
+  * Dialog content and error messages
+  * Dialog with/without cartridge title
+  * Dialog with/without error details
+  * Dialog with/without parent widget
+
+* **Test Results:** 10 passed, 0 failed
+
+**Total New Tests Added:** 47 tests (16 + 11 + 10 + 10)
+
+=== Test Environment Fixes
+
+**Segfault Resolution**
+
+**Problem:** Test executables were crashing with segfaults (exit code 139) during cleanup.
+
+**Root Cause:**
+* Static `QApplication` instances in `initTestCase()` conflicted with `QTEST_MAIN`
+* Double initialization of `QApplication` caused segfault during cleanup
+* `ConsentDialog` parent handling issues in some environments
+
+**Solution:**
+* Removed static `QApplication` from `initTestCase()` methods
+* Tests now use `QTEST_MAIN` or custom `main()` that creates `QApplication`
+* Improved `ConsentDialog` parent handling in `WebChannelBridge`
+* All tests now clean up properly without segfaults
+
+**Files Fixed:**
+* `test/unit/test_webchannelbridge.cpp`
+* `test/unit/test_readerview_content.cpp`
+* `reader/src/WebChannelBridge.cpp` (ConsentDialog parent handling)
+
+== Test Coverage Summary
+
+=== Phase 1.4 Test Status
+
+* **test_readerview_content:** 3 tests passing
+* **test_webchannelbridge:** 16 tests passing (new)
+* **test_readerviewwindow_windowstate:** 11 tests passing (new)
+* **test_consentdialog:** 10 tests passing (new)
+* **test_securityerrordialog:** 10 tests passing (new)
+* **test_librarymanager_performance:** 1 test passing
+* **test_libraryview_dualview:** 1 test passing
+
+**Total Phase 1.4 Tests:** 52 tests, all passing
+
+== Technical Challenges
+
+=== Filename Validation Security
+
+**Problem:** Sandbox file operations needed to prevent directory traversal attacks.
+
+**Solution:**
+* Added filename validation in `WebChannelBridge::saveSandboxFile()`
+* Validates original filename before sanitizing
+* Rejects filenames containing `..` or `/` or `\`
+* Uses `QFileInfo::fileName()` to sanitize filename
+* Ensures files stay within sandbox directory
+
+=== Database Connection Management in Tests
+
+**Problem:** Tests were experiencing database connection issues and segfaults.
+
+**Solution:**
+* Removed conflicting `QApplication` instances
+* Used proper test lifecycle management
+* Ensured all database connections are properly closed
+* Added proper cleanup in test teardown
+
+== Requirements Coverage
+
+=== Phase 1.4 Complete Requirements
+
+* ✅ **Library Manager UI** (FR-2.5.1)
+  * Dual view (Bookshelf/List)
+  * Performance optimization (T-UI-01)
+  * View toggle (T-UI-02)
+
+* ✅ **Reader View Window** (FR-2.1.1, FR-2.1.3, FR-2.1.4)
+  * Multi-window support
+  * Window state persistence
+  * Window state restoration
+  * Content loading
+
+* ✅ **Settings Application** (FR-2.2.3, FR-2.2.4)
+  * Settings reading
+  * User overrides
+  * Priority resolution
+
+* ✅ **WebChannel Bridge** (FR-2.7.4, FR-2.7.5, FR-2.7.6)
+  * Form data persistence
+  * Sandbox file operations
+  * App consent dialog
+
+* ✅ **Reading Position** (FR-2.8.6)
+  * Position persistence
+  * Position restoration
+
+== Commits
+
+1. `feat(phase1.4): Implement window state persistence`
+2. `feat(phase1.4): Complete WebChannelBridge implementation`
+3. `test(phase1.4): Add comprehensive WebChannelBridge tests`
+4. `test(phase1.4): Add comprehensive test coverage for missing components`
+5. `fix(tests): Resolve segfaults in test cleanup`
+
+== Next Steps
+
+Phase 1.4 is now complete with comprehensive test coverage. All components are implemented and tested. Ready to proceed with Phase 1.5 (Creator Tool Core) or Phase 1.6 (Testing and Integration).
+
+== References
+
+* `Documentation/test-plan.adoc` - Test case specifications
+* `Documentation/phase1-implementation-guide.adoc` - Phase 1.4 requirements
+* `Documentation/ddd.adoc` - Domain-Driven Design specifications
+* `Documentation/tdd-practices.adoc` - TDD standards
+
