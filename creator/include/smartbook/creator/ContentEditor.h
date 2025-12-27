@@ -93,8 +93,8 @@ public:
     void setTextColor(const QColor& color);
     void setAlignment(Qt::Alignment alignment);
     void insertList(bool ordered);
-    void insertLink(const QString& url);
-    void insertImage(const QString& path);
+    void insertLink(const QString& url = QString());
+    void insertImage(const QString& path = QString());
 
 signals:
     void contentChanged();
@@ -115,8 +115,6 @@ public slots:
     void underline();
     void insertUnorderedList();
     void insertOrderedList();
-    void insertLink();
-    void insertImage();
 
 private slots:
     void onContentChanged();
