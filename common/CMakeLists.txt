@@ -88,7 +88,7 @@ else()
         endif()
     endif()
 endif()
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Sql Network)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Sql Network)
 
 # Find OpenSSL for signature verification
 find_package(OpenSSL)
@@ -115,6 +115,7 @@ set(COMMON_SOURCES
     src/metadata/MetadataExtractor.cpp
     src/manifest/ManifestManager.cpp
     src/settings/SettingsManager.cpp
+    src/forms/FormSchemaParser.cpp
 )
 
 # Header files
@@ -129,6 +130,7 @@ set(COMMON_HEADERS
     include/smartbook/common/metadata/MetadataExtractor.h
     include/smartbook/common/manifest/ManifestManager.h
     include/smartbook/common/settings/SettingsManager.h
+    include/smartbook/common/forms/FormSchemaParser.h
 )
 
 # Create shared library
@@ -146,6 +148,7 @@ target_include_directories(smartbook_common PUBLIC
 target_link_libraries(smartbook_common PUBLIC
     Qt6::Core
     Qt6::Gui
+    Qt6::Widgets
     Qt6::Sql
     Qt6::Network
 )
