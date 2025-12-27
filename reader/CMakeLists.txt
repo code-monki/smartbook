@@ -82,6 +82,7 @@ set(READER_SOURCES
     src/ui/LibraryView.cpp
     src/ui/ReaderView.cpp
     src/ui/QmlEmbeddedAppWidget.cpp
+    src/ui/FormEmbeddedWidget.cpp
     src/ui/ConsentDialog.cpp
     src/ui/SecurityErrorDialog.cpp
     src/ui/ImportDialog.cpp
@@ -97,6 +98,7 @@ set(READER_HEADERS
     include/smartbook/reader/ui/LibraryView.h
     include/smartbook/reader/ui/ReaderView.h
     include/smartbook/reader/ui/QmlEmbeddedAppWidget.h
+    include/smartbook/reader/ui/FormEmbeddedWidget.h
     include/smartbook/reader/ui/ConsentDialog.h
     include/smartbook/reader/ui/SecurityErrorDialog.h
     include/smartbook/reader/ui/ImportDialog.h

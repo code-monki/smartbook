@@ -1,6 +1,7 @@
 #include "smartbook/reader/ui/ReaderView.h"
 #include "smartbook/reader/ContentParser.h"
 #include "smartbook/reader/ui/QmlEmbeddedAppWidget.h"
+#include "smartbook/reader/ui/FormEmbeddedWidget.h"
 #include "smartbook/common/database/CartridgeDBConnector.h"
 #include "smartbook/common/settings/SettingsManager.h"
 #include <QTextBrowser>
@@ -103,8 +104,9 @@ void ReaderView::loadContentFromDatabase() {
     
     // Process QML app markers before building HTML document
     processQmlAppMarkers(htmlContent);
+    processFormMarkers(htmlContent);
     
-    // Clean HTML content (remove QML markers)
+    // Clean HTML content (remove QML and form markers)
     QString cleanedHtml = m_contentParser->cleanHtml(htmlContent);
     
     // Build complete HTML document with CSS
@@ -271,6 +273,53 @@ void ReaderView::cleanupQmlAppWidgets()
         }
     }
     m_qmlAppWidgets.clear();
+}
+
+void ReaderView::processFormMarkers(const QString& htmlContent)
+{
+    // Clean up existing form widgets
+    cleanupFormWidgets();
+    
+    if (!m_contentParser) {
+        return;
+    }
+    
+    // Parse HTML for form markers
+    QList<ContentParser::FormMarker> markers = m_contentParser->parseFormMarkers(htmlContent);
+    
+    if (markers.isEmpty()) {
+        return;
+    }
+    
+    // Create FormEmbeddedWidget for each marker
+    for (const ContentParser::FormMarker& marker : markers) {
+        if (marker.formId.isEmpty()) {
+            continue;
+        }
+        
+        FormEmbeddedWidget* formWidget = new FormEmbeddedWidget(marker.formId, this);
+        
+        // Load the form
+        bool loaded = formWidget->loadForm(m_cartridgePath);
+        if (loaded) {
+            m_formWidgets.append(formWidget);
+            // Note: Widget positioning will be handled in a future update
+            // For now, widgets are created but not positioned in layout
+        } else {
+            qWarning() << "Failed to load form:" << marker.formId << formWidget->errorMessage();
+            delete formWidget;
+        }
+    }
+}
+
+void ReaderView::cleanupFormWidgets()
+{
+    for (FormEmbeddedWidget* widget : m_formWidgets) {
+        if (widget) {
+            widget->deleteLater();
+        }
+    }
+    m_formWidgets.clear();
 }
 
 } // namespace reader

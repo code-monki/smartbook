@@ -37,6 +37,13 @@ private slots:
     // Test marker positions
     void testGetMarkerPositions();
     void testGetMarkerPositionsWithMultipleApps();
+    
+    // Test form marker detection
+    void testParseFormMarker();
+    void testParseFormMarkerMultiple();
+    void testParseFormMarkerSelfClosing();
+    void testCleanHtmlRemovesFormMarkers();
+    void testExtractFormIds();
 };
 
 void TestContentParser::initTestCase()
@@ -259,6 +266,89 @@ void TestContentParser::testGetMarkerPositionsWithMultipleApps()
     QCOMPARE(markers.size(), 2);
     // Positions should be in order
     QVERIFY(markers[0].position < markers[1].position);
+}
+
+// Test form marker detection
+void TestContentParser::testParseFormMarker()
+{
+    QString html = R"(
+        <p>Some content</p>
+        <div data-smartbook-form="form_1"></div>
+        <p>More content</p>
+    )";
+    
+    smartbook::reader::ContentParser parser;
+    QList<smartbook::reader::ContentParser::FormMarker> markers = parser.parseFormMarkers(html);
+    
+    QCOMPARE(markers.size(), 1);
+    QCOMPARE(markers[0].formId, QString("form_1"));
+}
+
+void TestContentParser::testParseFormMarkerMultiple()
+{
+    QString html = R"(
+        <p>Content before</p>
+        <div data-smartbook-form="form_1"></div>
+        <p>Middle content</p>
+        <div data-smartbook-form="form_2"></div>
+        <p>Content after</p>
+    )";
+    
+    smartbook::reader::ContentParser parser;
+    QList<smartbook::reader::ContentParser::FormMarker> markers = parser.parseFormMarkers(html);
+    
+    QCOMPARE(markers.size(), 2);
+    QCOMPARE(markers[0].formId, QString("form_1"));
+    QCOMPARE(markers[1].formId, QString("form_2"));
+}
+
+void TestContentParser::testParseFormMarkerSelfClosing()
+{
+    QString html = R"(
+        <p>Content</p>
+        <div data-smartbook-form="form_1" />
+        <p>More content</p>
+    )";
+    
+    smartbook::reader::ContentParser parser;
+    QList<smartbook::reader::ContentParser::FormMarker> markers = parser.parseFormMarkers(html);
+    
+    QCOMPARE(markers.size(), 1);
+    QCOMPARE(markers[0].formId, QString("form_1"));
+}
+
+void TestContentParser::testCleanHtmlRemovesFormMarkers()
+{
+    QString html = R"(
+        <p>Content before</p>
+        <div data-smartbook-form="form_1"></div>
+        <p>Content after</p>
+    )";
+    
+    smartbook::reader::ContentParser parser;
+    QString cleaned = parser.cleanHtml(html);
+    
+    QVERIFY(!cleaned.contains("data-smartbook-form"));
+    QVERIFY(!cleaned.contains("form_1"));
+    QVERIFY(cleaned.contains("Content before"));
+    QVERIFY(cleaned.contains("Content after"));
+}
+
+void TestContentParser::testExtractFormIds()
+{
+    QString html = R"(
+        <div data-smartbook-form="form_1"></div>
+        <div data-smartbook-form="form_2"></div>
+        <div data-smartbook-form="form_3"></div>
+    )";
+    
+    smartbook::reader::ContentParser parser;
+    QStringList formIds = parser.extractFormIds(html);
+    
+    QCOMPARE(formIds.size(), 3);
+    QVERIFY(formIds.contains("form_1"));
+    QVERIFY(formIds.contains("form_2"));
+    QVERIFY(formIds.contains("form_3"));
 }
 
 QTEST_MAIN(TestContentParser)

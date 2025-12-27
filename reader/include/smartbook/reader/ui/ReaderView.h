@@ -16,6 +16,7 @@ namespace reader {
 
 class ContentParser;
 class QmlEmbeddedAppWidget;
+class FormEmbeddedWidget;
 
 /**
  * @brief Reader view widget - displays cartridge content
@@ -62,11 +63,14 @@ private:
     void applyTheme();
     void processQmlAppMarkers(const QString& htmlContent);
     void cleanupQmlAppWidgets();
+    void processFormMarkers(const QString& htmlContent);
+    void cleanupFormWidgets();
     
     QTextBrowser* m_textBrowser;
     ContentParser* m_contentParser;
     common::settings::SettingsManager* m_settingsManager;
     QList<QmlEmbeddedAppWidget*> m_qmlAppWidgets;
+    QList<FormEmbeddedWidget*> m_formWidgets;
     QString m_cartridgePath;
     QString m_cartridgeGuid;
     int m_currentPageId = -1;

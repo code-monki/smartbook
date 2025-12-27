@@ -47,6 +47,22 @@ QString ContentParser::cleanHtml(const QString& html) const
     cleaned.remove(markerRegex);
     cleaned.remove(selfClosingRegex);
     
+    // Also remove form markers
+    QString formMarkerPattern = QStringLiteral("<div\\s+data-smartbook-form=\"[^\"]*\"[^>]*>.*?</div>");
+    QRegularExpression formMarkerRegex(
+        formMarkerPattern,
+        QRegularExpression::CaseInsensitiveOption | QRegularExpression::DotMatchesEverythingOption
+    );
+    
+    QString formSelfClosingPattern = QStringLiteral("<div\\s+data-smartbook-form=\"[^\"]*\"[^>]*\\s*/>");
+    QRegularExpression formSelfClosingRegex(
+        formSelfClosingPattern,
+        QRegularExpression::CaseInsensitiveOption
+    );
+    
+    cleaned.remove(formMarkerRegex);
+    cleaned.remove(formSelfClosingRegex);
+    
     return cleaned;
 }
 
@@ -82,6 +98,63 @@ ContentParser::QmlAppMarker ContentParser::findNextMarker(const QString& html, i
     QRegularExpressionMatch match = regex.match(html, startPos);
     if (match.hasMatch()) {
         marker.appId = match.captured(1);
+        marker.position = match.capturedStart(0);
+        marker.length = match.capturedLength(0);
+    }
+    
+    return marker;
+}
+
+QList<ContentParser::FormMarker> ContentParser::parseFormMarkers(const QString& html) const
+{
+    QList<FormMarker> markers;
+    int startPos = 0;
+    
+    while (startPos < html.length()) {
+        FormMarker marker = findNextFormMarker(html, startPos);
+        if (marker.formId.isEmpty()) {
+            // No more markers found
+            break;
+        }
+        
+        markers.append(marker);
+        startPos = marker.position + marker.length;
+    }
+    
+    return markers;
+}
+
+QStringList ContentParser::extractFormIds(const QString& html) const
+{
+    QStringList formIds;
+    QList<FormMarker> markers = parseFormMarkers(html);
+    
+    for (const FormMarker& marker : markers) {
+        if (!marker.formId.isEmpty()) {
+            formIds.append(marker.formId);
+        }
+    }
+    
+    return formIds;
+}
+
+ContentParser::FormMarker ContentParser::findNextFormMarker(const QString& html, int startPos) const
+{
+    FormMarker marker;
+    marker.position = -1;
+    marker.length = 0;
+    
+    // Pattern to match: <div data-smartbook-form="form_id">
+    // Also handle self-closing: <div data-smartbook-form="form_id" />
+    QString pattern = QStringLiteral("<div\\s+data-smartbook-form=\"([^\"]+)\"[^>]*(?:>.*?</div>|/>)");
+    QRegularExpression regex(
+        pattern,
+        QRegularExpression::CaseInsensitiveOption | QRegularExpression::DotMatchesEverythingOption
+    );
+    
+    QRegularExpressionMatch match = regex.match(html, startPos);
+    if (match.hasMatch()) {
+        marker.formId = match.captured(1);
         marker.position = match.capturedStart(0);
         marker.length = match.capturedLength(0);
     }

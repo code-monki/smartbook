@@ -25,6 +25,15 @@ public:
         int position;       // Character position in original HTML
         int length;         // Length of marker element in HTML
     };
+    
+    /**
+     * @brief Structure representing a form marker found in HTML
+     */
+    struct FormMarker {
+        QString formId;     // Form ID from marker
+        int position;       // Character position in original HTML
+        int length;         // Length of marker element in HTML
+    };
 
     /**
      * @brief Parse HTML content and extract QML app markers
@@ -46,6 +55,20 @@ public:
      * @return List of app IDs found in QML app markers (preserves order)
      */
     QStringList extractAppIds(const QString& html) const;
+    
+    /**
+     * @brief Parse HTML content and extract form markers
+     * @param html HTML content to parse
+     * @return List of form markers found in the content
+     */
+    QList<FormMarker> parseFormMarkers(const QString& html) const;
+    
+    /**
+     * @brief Extract form IDs from HTML content
+     * @param html HTML content to parse
+     * @return List of form IDs found in form markers (preserves order)
+     */
+    QStringList extractFormIds(const QString& html) const;
 
 private:
     /**
@@ -55,6 +78,14 @@ private:
      * @return QmlAppMarker if found, or invalid marker if not found
      */
     QmlAppMarker findNextMarker(const QString& html, int startPos = 0) const;
+    
+    /**
+     * @brief Find form marker in HTML string
+     * @param html HTML content
+     * @param startPos Starting position to search from
+     * @return FormMarker if found, or invalid marker if not found
+     */
+    FormMarker findNextFormMarker(const QString& html, int startPos = 0) const;
 };
 
 } // namespace reader
