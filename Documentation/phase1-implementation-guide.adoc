@@ -535,7 +535,7 @@ The implementation should follow this priority order to ensure dependencies are 
 [X] End-to-end import workflow
 [X] End-to-end cartridge creation and export (core functionality complete)
 [X] Security verification workflow
-[ ] Multi-window isolation
+[X] Multi-window isolation
 [ ] Form data persistence
 [ ] Settings application
 
