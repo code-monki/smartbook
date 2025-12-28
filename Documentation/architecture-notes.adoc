@@ -97,6 +97,33 @@ The current implementation uses **QTextDocument/QTextBrowser** for content rende
 * Supports rich text formatting (bold, italic, underline, colors, fonts, lists, links, images)
 * Synchronous content access (no JavaScript bridge needed)
 
+=== UI Framework and Styling
+
+**Qt Fusion Style:**
+
+The application uses **Qt Fusion widget style** for uniform appearance across all platforms (Windows, macOS, Linux). This ensures consistent UI behavior and appearance regardless of the operating system.
+
+**Implementation:**
+
+* Applied in `main()` function of both Reader and Creator applications
+* Uses `QStyleFactory::create("Fusion")` to set the style
+* Theme colors are applied via `QPalette` (works with Fusion style)
+* All Qt Widgets automatically use Fusion style
+
+**Benefits:**
+
+* **Uniform Appearance:** Same look and feel across all platforms
+* **Theme Support:** Fusion style works well with custom palettes (light, dark, sepia)
+* **Modern Look:** Fusion provides a clean, modern appearance
+* **Consistent Behavior:** Widget behavior is consistent across platforms
+
+**Code Location:**
+
+* `reader/src/main.cpp` - Sets Fusion style for Reader application
+* `creator/src/main.cpp` - Sets Fusion style for Creator Tool
+
+**See:** `ddd.adoc` section "Qt Fusion Widget Set Configuration" for detailed implementation.
+
 === Limitations and Trade-offs
 
 **HTML/CSS Support:**
