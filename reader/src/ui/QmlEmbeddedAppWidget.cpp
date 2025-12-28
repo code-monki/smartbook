@@ -1,3 +1,39 @@
+/**
+ * @file QmlEmbeddedAppWidget.cpp
+ * @brief Implementation of QmlEmbeddedAppWidget for embedding QML applications
+ * 
+ * This file implements the QmlEmbeddedAppWidget class, which hosts QML embedded
+ * applications within cartridge content pages. It loads QML code from the cartridge
+ * database and renders it using QQuickWidget.
+ * 
+ * @section QML Loading Process
+ * 
+ * 1. Load QML code from Embedded_Apps.qml_code column
+ * 2. Write QML code to temporary file
+ * 3. Load QML file using QQuickWidget::setSource()
+ * 4. Expose QmlAppBridge to QML context as "SmartbookBridge"
+ * 5. Handle QML compilation errors and emit signals
+ * 
+ * @section C++/QML Communication
+ * 
+ * QmlAppBridge is exposed to QML context as a context property:
+ * - QML can access: `property var bridge: SmartbookBridge`
+ * - Bridge provides: form data persistence, sandbox file operations, logging
+ * 
+ * @section Error Handling
+ * 
+ * If QML code fails to compile or load:
+ * - hasError() returns true
+ * - errorMessage() contains QML error details
+ * - appLoadError() signal is emitted
+ * - Widget remains empty (no crash)
+ * 
+ * @see QmlEmbeddedAppWidget.h
+ * @see QmlAppBridge
+ * @see ReaderView
+ * @see qml-embedded-apps-guide.adoc
+ */
+
 #include "smartbook/reader/ui/QmlEmbeddedAppWidget.h"
 #include "smartbook/reader/QmlAppBridge.h"
 #include "smartbook/common/database/CartridgeDBConnector.h"
@@ -18,6 +54,10 @@
 namespace smartbook {
 namespace reader {
 
+// ============================================================================
+// Constructor and Destructor
+// ============================================================================
+
 QmlEmbeddedAppWidget::QmlEmbeddedAppWidget(QWidget* parent)
     : QWidget(parent)
     , m_quickWidget(nullptr)
@@ -37,22 +77,35 @@ QmlEmbeddedAppWidget::~QmlEmbeddedAppWidget()
     cleanupQmlEngine();
 }
 
+// ============================================================================
+// Private Methods - QML Engine Setup
+// ============================================================================
+
 void QmlEmbeddedAppWidget::setupQmlEngine()
 {
+    /**
+     * @brief Setup QML engine and bridge
+     * 
+     * Creates QQmlEngine, QmlAppBridge, and QQuickWidget, and exposes
+     * bridge to QML context as "SmartbookBridge".
+     */
+    
     // Create QML engine
     m_qmlEngine = new QQmlEngine(this);
     
-    // Create bridge object
+    // Create bridge object for C++/QML communication
     m_bridge = new QmlAppBridge(this);
     
-    // Create QQuickWidget for rendering
+    // Create QQuickWidget for rendering QML
+    // SizeRootObjectToView ensures QML root item resizes to match widget size
     m_quickWidget = new QQuickWidget(m_qmlEngine, this);
     m_quickWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     
     // Add to layout
     layout()->addWidget(m_quickWidget);
     
-    // Expose bridge to QML context
+    // Expose bridge to QML context as "SmartbookBridge"
+    // QML can access via: property var bridge: SmartbookBridge
     m_qmlEngine->rootContext()->setContextProperty("SmartbookBridge", m_bridge);
 }
 
@@ -75,8 +128,32 @@ void QmlEmbeddedAppWidget::cleanupQmlEngine()
     }
 }
 
+// ============================================================================
+// Public Methods
+// ============================================================================
+
 bool QmlEmbeddedAppWidget::loadApp(const QString& cartridgePath, const QString& appId)
 {
+    /**
+     * @brief Load QML application from cartridge database
+     * 
+     * Loads QML code from Embedded_Apps table and renders it using QQuickWidget.
+     * 
+     * Process:
+     * 1. Unload any existing app
+     * 2. Load QML code from database (Embedded_Apps.qml_code column)
+     * 3. Write QML code to temporary file
+     * 4. Load QML file using QQuickWidget::setSource()
+     * 5. Check for QML compilation errors
+     * 6. Emit appLoaded() signal on success
+     * 
+     * @param cartridgePath Path to cartridge file
+     * @param appId Application identifier (must match Embedded_Apps.app_id)
+     * @return true if loaded successfully, false otherwise
+     * 
+     * @note Emits appLoadError() signal if load fails
+     */
+    
     // Unload any existing app
     unloadApp();
     
@@ -105,6 +182,7 @@ bool QmlEmbeddedAppWidget::loadApp(const QString& cartridgePath, const QString& 
     }
     
     // Create temporary QML file
+    // QQuickWidget requires a file URL, so we write QML code to temp file
     QTemporaryFile tempFile;
     if (!tempFile.open()) {
         m_hasError = true;
@@ -121,7 +199,7 @@ bool QmlEmbeddedAppWidget::loadApp(const QString& cartridgePath, const QString& 
     QUrl qmlUrl = QUrl::fromLocalFile(tempFile.fileName());
     m_quickWidget->setSource(qmlUrl);
     
-    // Check for errors
+    // Check for QML compilation errors
     if (m_quickWidget->status() == QQuickWidget::Error) {
         QStringList errors;
         for (const QQmlError& error : m_quickWidget->errors()) {
@@ -169,8 +247,21 @@ void QmlEmbeddedAppWidget::setCartridgeInfo(const QString& cartridgePath, const 
     }
 }
 
+// ============================================================================
+// Private Methods - Database Operations
+// ============================================================================
+
 QString QmlEmbeddedAppWidget::loadQmlCodeFromDatabase(const QString& cartridgePath, const QString& appId)
 {
+    /**
+     * @brief Load QML code from cartridge database
+     * 
+     * Queries Embedded_Apps table for QML code associated with appId.
+     * 
+     * @param cartridgePath Path to cartridge file
+     * @param appId Application identifier
+     * @return QML code string, or empty string on error
+     */
     common::database::CartridgeDBConnector connector(this);
     if (!connector.openCartridge(cartridgePath)) {
         qWarning() << "Failed to open cartridge:" << cartridgePath;

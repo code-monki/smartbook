@@ -1,3 +1,53 @@
+/**
+ * @file ContentEditor.cpp
+ * @brief Implementation of ContentEditor for HTML content authoring
+ * 
+ * This file implements the ContentEditor class, which provides a WYSIWYG HTML editor
+ * for the Creator Tool. It uses QTextEdit for rich text editing and QPlainTextEdit
+ * for HTML source editing.
+ * 
+ * @section Editor Modes
+ * 
+ * **WYSIWYG Mode (Default):**
+ * - Uses QTextEdit for visual editing
+ * - Provides formatting toolbar (bold, italic, underline, colors, fonts, lists, links, images)
+ * - Content is edited visually with immediate feedback
+ * - HTML is generated automatically from formatted content
+ * 
+ * **HTML Source Mode:**
+ * - Uses QPlainTextEdit for direct HTML editing
+ * - Allows authors to edit raw HTML source
+ * - Content is synchronized between WYSIWYG and HTML modes
+ * 
+ * **Preview Mode:**
+ * - Shows read-only preview of content
+ * - Uses QTextEdit in read-only mode
+ * - Useful for reviewing content before saving
+ * 
+ * @section Rich Text Formatting
+ * 
+ * Formatting is applied using QTextCursor and QTextCharFormat:
+ * - Character formats: bold, italic, underline, font, color
+ * - Block formats: alignment
+ * - List formats: ordered and unordered lists
+ * - Links and images: inserted as HTML
+ * 
+ * @section Migration Notes
+ * 
+ * This implementation was migrated from Qt WebEngine (QWebEngineView) to QTextEdit/QPlainTextEdit
+ * architecture in Phase 2 of the content rendering migration (2025-12-27).
+ * 
+ * Key changes:
+ * - Replaced QWebEngineView with QTextEdit (WYSIWYG) and QPlainTextEdit (HTML source)
+ * - Removed async JavaScript execution (now synchronous)
+ * - Removed content caching (QTextEdit is synchronous)
+ * - Implemented rich text formatting using QTextCursor and QTextCharFormat
+ * 
+ * @see ContentEditor.h
+ * @see PageManager
+ * @see qtextedit-wysiwyg-capabilities.adoc
+ */
+
 #include "smartbook/creator/ContentEditor.h"
 #include "smartbook/creator/PageManager.h"
 #include <QTextEdit>
@@ -23,6 +73,10 @@
 namespace smartbook {
 namespace creator {
 
+// ============================================================================
+// Constructor and Destructor
+// ============================================================================
+
 ContentEditor::ContentEditor(QWidget* parent)
     : QWidget(parent)
     , m_textEdit(nullptr)
@@ -46,7 +100,17 @@ ContentEditor::~ContentEditor() {
     // Widgets are cleaned up by Qt's parent-child relationship
 }
 
+// ============================================================================
+// Private Methods - UI Setup
+// ============================================================================
+
 void ContentEditor::setupUI() {
+    /**
+     * @brief Setup editor UI
+     * 
+     * Creates toolbar, WYSIWYG editor (QTextEdit), and HTML source editor
+     * (QPlainTextEdit), and uses QStackedWidget to toggle between them.
+     */
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
@@ -289,14 +353,25 @@ void ContentEditor::underline() {
     setUnderline(!m_underlineAction->isChecked());
 }
 
+// ============================================================================
+// Public Methods - Rich Text Formatting
+// ============================================================================
+
 void ContentEditor::setBold(bool enabled) {
+    /**
+     * @brief Apply bold formatting
+     * 
+     * Applies bold formatting to selected text, or sets format for future text.
+     * Uses QTextCharFormat::setFontWeight() with QFont::Bold or QFont::Normal.
+     */
+    
     QTextEdit* editor = getCurrentEditor();
     if (!editor) return;
     
     QTextCursor cursor = editor->textCursor();
     
     if (cursor.hasSelection()) {
-        // Apply to selected text
+        // Apply to selected text using mergeCharFormat (preserves other formats)
         QTextCharFormat format = cursor.charFormat();
         format.setFontWeight(enabled ? QFont::Bold : QFont::Normal);
         cursor.mergeCharFormat(format);

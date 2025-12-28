@@ -1,0 +1,528 @@
+= Qt Widgets Forms Developer Guide
+:author: AI Assistant
+:revdate: 2025-12-28
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+
+== Overview
+
+This guide explains how to develop forms for SmartBook cartridges using Qt Widgets. Forms are defined using JSON schemas and rendered dynamically as Qt Widget layouts. Forms support validation, data persistence, and theme-aware styling.
+
+**Key Concepts:**
+
+* Forms are defined using JSON Schema format (JSON Schema Draft 7 compatible)
+* Forms are rendered as Qt Widgets (not HTML forms)
+* Form data is validated using C++ validation (not JavaScript)
+* Form data persists to cartridge database
+* Forms are theme-aware and adapt to selected theme
+
+== Architecture
+
+=== Component Overview
+
+**Form System Components:**
+
+* `FormSchemaParser` - Parses JSON schema and creates form layout
+* `FormWidgetGenerator` - Generates complete form widget from schema
+* `FormValidator` - Validates form data against schema rules
+* `FormDataSerializer` - Serializes/deserializes form data to/from JSON
+* `FormEmbeddedWidget` - Widget that hosts forms in content pages
+
+**Reader Side:**
+
+* `ReaderView` - Detects form markers in HTML content
+* `ContentParser` - Parses HTML for form markers
+* `FormEmbeddedWidget` - Embeds forms in content layout
+
+== Form Schema Definition
+
+=== JSON Schema Format
+
+Forms use JSON Schema format (compatible with JSON Schema Draft 7). The schema defines:
+
+* Form structure (fields, types, properties)
+* Validation rules (required, min/max, patterns)
+* Default values and placeholders
+* Field labels and titles
+
+=== Basic Schema Structure
+
+[source,json]
+----
+{
+  "type": "object",
+  "title": "Contact Form",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Name",
+      "defaultValue": "",
+      "placeholder": "Enter your name"
+    },
+    "email": {
+      "type": "string",
+      "title": "Email",
+      "format": "email",
+      "placeholder": "Enter your email"
+    }
+  },
+  "required": ["name", "email"]
+}
+----
+
+=== Supported Field Types
+
+**Text Input (`type: "string"`):**
+
+[source,json]
+----
+{
+  "type": "string",
+  "title": "Name",
+  "defaultValue": "John Doe",
+  "placeholder": "Enter name",
+  "minLength": 2,
+  "maxLength": 50
+}
+----
+
+**Textarea (`type: "string", format: "textarea"`):**
+
+[source,json]
+----
+{
+  "type": "string",
+  "format": "textarea",
+  "title": "Description",
+  "defaultValue": "",
+  "placeholder": "Enter description"
+}
+----
+
+**Number (`type: "number"` or `type: "integer"`):**
+
+[source,json]
+----
+{
+  "type": "integer",
+  "title": "Age",
+  "defaultValue": 0,
+  "minimum": 0,
+  "maximum": 120
+}
+----
+
+**Select/Dropdown (`type: "string", format: "select"`):**
+
+[source,json]
+----
+{
+  "type": "string",
+  "format": "select",
+  "title": "Country",
+  "defaultValue": "US",
+  "enum": ["US", "CA", "UK", "DE"],
+  "enumNames": ["United States", "Canada", "United Kingdom", "Germany"]
+}
+----
+
+**Checkbox (`type: "boolean"`):**
+
+[source,json]
+----
+{
+  "type": "boolean",
+  "title": "Subscribe to newsletter",
+  "defaultValue": false
+}
+----
+
+**Radio Buttons (`type: "string", format: "radio"`):**
+
+[source,json]
+----
+{
+  "type": "string",
+  "format": "radio",
+  "title": "Gender",
+  "defaultValue": "male",
+  "enum": ["male", "female", "other"],
+  "enumNames": ["Male", "Female", "Other"]
+}
+----
+
+**Date (`type: "string", format: "date"`):**
+
+[source,json]
+----
+{
+  "type": "string",
+  "format": "date",
+  "title": "Birth Date",
+  "defaultValue": ""
+}
+----
+
+=== Validation Rules
+
+**Required Fields:**
+
+[source,json]
+----
+{
+  "type": "object",
+  "properties": {
+    "name": { "type": "string", "title": "Name" },
+    "email": { "type": "string", "title": "Email" }
+  },
+  "required": ["name", "email"]
+}
+----
+
+**String Validation:**
+
+[source,json]
+----
+{
+  "type": "string",
+  "title": "Email",
+  "format": "email",
+  "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
+  "minLength": 5,
+  "maxLength": 100
+}
+----
+
+**Number Validation:**
+
+[source,json]
+----
+{
+  "type": "integer",
+  "title": "Age",
+  "minimum": 0,
+  "maximum": 120
+}
+----
+
+=== Complete Example
+
+[source,json]
+----
+{
+  "type": "object",
+  "title": "Contact Form",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Full Name",
+      "defaultValue": "",
+      "placeholder": "Enter your full name",
+      "minLength": 2,
+      "maxLength": 100
+    },
+    "email": {
+      "type": "string",
+      "title": "Email Address",
+      "format": "email",
+      "defaultValue": "",
+      "placeholder": "Enter your email",
+      "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+    },
+    "age": {
+      "type": "integer",
+      "title": "Age",
+      "defaultValue": 0,
+      "minimum": 0,
+      "maximum": 120
+    },
+    "country": {
+      "type": "string",
+      "format": "select",
+      "title": "Country",
+      "defaultValue": "US",
+      "enum": ["US", "CA", "UK", "DE"],
+      "enumNames": ["United States", "Canada", "United Kingdom", "Germany"]
+    },
+    "subscribe": {
+      "type": "boolean",
+      "title": "Subscribe to newsletter",
+      "defaultValue": false
+    },
+    "message": {
+      "type": "string",
+      "format": "textarea",
+      "title": "Message",
+      "defaultValue": "",
+      "placeholder": "Enter your message",
+      "maxLength": 1000
+    }
+  },
+  "required": ["name", "email"]
+}
+----
+
+== Content Integration
+
+=== Adding Form to Content
+
+In your HTML content, add a form marker:
+
+[source,html]
+----
+<div data-smartbook-form="contact_form"></div>
+----
+
+The `form_id` must match an entry in the `Form_Definitions` table.
+
+=== Form Placement
+
+Currently, forms are placed below the HTML content in a vertical layout. Future versions may support inline positioning.
+
+== Form Data Persistence
+
+=== Saving Form Data
+
+Form data is automatically saved when:
+
+* User clicks "Save" button
+* Auto-save timer expires (2 seconds after last change)
+
+Form data is saved to the `User_Data` table in the cartridge database:
+
+[source,sql]
+----
+INSERT OR REPLACE INTO User_Data (form_key, serialized_data, timestamp)
+VALUES (?, ?, datetime('now'))
+----
+
+### Data Format
+
+Form data is serialized as JSON:
+
+[source,json]
+----
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "age": 30,
+  "country": "US",
+  "subscribe": true,
+  "message": "Hello!"
+}
+----
+
+=== Loading Form Data
+
+Form data is automatically loaded when:
+
+* Form is first loaded
+* User navigates back to page with form
+
+Data is loaded from the `User_Data` table:
+
+[source,sql]
+----
+SELECT serialized_data, timestamp FROM User_Data
+WHERE form_key = ?
+ORDER BY timestamp DESC
+LIMIT 1
+----
+
+=== Data Isolation
+
+* Each form has its own `form_key` (matches `form_id`)
+* Form data is isolated per cartridge
+* Multiple forms in same cartridge have separate data
+
+== Validation
+
+=== Client-Side Validation
+
+Validation occurs when:
+
+* User clicks "Save" button
+* Auto-save timer expires
+
+Validation checks:
+
+* Required fields are not empty
+* String types match expected types
+* Number types are within min/max range
+* String patterns match regex (if specified)
+
+### Validation Errors
+
+Validation errors are displayed in the form's status label:
+
+* Error messages are theme-aware
+* Errors auto-hide after 5 seconds
+* User can correct errors and resubmit
+
+=== Validation Rules
+
+**Required Field:**
+
+[source,json]
+----
+{
+  "type": "object",
+  "properties": {
+    "name": { "type": "string", "title": "Name" }
+  },
+  "required": ["name"]
+}
+----
+
+**String Pattern:**
+
+[source,json]
+----
+{
+  "type": "string",
+  "title": "Email",
+  "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+}
+----
+
+**Number Range:**
+
+[source,json]
+----
+{
+  "type": "integer",
+  "title": "Age",
+  "minimum": 0,
+  "maximum": 120
+}
+----
+
+== Theme Support
+
+=== Theme-Aware Styling
+
+Forms automatically adapt to selected theme:
+
+* **Light Theme:** White background, black text
+* **Dark Theme:** Dark background, light text
+* **Sepia Theme:** Sepia background, dark brown text
+
+### Applied Elements
+
+Theme is applied to:
+
+* Form widget background
+* Input fields (QLineEdit, QTextEdit, QComboBox)
+* Buttons (Save button)
+* Labels (Status label, field labels)
+* Validation error messages
+* Success/error status messages
+
+=== Custom Styling
+
+Forms use Qt Widgets styling (not CSS). Theme colors are applied via `QPalette`:
+
+[source,cpp]
+----
+QPalette palette = widget->palette();
+palette.setColor(QPalette::Base, bgColor);
+palette.setColor(QPalette::Text, textColor);
+widget->setPalette(palette);
+----
+
+== Best Practices
+
+=== Schema Design
+
+* Use descriptive field names and titles
+* Provide helpful placeholders
+* Set appropriate default values
+* Use validation rules to prevent invalid data
+* Keep forms focused (don't create overly complex forms)
+
+=== Data Validation
+
+* Always validate required fields
+* Use pattern validation for emails, phone numbers, etc.
+* Set appropriate min/max values for numbers
+* Provide clear error messages
+
+=== User Experience
+
+* Use clear, descriptive labels
+* Provide helpful placeholders
+* Show validation errors clearly
+* Provide save status feedback
+* Auto-save reduces data loss risk
+
+== Limitations
+
+=== Supported Widgets
+
+Forms support these Qt Widgets:
+
+* `QLineEdit` - Text input
+* `QTextEdit` - Textarea
+* `QComboBox` - Select/dropdown
+* `QCheckBox` - Checkbox
+* `QRadioButton` - Radio buttons (via QButtonGroup)
+* `QSpinBox` - Integer input
+* `QDoubleSpinBox` - Number input
+* `QDateEdit` - Date input
+
+**Not Supported:**
+
+* File uploads
+* Rich text editing
+* Custom widgets
+* Nested forms (groups)
+
+=== JSON Schema Support
+
+Forms support JSON Schema Draft 7 subset:
+
+* Basic types: `string`, `number`, `integer`, `boolean`
+* Format hints: `email`, `date`, `textarea`, `select`, `radio`
+* Validation: `required`, `minLength`, `maxLength`, `minimum`, `maximum`, `pattern`
+* Enums: `enum`, `enumNames`
+
+**Not Supported:**
+
+* `$ref` (references)
+* `allOf`, `anyOf`, `oneOf` (combinators)
+* `$schema` (schema versioning)
+* Custom formats beyond those listed
+
+== Troubleshooting
+
+=== Form Not Loading
+
+* Check that `form_id` in marker matches `Form_Definitions.form_id`
+* Verify JSON schema is valid (use JSON validator)
+* Check that schema has `type: "object"` at root
+* Ensure `properties` object exists
+
+=== Validation Failing
+
+* Check that required fields are provided
+* Verify data types match schema types
+* Check min/max values are within range
+* Verify regex patterns are correct
+
+=== Data Not Persisting
+
+* Check that cartridge database is writable
+* Verify `User_Data` table exists
+* Check that `form_key` matches `form_id`
+* Ensure form data is valid JSON
+
+== References
+
+* JSON Schema: https://json-schema.org/
+* Qt Widgets: https://doc.qt.io/qt-6/qtwidgets-index.html
+* QFormLayout: https://doc.qt.io/qt-6/qformlayout.html
+* Form Definition Schema: `form-definition-json-schema-design.adoc`
+* Content Rendering Architecture: `content-rendering-decision-analysis.adoc`
+

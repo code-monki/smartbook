@@ -1,6 +1,6 @@
 = Architecture Notes and Design Decisions
 :author: AI Assistant
-:revdate: 2025-12-26
+:revdate: 2025-12-28
 :doctype: article
 :toc: left
 :toclevels: 3
@@ -8,71 +8,136 @@
 
 == Content Rendering Architecture
 
-=== Current Implementation: Qt WebEngine
+=== Current Implementation: QTextDocument + Qt Quick/QML
 
-The current implementation uses Qt WebEngine for content rendering in both the Reader and Creator tools. This provides:
+**Status:** ✅ **IMPLEMENTED** (as of 2025-12-27)
 
-* Full HTML/CSS/JavaScript support
-* WYSIWYG editing capabilities in Creator Tool
-* Embedded application support
-* WebChannel bridge for JavaScript/C++ communication
+The current implementation uses **QTextDocument/QTextBrowser** for content rendering and **Qt Quick/QML** for embedded applications. This architecture provides:
 
-=== Alternative Consideration: Qt TextDocument
+* HTML4 + CSS 2.1 content rendering (via QTextBrowser)
+* QML embedded application support (via QQuickWidget)
+* Qt Widgets form rendering (via FormEmbeddedWidget)
+* WYSIWYG editing capabilities in Creator Tool (via QTextEdit)
+* Synchronous rendering (no flash on theme changes)
+* Native Qt integration (no Chromium dependency)
 
-**Status:** Under evaluation
+=== Architecture Decision
 
-**Context:** Another project indicates that using a hybrid approach with QtWebEngine may not be viable.
+**Decision Date:** 2025-12-26
 
-**Qt TextDocument Approach:**
+**Decision:** Migrated from Qt WebEngine to QTextDocument + Qt Quick/QML architecture.
 
-* **Pros:**
-  * Lighter weight than Qt WebEngine
-  * Native Qt rendering (no Chromium dependency)
-  * Better integration with Qt Widgets
-  * Potentially better performance for text-heavy content
-  * Simpler deployment (no WebEngine runtime)
+**Rationale:**
 
-* **Cons:**
-  * Limited HTML/CSS support compared to WebEngine
-  * No JavaScript execution
-  * No embedded application support (would require alternative approach)
-  * Limited WYSIWYG editing capabilities
-  * May not support all HTML5/CSS3 features
+1. **Rendering Flash Issue:** Qt WebEngine's theme change rendering flash was unacceptable and unfixable due to multi-process architecture
+2. **QML Alternative:** Qt Quick/QML provides equivalent functionality to JavaScript SPAs for embedded applications
+3. **Form System:** Qt Widgets provides robust form rendering and validation capabilities
+4. **Simpler Deployment:** No Chromium dependency reduces deployment complexity
+5. **Better Performance:** Native Qt rendering is more efficient for text-heavy content
 
-**Feasibility Assessment:**
+**See:** `content-rendering-decision-analysis.adoc` and `2025-12-26_content_rendering_architecture_decision.adoc` for detailed analysis.
 
-1. **For Reader Application:**
-   * **Text-heavy content:** Qt TextDocument would work well for simple HTML content
-   * **Rich formatting:** Limited CSS support may be insufficient
-   * **Forms:** Would need alternative form rendering (Qt Widgets)
-   * **Embedded Apps:** Not supported - would require complete redesign
-   * **Settings application:** Would need Qt Widgets-based implementation
+=== Implementation Details
 
-2. **For Creator Tool:**
-   * **WYSIWYG editing:** Qt TextDocument has limited editing capabilities
-   * **HTML editing:** Would need custom HTML editor or fallback to source editing
-   * **Preview:** Limited preview capabilities compared to WebEngine
+==== Content Rendering (Reader)
 
-**Recommendation:**
+**Component:** `ReaderView` (`reader/src/ui/ReaderView.cpp`)
 
-* **Short-term:** Continue with Qt WebEngine for Phase 1
-* **Evaluation needed:**
-  * Assess specific issues with Qt WebEngine in the other project
-  * Determine if those issues apply to SmartBook use case
-  * Evaluate Qt TextDocument feature set against SmartBook requirements
-  * Consider hybrid approach: Qt TextDocument for simple content, WebEngine for rich content
+* Uses `QTextBrowser` for HTML content rendering
+* Supports HTML4 + CSS 2.1 subset
+* Theme-aware palette-based styling (no flash on theme changes)
+* Parses content for QML app markers and form markers
+* Embeds `QmlEmbeddedAppWidget` and `FormEmbeddedWidget` instances
 
-**Action Items:**
+**Content Parser:** `ContentParser` (`reader/src/ContentParser.cpp`)
 
-1. Document specific Qt WebEngine issues from other project
-2. Create proof-of-concept with Qt TextDocument for basic content rendering
-3. Evaluate feature gaps between WebEngine and TextDocument
-4. Assess impact on embedded applications and forms
-5. Make final decision before Phase 2 implementation
+* Parses HTML for QML app markers: `<div data-smartbook-qml-app="app_id"></div>`
+* Parses HTML for form markers: `<div data-smartbook-form="form_id"></div>`
+* Cleans HTML to remove markers before rendering
 
-**References:**
+==== Embedded Applications
 
-* Qt TextDocument: https://doc.qt.io/qt-6/qtextdocument.html
-* Qt WebEngine: https://doc.qt.io/qt-6/qtwebengine-index.html
-* SmartBook DDD Section 5 (Qt WebEngine Integration)
+**Component:** `QmlEmbeddedAppWidget` (`reader/src/ui/QmlEmbeddedAppWidget.cpp`)
+
+* Uses `QQuickWidget` to embed QML applications
+* Loads QML code from `Embedded_Apps` table (`qml_code` column)
+* Provides `QmlAppBridge` for C++/QML communication
+* Supports sandbox file system access
+* Supports form data persistence
+
+**Bridge:** `QmlAppBridge` (`reader/src/QmlAppBridge.cpp`)
+
+* C++/QML communication bridge
+* Registered as QML type "SmartbookBridge"
+* Provides methods: `saveFormData`, `loadFormData`, `saveSandboxFile`, `loadSandboxFile`, etc.
+
+==== Form Rendering
+
+**Component:** `FormEmbeddedWidget` (`reader/src/ui/FormEmbeddedWidget.cpp`)
+
+* Uses Qt Widgets for form rendering
+* Generates forms from JSON schemas (via `FormSchemaParser`)
+* Validates form data (via `FormValidator`)
+* Persists form data to cartridge database
+* Theme-aware styling
+
+**Form System Components:**
+
+* `FormSchemaParser` - Parses JSON form schemas
+* `FormWidgetGenerator` - Generates Qt Widget form layouts
+* `FormValidator` - Validates form data against schemas
+* `FormDataSerializer` - Serializes/deserializes form data
+
+==== Content Editor (Creator Tool)
+
+**Component:** `ContentEditor` (`creator/src/ContentEditor.cpp`)
+
+* Uses `QTextEdit` for WYSIWYG editing
+* Uses `QPlainTextEdit` for HTML source editing
+* Supports rich text formatting (bold, italic, underline, colors, fonts, lists, links, images)
+* Synchronous content access (no JavaScript bridge needed)
+
+=== Limitations and Trade-offs
+
+**HTML/CSS Support:**
+
+* Limited to HTML4 + CSS 2.1 subset
+* No HTML5 features (semantic elements, canvas, video, audio)
+* No CSS3 features (flexbox, grid, transforms, animations)
+* No JavaScript execution in content
+
+**Embedded Applications:**
+
+* Must use QML instead of JavaScript SPAs
+* Requires QML knowledge for app development
+* No direct HTML/CSS/JavaScript app support
+
+**Forms:**
+
+* Must use Qt Widgets (no HTML forms)
+* JSON schema-based form definitions
+* No JavaScript form validation (uses C++ validation)
+
+=== Migration Status
+
+**Completed Phases:**
+
+* ✅ Phase 1: Reader View Migration (QTextBrowser)
+* ✅ Phase 2: Content Editor Migration (QTextEdit)
+* ✅ Phase 3: Form System Redesign (Qt Widgets)
+* ✅ Phase 4: WebChannel Bridge Replacement (QmlAppBridge)
+* ✅ Phase 5: Build System Updates (WebEngine removed)
+* ✅ Phase 6: Testing and Validation
+
+**See:** `content-rendering-implementation-plan.adoc` for detailed migration plan.
+
+=== References
+
+* Qt QTextDocument: https://doc.qt.io/qt-6/qtextdocument.html
+* Qt QTextBrowser: https://doc.qt.io/qt-6/qtextbrowser.html
+* Qt Quick/QML: https://doc.qt.io/qt-6/qtquick-index.html
+* QQuickWidget: https://doc.qt.io/qt-6/qquickwidget.html
+* Content Rendering Decision Analysis: `content-rendering-decision-analysis.adoc`
+* Architecture Decision Record: `2025-12-26_content_rendering_architecture_decision.adoc`
+* Implementation Plan: `content-rendering-implementation-plan.adoc`
 

@@ -1,6 +1,43 @@
 #!/bin/bash
-# inspect-build.sh - Comprehensive build output inspection
-# Usage: ./inspect-build.sh [build-output.log]
+# ============================================================================
+# inspect-build.sh - Comprehensive Build Output Inspection Tool
+# ============================================================================
+#
+# Purpose:
+#   Analyzes build log files to identify errors, warnings, and code quality
+#   issues. Provides categorized summary of build output.
+#
+# Usage:
+#   ./inspect-build.sh [build-output.log]
+#   ./inspect-build.sh                    # Uses build-output.log by default
+#
+# Features:
+#   - Error detection and counting
+#   - Warning detection and counting
+#   - Warning categorization:
+#     * Unused variables/parameters
+#     * Deprecated API usage
+#     * Implicit conversions
+#     * Type casts/conversions
+#     * Qt MOC issues
+#   - Summary report with exit code
+#
+# Output:
+#   - Error count and details (first 30)
+#   - Warning count and details (first 30)
+#   - Warning categories with counts
+#   - Summary with build status
+#
+# Exit Codes:
+#   0: Build clean (no errors or warnings)
+#   1: Build has errors or warnings
+#
+# Note:
+#   This script treats warnings as code smells that indicate potential defects.
+#   All warnings should be fixed for code quality.
+#
+# See Documentation/build-process.adoc for build system information.
+# ============================================================================
 
 BUILD_LOG="${1:-build-output.log}"
 

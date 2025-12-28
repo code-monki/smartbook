@@ -6,9 +6,11 @@
 #include "smartbook/common/database/LocalDBManager.h"
 #include "smartbook/common/manifest/ManifestManager.h"
 #include "smartbook/common/security/TrustRegistry.h"
+#include "smartbook/common/utils/ThemeManager.h"
 #include <QMenuBar>
 #include <QMenu>
 #include <QAction>
+#include <QActionGroup>
 #include <QStatusBar>
 #include <QMessageBox>
 #include <QFileDialog>
@@ -17,12 +19,15 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QDebug>
+#include <QPalette>
+#include <QColor>
 
 namespace smartbook {
 namespace reader {
 
 LibraryManager::LibraryManager(QWidget* parent)
     : QMainWindow(parent)
+    , m_themeGroup(nullptr)
     , m_libraryView(nullptr)
     , m_importManager(new ImportManager(this))
 {
@@ -33,6 +38,14 @@ LibraryManager::LibraryManager(QWidget* parent)
     smartbook::common::database::LocalDBManager& dbManager = 
         smartbook::common::database::LocalDBManager::getInstance();
     dbManager.initializeConnection(QString());
+
+    // Connect to theme change notifications
+    connect(&common::utils::ThemeManager::getInstance(), &common::utils::ThemeManager::themeChanged,
+            this, [this](const QString& theme) {
+                qDebug() << "LibraryManager: Theme changed to" << theme << ", updating UI";
+                setThemeMenuSelection(theme);
+                applyTheme();
+            });
 
     loadLibrary();
 }
@@ -72,6 +85,52 @@ void LibraryManager::setupMenuBar() {
     QAction* exitAction = fileMenu->addAction("E&xit");
     exitAction->setShortcut(QKeySequence::Quit);
     connect(exitAction, &QAction::triggered, this, &QWidget::close);
+
+    // View menu
+    QMenu* viewMenu = menuBar()->addMenu("&View");
+    
+    // Theme submenu
+    QMenu* themeMenu = viewMenu->addMenu("&Theme");
+    m_themeGroup = new QActionGroup(this);
+    
+    QAction* autoAction = themeMenu->addAction("&Auto");
+    autoAction->setCheckable(true);
+    autoAction->setData("auto");
+    m_themeGroup->addAction(autoAction);
+    
+    QAction* lightAction = themeMenu->addAction("&Light");
+    lightAction->setCheckable(true);
+    lightAction->setData("light");
+    m_themeGroup->addAction(lightAction);
+    
+    QAction* darkAction = themeMenu->addAction("&Dark");
+    darkAction->setCheckable(true);
+    darkAction->setData("dark");
+    m_themeGroup->addAction(darkAction);
+    
+    QAction* sepiaAction = themeMenu->addAction("&Sepia");
+    sepiaAction->setCheckable(true);
+    sepiaAction->setData("sepia");
+    m_themeGroup->addAction(sepiaAction);
+    
+    // Load saved theme preference and set menu selection
+    QString savedTheme = common::utils::ThemeManager::getInstance().getTheme();
+    setThemeMenuSelection(savedTheme);
+    
+    // Connect theme actions
+    connect(m_themeGroup, &QActionGroup::triggered, this, [this](QAction* action) {
+        QString theme = action->data().toString();
+        qDebug() << "LibraryManager: Theme menu triggered, theme=" << theme;
+        
+        // Save global preference (shared across all apps)
+        common::utils::ThemeManager::getInstance().setTheme(theme);
+        
+        // Apply theme to this window
+        applyTheme();
+    });
+    
+    // Apply initial theme
+    applyTheme();
 
     // Help menu
     QMenu* helpMenu = menuBar()->addMenu("&Help");
@@ -205,6 +264,66 @@ void LibraryManager::onDeleteCartridge(const QString& /* cartridgeGuid */) {
 
 void LibraryManager::onCartridgeDoubleClicked(const QString& cartridgeGuid) {
     openCartridge(cartridgeGuid);
+}
+
+void LibraryManager::setThemeMenuSelection(const QString& theme) {
+    if (!m_themeGroup) {
+        qWarning() << "LibraryManager::setThemeMenuSelection: Theme group not initialized";
+        return;
+    }
+    
+    // Find action with matching data
+    for (QAction* action : m_themeGroup->actions()) {
+        if (action->data().toString() == theme) {
+            action->setChecked(true);
+            qDebug() << "LibraryManager::setThemeMenuSelection: Set menu to" << theme;
+            return;
+        }
+    }
+    
+    qWarning() << "LibraryManager::setThemeMenuSelection: Theme" << theme << "not found in menu";
+}
+
+void LibraryManager::applyTheme() {
+    QString theme = common::utils::ThemeManager::getInstance().getTheme();
+    QString resolvedTheme = common::utils::ThemeManager::getInstance().resolveTheme(theme);
+    
+    qDebug() << "LibraryManager::applyTheme: Applying theme" << resolvedTheme;
+    
+    QColor bgColor, textColor;
+    
+    if (resolvedTheme == "dark") {
+        bgColor = QColor(30, 30, 30);
+        textColor = QColor(212, 212, 212);
+    } else if (resolvedTheme == "sepia") {
+        bgColor = QColor(244, 236, 216);
+        textColor = QColor(92, 75, 55);
+    } else { // light (default)
+        bgColor = QColor(255, 255, 255);
+        textColor = QColor(0, 0, 0);
+    }
+    
+    // Apply theme to the main window
+    QPalette palette = this->palette();
+    palette.setColor(QPalette::Window, bgColor);
+    palette.setColor(QPalette::WindowText, textColor);
+    palette.setColor(QPalette::Base, bgColor);
+    palette.setColor(QPalette::Text, textColor);
+    palette.setColor(QPalette::Button, bgColor);
+    palette.setColor(QPalette::ButtonText, textColor);
+    this->setPalette(palette);
+    
+    // Also apply to central widget if it exists
+    if (m_libraryView) {
+        QPalette widgetPalette = m_libraryView->palette();
+        widgetPalette.setColor(QPalette::Window, bgColor);
+        widgetPalette.setColor(QPalette::WindowText, textColor);
+        widgetPalette.setColor(QPalette::Base, bgColor);
+        widgetPalette.setColor(QPalette::Text, textColor);
+        m_libraryView->setPalette(widgetPalette);
+    }
+    
+    qDebug() << "LibraryManager::applyTheme: Theme applied successfully";
 }
 
 } // namespace reader

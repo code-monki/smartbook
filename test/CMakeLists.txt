@@ -1,3 +1,35 @@
+# ============================================================================
+# SmartBook Test Suite CMakeLists.txt
+# ============================================================================
+#
+# Build configuration for the SmartBook test suite.
+#
+# Test Structure:
+#   - Unit tests: Individual component testing
+#   - Integration tests: Multi-component workflow testing
+#
+# Dependencies:
+#   - Qt6: Core, Gui, Widgets, Sql, Test, Quick, QuickWidgets, Qml
+#   - smartbook_common: Shared library (built by common/CMakeLists.txt)
+#
+# Qt Detection:
+#   - Automatically detects Qt installation in ~/Qt/6.x.x/ (Unix) or
+#     C:/Qt/6.x.x/ (Windows)
+#   - Falls back to system Qt if custom installation not found
+#
+# Test Framework:
+#   - Qt Test (QTest) for unit tests
+#   - Custom test harness for integration tests
+#
+# Usage:
+#   cmake --build . --target test        # Build all tests
+#   ctest                                # Run all tests
+#   ctest -R unit                        # Run unit tests only
+#   ctest -R integration                 # Run integration tests only
+#
+# See Documentation/build-process.adoc for test execution details.
+# ============================================================================
+
 cmake_minimum_required(VERSION 3.20)
 project(SmartBookTests VERSION 1.0.0 LANGUAGES CXX)
 

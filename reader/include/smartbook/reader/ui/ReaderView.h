@@ -21,10 +21,50 @@ class FormEmbeddedWidget;
 /**
  * @brief Reader view widget - displays cartridge content
  * 
- * Uses QTextBrowser to render HTML4/CSS 2.1 content with embedded QML applications.
- * Loads content from Content_Pages table in the cartridge database.
- * Applies settings (author defaults and user overrides) to content rendering.
- * Detects and processes QML app markers using ContentParser.
+ * The ReaderView widget is the primary content rendering component for the SmartBook Reader.
+ * It uses QTextBrowser to render HTML4/CSS 2.1 content and integrates QML embedded applications
+ * and Qt Widgets forms within the content layout.
+ * 
+ * @section Architecture
+ * 
+ * **Content Rendering:**
+ * - Uses QTextBrowser for HTML content rendering (HTML4 + CSS 2.1 subset)
+ * - Theme-aware palette-based styling (no flash on theme changes)
+ * - Synchronous content loading (no async delays)
+ * 
+ * **Embedded Applications:**
+ * - Detects QML app markers in HTML: `<div data-smartbook-qml-app="app_id"></div>`
+ * - Creates QmlEmbeddedAppWidget instances for each marker
+ * - QML apps run in isolated QQuickWidget instances
+ * 
+ * **Form Rendering:**
+ * - Detects form markers in HTML: `<div data-smartbook-form="form_id"></div>`
+ * - Creates FormEmbeddedWidget instances for each marker
+ * - Forms are rendered as Qt Widgets with validation and persistence
+ * 
+ * **Settings Application:**
+ * - Loads author-defined settings from cartridge Settings table
+ * - Applies user overrides (stored in local database)
+ * - Supports theme selection (light, dark, sepia, auto)
+ * - Settings are applied via CSS injection and QPalette
+ * 
+ * @section Usage
+ * 
+ * @code
+ * ReaderView* view = new ReaderView(parent);
+ * view->loadCartridge("/path/to/cartridge.sqlite", "cartridge-guid");
+ * connect(view, &ReaderView::contentLoaded, this, &MyClass::onContentLoaded);
+ * @endcode
+ * 
+ * @section Migration
+ * 
+ * This class was migrated from Qt WebEngine (QWebEngineView) to QTextDocument/QTextBrowser
+ * architecture in Phase 1 of the content rendering migration (2025-12-27).
+ * 
+ * @see ContentParser
+ * @see QmlEmbeddedAppWidget
+ * @see FormEmbeddedWidget
+ * @see content-rendering-decision-analysis.adoc
  */
 class ReaderView : public QWidget {
     Q_OBJECT
@@ -71,6 +111,9 @@ private:
     void cleanupQmlAppWidgets();
     void processFormMarkers(const QString& htmlContent);
     void cleanupFormWidgets();
+    QString loadGlobalThemePreference();
+    void saveGlobalThemePreference(const QString& theme);
+    QString detectSystemTheme();
     
     QTextBrowser* m_textBrowser;
     ContentParser* m_contentParser;

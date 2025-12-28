@@ -1,3 +1,55 @@
+/**
+ * @file FormValidator.cpp
+ * @brief Implementation of FormValidator for validating form data
+ * 
+ * This file implements the FormValidator class, which validates form data (as JSON)
+ * against a JSON Schema definition. It performs comprehensive validation including
+ * required fields, types, ranges, and patterns.
+ * 
+ * @section Validation Process
+ * 
+ * 1. Parse data JSON (validate JSON format)
+ * 2. Parse schema JSON (validate JSON format)
+ * 3. Build required fields set from schema "required" array
+ * 4. For each property in schema:
+ *    - Check if required (if yes, validate presence)
+ *    - Validate type (if specified)
+ *    - Validate range (if min/max specified)
+ *    - Validate pattern (if pattern specified)
+ * 5. Return true if all validations pass, false otherwise
+ * 
+ * @section Validation Rules
+ * 
+ * **Required Fields:**
+ * - Field must be present in data
+ * - Field value must not be null, undefined, or empty string
+ * 
+ * **Type Validation:**
+ * - string: Value must be a string
+ * - integer: Value must be a whole number
+ * - number: Value must be numeric
+ * - boolean: Value must be a boolean
+ * 
+ * **Range Validation:**
+ * - Checks minimum and maximum constraints for numeric values
+ * - Validates: value >= minimum && value <= maximum
+ * 
+ * **Pattern Validation:**
+ * - Uses QRegularExpression for regex pattern matching
+ * - Only applies to string values
+ * 
+ * @section Error Collection
+ * 
+ * All validation errors are collected in errors() list. Each error is a
+ * formatted string: "fieldName: error message". The lastError() method
+ * returns the most recent error.
+ * 
+ * @see FormValidator.h
+ * @see FormSchemaParser
+ * @see FormDataSerializer
+ * @see qt-widgets-forms-guide.adoc
+ */
+
 #include "smartbook/common/forms/FormValidator.h"
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -11,6 +63,10 @@ namespace smartbook {
 namespace common {
 namespace forms {
 
+// ============================================================================
+// Constructor and Destructor
+// ============================================================================
+
 FormValidator::FormValidator()
 {
 }
@@ -19,8 +75,23 @@ FormValidator::~FormValidator()
 {
 }
 
+// ============================================================================
+// Public Methods
+// ============================================================================
+
 bool FormValidator::validate(const QString& dataJson, const QString& schemaJson)
 {
+    /**
+     * @brief Validate form data against schema
+     * 
+     * Validates form data (as JSON) against a JSON Schema definition.
+     * Performs all validation checks and collects errors.
+     * 
+     * @param dataJson JSON string of form data
+     * @param schemaJson JSON string of form schema
+     * @return true if valid, false otherwise
+     */
+    
     m_lastError.clear();
     m_errors.clear();
     

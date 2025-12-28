@@ -9,11 +9,43 @@ namespace smartbook {
 namespace reader {
 
 /**
- * @brief Parser for HTML content to detect and extract QML app markers
+ * @brief Parser for HTML content to detect and extract embedded component markers
  * 
- * Parses HTML content to find QML embedded application markers
- * (e.g., `<div data-smartbook-qml-app="app_id"></div>`) and provides
- * utilities to clean HTML and extract app information.
+ * ContentParser analyzes HTML content to find markers for embedded components:
+ * - QML embedded applications: `<div data-smartbook-qml-app="app_id"></div>`
+ * - Form widgets: `<div data-smartbook-form="form_id"></div>`
+ * 
+ * The parser extracts marker information (app/form IDs, positions) and provides
+ * utilities to clean HTML by removing markers before rendering.
+ * 
+ * @section Marker Format
+ * 
+ * **QML App Markers:**
+ * @code
+ * <div data-smartbook-qml-app="my_app_id"></div>
+ * @endcode
+ * 
+ * **Form Markers:**
+ * @code
+ * <div data-smartbook-form="contact_form"></div>
+ * @endcode
+ * 
+ * Markers can be self-closing or have closing tags. The parser handles both formats.
+ * 
+ * @section Usage
+ * 
+ * @code
+ * ContentParser parser;
+ * QList<ContentParser::QmlAppMarker> markers = parser.parseContent(html);
+ * QString cleanHtml = parser.cleanHtml(html); // HTML with markers removed
+ * @endcode
+ * 
+ * @note This class is stateless and all methods are const. Multiple instances
+ * can be used concurrently without issues.
+ * 
+ * @see ReaderView
+ * @see QmlEmbeddedAppWidget
+ * @see FormEmbeddedWidget
  */
 class ContentParser {
 public:

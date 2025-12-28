@@ -1,3 +1,30 @@
+# ============================================================================
+# SmartBook Creator Tool CMakeLists.txt
+# ============================================================================
+#
+# Build configuration for the SmartBook Creator Tool application.
+#
+# Dependencies:
+#   - Qt6: Core, Gui, Widgets, Sql, Quick, QuickWidgets, Qml
+#   - smartbook_common: Shared library (built by common/CMakeLists.txt)
+#
+# Qt Detection:
+#   - Automatically detects Qt installation in ~/Qt/6.x.x/ (Unix) or
+#     C:/Qt/6.x.x/ (Windows)
+#   - Falls back to system Qt if custom installation not found
+#
+# Output:
+#   - Executable: smartbook-creator
+#   - macOS: Creates .app bundle with proper Info.plist
+#
+# Architecture:
+#   - Uses QTextEdit for WYSIWYG content editing
+#   - Uses QPlainTextEdit for HTML source editing
+#   - No longer depends on Qt WebEngine (removed in Phase 2 migration)
+#
+# See Documentation/content-rendering-decision-analysis.adoc for architecture details.
+# ============================================================================
+
 cmake_minimum_required(VERSION 3.20)
 project(SmartBookCreator VERSION 1.0.0 LANGUAGES CXX)
 

@@ -1,3 +1,44 @@
+/**
+ * @file FormSchemaParser.cpp
+ * @brief Implementation of FormSchemaParser for parsing JSON form schemas
+ * 
+ * This file implements the FormSchemaParser class, which parses JSON Schema format
+ * (Draft 7 compatible) and creates Qt Widget form layouts dynamically.
+ * 
+ * @section Schema Parsing Process
+ * 
+ * 1. Parse JSON schema string
+ * 2. Validate schema structure (must be type "object")
+ * 3. Extract properties and required fields
+ * 4. For each property:
+ *    - Determine field type and format
+ *    - Create appropriate Qt Widget
+ *    - Set default values and placeholders
+ *    - Set objectName to field name (critical for FormDataSerializer)
+ *    - Add to QFormLayout
+ * 
+ * @section Widget Creation
+ * 
+ * Widgets are created based on field type and format:
+ * - string → QLineEdit (or QTextEdit if format="textarea")
+ * - string + format="select" → QComboBox
+ * - string + format="radio" → QRadioButton group
+ * - string + format="date" → QDateEdit
+ * - boolean → QCheckBox
+ * - integer → QSpinBox
+ * - number → QDoubleSpinBox
+ * 
+ * @section Widget Naming
+ * 
+ * All generated widgets have their objectName set to the field name from the schema.
+ * This is critical for FormDataSerializer to correctly identify and interact with widgets.
+ * 
+ * @see FormSchemaParser.h
+ * @see FormWidgetGenerator
+ * @see FormDataSerializer
+ * @see qt-widgets-forms-guide.adoc
+ */
+
 #include "smartbook/common/forms/FormSchemaParser.h"
 #include <QFormLayout>
 #include <QLabel>
@@ -20,6 +61,10 @@ namespace smartbook {
 namespace common {
 namespace forms {
 
+// ============================================================================
+// Constructor and Destructor
+// ============================================================================
+
 FormSchemaParser::FormSchemaParser()
 {
 }
@@ -28,8 +73,22 @@ FormSchemaParser::~FormSchemaParser()
 {
 }
 
+// ============================================================================
+// Public Methods
+// ============================================================================
+
 QWidget* FormSchemaParser::parseSchema(const QString& jsonSchema)
 {
+    /**
+     * @brief Parse JSON schema and create form widget
+     * 
+     * Parses JSON Schema format and creates a QWidget with QFormLayout
+     * containing form fields for each property in the schema.
+     * 
+     * @param jsonSchema JSON string containing form schema
+     * @return QWidget* with QFormLayout, or nullptr on error
+     */
+    
     m_lastError.clear();
     
     // Parse JSON
@@ -101,8 +160,20 @@ QWidget* FormSchemaParser::parseSchema(const QString& jsonSchema)
     return formWidget;
 }
 
+// ============================================================================
+// Private Methods - Widget Creation
+// ============================================================================
+
 QWidget* FormSchemaParser::createFieldWidget(const QJsonObject& fieldSchema)
 {
+    /**
+     * @brief Create widget for a field based on its type
+     * 
+     * Determines field type and format, then creates appropriate Qt Widget.
+     * 
+     * @param fieldSchema JSON object for the field
+     * @return QWidget* for the field, or nullptr on error
+     */
     QString type = fieldSchema["type"].toString();
     QString format = fieldSchema["format"].toString();
     

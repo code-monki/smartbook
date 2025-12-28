@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QString>
 #include <memory>
+#include <QActionGroup>
 #include "smartbook/common/security/SignatureVerifier.h"
 #include "smartbook/reader/ui/SecurityErrorDialog.h"
 #include "smartbook/common/manifest/ManifestManager.h"
@@ -58,12 +59,16 @@ private:
     bool performSecurityVerification(const QString& cartridgePath);
     void handleSecurityError(ui::SecurityErrorType errorType, const QString& errorDetails);
     void handleConsentRequired(common::security::SecurityLevel level, const QString& cartridgeTitle, const QString& authorName);
+    QString loadGlobalThemePreference();
+    void saveGlobalThemePreference(const QString& theme);
+    void setThemeMenuSelection(const QString& theme);
     void updateManifest(const QString& cartridgePath);
 
     QString m_cartridgeGuid;
     ReaderView* m_readerView;
     common::security::SignatureVerifier* m_signatureVerifier;
     common::security::TrustRegistry* m_trustRegistry;
+    QActionGroup* m_themeGroup;
     
     // Restored state for reading position
     int m_restoredPageId = -1;

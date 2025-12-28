@@ -1,6 +1,32 @@
 #!/bin/bash
-# Convert AsciiDoc files to Markdown
-# This script uses pandoc for initial conversion, then applies fixes
+# ============================================================================
+# convert-to-markdown.sh - AsciiDoc to Markdown Converter
+# ============================================================================
+#
+# Purpose:
+#   Converts AsciiDoc documentation files to Markdown format using pandoc.
+#   Creates backup of original files before conversion.
+#
+# Usage:
+#   ./convert-to-markdown.sh
+#
+# Process:
+#   1. Creates backup of Documentation/ directory
+#   2. Converts all .adoc files to .md files
+#   3. Applies post-processing fixes for common conversion issues
+#
+# Requirements:
+#   - pandoc: Document conversion tool
+#   - bash: Shell interpreter
+#
+# Output:
+#   - Documentation_markdown/: Converted Markdown files
+#   - Documentation_backup_YYYYMMDD_HHMMSS/: Backup of original files
+#
+# Note:
+#   This is a utility script for documentation conversion, not part of the
+#   standard build process.
+# ============================================================================
 
 set -e
 

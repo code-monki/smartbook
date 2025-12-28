@@ -1,14 +1,33 @@
 /**
  * @file create_test_cartridge.cpp
- * @brief Utility to create a test cartridge for manual testing
+ * @brief Utility to create a test cartridge for manual testing and development
  * 
- * Creates a test cartridge with:
- * - Sample HTML content
- * - QML embedded apps
- * - Form definitions
- * - Settings
+ * This utility creates a complete test cartridge with sample content for manual
+ * testing of the Reader application. It is useful for:
+ * - Manual testing of Reader features
+ * - Development and debugging
+ * - Creating demo cartridges
+ * - Testing cartridge import workflow
  * 
- * Usage: ./create_test_cartridge <output_path>
+ * The created cartridge includes:
+ * - Sample HTML content pages
+ * - QML embedded application example
+ * - Form definition example (contact form)
+ * - Author-defined settings
+ * - Complete database schema (Metadata, Content_Pages, Embedded_Apps, etc.)
+ * 
+ * Usage:
+ *   ./create_test_cartridge <output_path>
+ * 
+ * Example:
+ *   ./create_test_cartridge ~/Desktop/test_cartridge.sqlite
+ *   ./create_test_cartridge /tmp/my_test_cartridge.sqlite
+ * 
+ * Note:
+ *   This is a standalone utility for manual testing. Automated tests use
+ *   TestHelpers (test/unit/test_helpers.h) for programmatic cartridge creation.
+ * 
+ * See Documentation/testing-guide.adoc for testing information.
  */
 
 #include <QCoreApplication>

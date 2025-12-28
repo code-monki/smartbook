@@ -1,10 +1,58 @@
 #!/usr/bin/env python3
-"""
-Process Mermaid diagrams in AsciiDoc files.
-
-Extracts Mermaid code blocks, converts them to SVG using mmdc,
-and replaces the blocks with image references.
-"""
+# ============================================================================
+# process-mermaid-diagrams.py - Mermaid Diagram Processor for AsciiDoc
+# ============================================================================
+#
+# Purpose:
+#   Processes AsciiDoc files containing Mermaid diagram code blocks, converts
+#   them to SVG images using mermaid-cli (mmdc), and replaces the code blocks
+#   with image references.
+#
+# Usage:
+#   ./process-mermaid-diagrams.py <input.adoc> <output_dir>
+#
+#   Arguments:
+#     input.adoc:   AsciiDoc file containing Mermaid diagram blocks
+#     output_dir:   Directory where SVG images will be saved
+#
+# Requirements:
+#   - Python 3.x
+#   - mermaid-cli (mmdc): Install with `npm install -g @mermaid-js/mermaid-cli`
+#
+# Process:
+#   1. Scans AsciiDoc file for Mermaid code blocks (format: [mermaid,name,svg])
+#   2. Extracts Mermaid diagram code from each block
+#   3. Converts each diagram to SVG using mmdc
+#   4. Saves SVG files to output_dir
+#   5. Replaces Mermaid code blocks with image references
+#   6. Writes processed content to <input.adoc>.processed
+#
+# Mermaid Block Format:
+#   [mermaid,diagram_name,svg]
+#   ----
+#   graph TD
+#       A[Start] --> B[End]
+#   ----
+#
+# Output:
+#   - SVG files: <output_dir>/<diagram_name>.svg
+#   - Processed file: <input.adoc>.processed (with image references)
+#
+# Image Reference Format:
+#   [unbreakable]
+#   image::images/<diagram_name>.svg[<diagram_name> diagram,role="diagram"]
+#
+# Error Handling:
+#   - If mmdc is not found, script exits with error
+#   - If conversion fails, original Mermaid block is preserved
+#   - Conversion timeout: 30 seconds per diagram
+#
+# Exit Codes:
+#   0: Success (diagrams processed or no diagrams found)
+#   1: Error (missing mmdc, file not found, etc.)
+#
+# See Documentation/build-process.adoc for documentation generation workflow.
+# ============================================================================
 
 import re
 import subprocess

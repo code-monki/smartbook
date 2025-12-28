@@ -1,6 +1,33 @@
 #!/bin/bash
-# Qt Configuration Helper Script
-# Detects Qt installation and sets up environment
+# ============================================================================
+# configure_qt.sh - Qt Configuration Helper Script
+# ============================================================================
+#
+# Purpose:
+#   Detects Qt 6.x installation and sets up environment variables for building
+#   SmartBook. Automatically finds Qt in common installation locations.
+#
+# Usage:
+#   source configure_qt.sh          # Sets environment variables in current shell
+#   ./configure_qt.sh               # Shows instructions (doesn't modify shell)
+#
+# Qt Detection:
+#   - macOS: ~/Qt/6.x.x/macos or ~/Qt/6.x.x/clang_64
+#   - Linux: ~/Qt/6.x.x/gcc_64 or ~/Qt/6.x.x/clang_64 or ~/Qt/6.x.x/linux
+#   - Windows: %USERPROFILE%\Qt\6.x.x\msvc*_64 or mingw*_64
+#             C:\Qt\6.x.x\msvc*_64 or mingw*_64
+#
+# Environment Variables Set:
+#   - QTDIR: Qt installation directory
+#   - CMAKE_PREFIX_PATH: Qt installation directory (for CMake)
+#   - PATH: Adds Qt bin directory to PATH
+#
+# Exit Codes:
+#   0: Success
+#   1: Qt not found
+#
+# See Documentation/build-process.adoc for more information.
+# ============================================================================
 
 QT_HOME="$HOME/Qt"
 

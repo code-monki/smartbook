@@ -1,8 +1,46 @@
 #!/usr/bin/env python3
-"""
-Fix AsciiDoc list rendering issues by ensuring blank lines before lists
-that follow bold text or other block elements.
-"""
+# ============================================================================
+# fix-asciidoc-lists.py - AsciiDoc List Formatting Fixer
+# ============================================================================
+#
+# Purpose:
+#   Fixes AsciiDoc list rendering issues by ensuring proper blank lines
+#   before lists that follow bold text or other block elements. This prevents
+#   rendering issues where lists don't display correctly.
+#
+# Usage:
+#   ./fix-asciidoc-lists.py [file.adoc] [--dry-run]
+#
+#   Arguments:
+#     file.adoc:    AsciiDoc file to fix (if not specified, processes all .adoc files)
+#     --dry-run:    Show what would be fixed without making changes
+#
+# Requirements:
+#   - Python 3.x
+#
+# Process:
+#   1. Scans AsciiDoc file(s) for list formatting issues
+#   2. Identifies lists that need blank lines before them:
+#      - Lists following bold text (**text:**\n*)
+#      - Lists following text ending with colon (text:\n*)
+#   3. Inserts blank lines where needed
+#   4. Preserves nested lists (doesn't add blank lines for nested items)
+#
+# Issues Fixed:
+#   - Bold text immediately followed by bullet list
+#   - Text ending with colon immediately followed by bullet list
+#   - Nested lists are preserved (not modified)
+#
+# Example:
+#   Before: **Features:**\n* Item 1
+#   After:  **Features:**\n\n* Item 1
+#
+# Exit Codes:
+#   0: Success
+#   1: Error (file not found, etc.)
+#
+# See Documentation/build-process.adoc for documentation maintenance workflow.
+# ============================================================================
 
 import re
 import glob

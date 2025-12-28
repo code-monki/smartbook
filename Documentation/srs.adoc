@@ -621,7 +621,25 @@ Both applications are documented in a single SRS document as they are tightly co
 | **NFR-3.3** | Integrity Hash (H2) | A second, verifiable content hash (H2) SHALL be calculated and stored locally to verify content integrity against potential tampering upon subsequent loads. | Essential for Tampering Detection (FR-2.4.4).
 |===
 
+== Content Rendering Architecture (Implementation Note)
+
+**Status:** ⚠️ **IMPLEMENTATION CHANGED** (as of 2025-12-27)
+
+**Note:** The original requirements specified Qt WebEngine for content rendering. However, the implementation has been migrated to **QTextDocument/QTextBrowser** for HTML content rendering and **Qt Quick/QML** for embedded applications. This change was made to address critical UX issues (rendering flash on theme changes) and simplify deployment (no Chromium dependency).
+
+**Current Implementation:**
+* HTML content rendering: QTextBrowser (HTML4 + CSS 2.1 subset)
+* Embedded applications: Qt Quick/QML (via QQuickWidget)
+* Forms: Qt Widgets (via FormEmbeddedWidget)
+* Content Editor: QTextEdit (WYSIWYG editing)
+
+**Functional Requirements:** The requirements below (FR-WE-5.x) describe the *functionality* that must be provided (HTML/CSS rendering, embedded apps, security, etc.), but the *implementation* uses QTextDocument + QML instead of WebEngine.
+
+**See:** `content-rendering-decision-analysis.adoc` and `2025-12-26_content_rendering_architecture_decision.adoc` for detailed rationale.
+
 == Qt WebEngine Configuration Requirements (FR-WE)
+
+**Note:** These requirements describe functionality that is now implemented using QTextDocument + QML architecture. See implementation note above.
 
 === WebEngine Configuration
 

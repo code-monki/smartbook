@@ -13,11 +13,78 @@ namespace forms {
 /**
  * @brief Validator for form data against JSON schemas
  * 
- * Validates form data against schema rules including:
- * - Required field validation
- * - Type validation
- * - Range validation (min/max)
- * - Pattern validation (regex)
+ * FormValidator validates form data (as JSON) against a JSON Schema definition.
+ * It performs comprehensive validation including required fields, types, ranges,
+ * and patterns, providing detailed error messages for each validation failure.
+ * 
+ * @section Validation Rules
+ * 
+ * **Required Fields:**
+ * - Checks that all fields listed in schema "required" array are present
+ * - Validates that required fields are not null, undefined, or empty strings
+ * - Provides error message: "Field is required"
+ * 
+ * **Type Validation:**
+ * - Validates that field values match expected types (string, integer, number, boolean)
+ * - For integers: checks that value is a whole number
+ * - For numbers: checks that value is numeric
+ * - Provides error message: "Expected {type} type"
+ * 
+ * **Range Validation:**
+ * - Validates numeric values against minimum/maximum constraints
+ * - Checks: `value >= minimum` and `value <= maximum`
+ * - Provides error message: "Value must be at least/most {value}"
+ * 
+ * **Pattern Validation:**
+ * - Validates string values against regex patterns
+ * - Uses QRegularExpression for pattern matching
+ * - Provides error message: "Value does not match required pattern"
+ * 
+ * @section Usage
+ * 
+ * @code
+ * FormValidator validator;
+ * bool isValid = validator.validate(dataJson, schemaJson);
+ * if (!isValid) {
+ *     QStringList errors = validator.errors();
+ *     // Display errors to user
+ *     for (const QString& error : errors) {
+ *         qWarning() << error;
+ *     }
+ * }
+ * @endcode
+ * 
+ * @section Error Collection
+ * 
+ * **Error Storage:**
+ * - All validation errors are collected in `errors()` list
+ * - Each error is a formatted string: "fieldName: error message"
+ * - `lastError()` returns the most recent error
+ * - Errors are cleared when `validate()` is called again
+ * 
+ * **Error Format:**
+ * - Field-specific errors: "fieldName: error message"
+ * - Schema-level errors: "error message" (no field name)
+ * 
+ * @section Validation Process
+ * 
+ * 1. Parse schema JSON (validate JSON format)
+ * 2. Parse data JSON (validate JSON format)
+ * 3. Build required fields set from schema "required" array
+ * 4. For each property in schema:
+ *    - Check if required (if yes, validate presence)
+ *    - Validate type (if specified)
+ *    - Validate range (if min/max specified)
+ *    - Validate pattern (if pattern specified)
+ * 5. Return true if all validations pass, false otherwise
+ * 
+ * @note This class is stateless (except for error storage). Multiple instances
+ * can be used concurrently without issues.
+ * 
+ * @see FormSchemaParser
+ * @see FormDataSerializer
+ * @see FormEmbeddedWidget
+ * @see qt-widgets-forms-guide.adoc
  */
 class FormValidator {
 public:

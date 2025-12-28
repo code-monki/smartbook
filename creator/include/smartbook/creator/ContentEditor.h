@@ -15,10 +15,90 @@ namespace creator {
 class PageManager;
 
 /**
- * @brief Content editor widget
+ * @brief Content editor widget for HTML content authoring
  * 
- * WYSIWYG HTML editor using QTextEdit for content authoring.
- * Implements FR-CT-3.1 through FR-CT-3.5
+ * ContentEditor provides a WYSIWYG (What-You-See-Is-What-You-Get) HTML editor
+ * for the Creator Tool. It uses QTextEdit for rich text editing and QPlainTextEdit
+ * for HTML source editing, allowing authors to create and edit cartridge content.
+ * 
+ * @section Architecture
+ * 
+ * **WYSIWYG Mode (Default):**
+ * - Uses QTextEdit for rich text editing
+ * - Provides formatting toolbar (bold, italic, underline, colors, fonts, lists, links, images)
+ * - Content is edited visually with immediate feedback
+ * - HTML is generated automatically from formatted content
+ * 
+ * **HTML Source Mode:**
+ * - Uses QPlainTextEdit for direct HTML editing
+ * - Allows authors to edit raw HTML source
+ * - Content is synchronized between WYSIWYG and HTML modes
+ * 
+ * **Preview Mode:**
+ * - Shows read-only preview of content
+ * - Uses QTextEdit in read-only mode
+ * - Useful for reviewing content before saving
+ * 
+ * @section Features
+ * 
+ * **Rich Text Formatting:**
+ * - Text formatting: bold, italic, underline
+ * - Font selection: family, size, color
+ * - Text alignment: left, center, right, justify
+ * - Lists: ordered and unordered
+ * - Links: insert hyperlinks
+ * - Images: insert images from file system
+ * 
+ * **Content Management:**
+ * - Load content from cartridge database
+ * - Save content to cartridge database via PageManager
+ * - Undo/redo support
+ * - Content change tracking
+ * 
+ * **Form Integration:**
+ * - Insert form markers: `<div data-smartbook-form="form_id"></div>`
+ * - Form markers are inserted at cursor position
+ * - Markers are preserved in HTML output
+ * 
+ * @section Usage
+ * 
+ * @code
+ * ContentEditor* editor = new ContentEditor(parent);
+ * editor->loadContent(htmlContent);
+ * 
+ * // Apply formatting
+ * editor->setBold(true);
+ * editor->setTextColor(QColor(255, 0, 0));
+ * 
+ * // Get edited content
+ * QString html = editor->getContent();
+ * @endcode
+ * 
+ * @section Migration
+ * 
+ * This class was migrated from Qt WebEngine (QWebEngineView) to QTextEdit/QPlainTextEdit
+ * architecture in Phase 2 of the content rendering migration (2025-12-27).
+ * 
+ * **Key Changes:**
+ * - Replaced QWebEngineView with QTextEdit (WYSIWYG) and QPlainTextEdit (HTML source)
+ * - Removed async JavaScript execution (now synchronous)
+ * - Removed content caching (QTextEdit is synchronous)
+ * - Implemented rich text formatting using QTextCursor and QTextCharFormat
+ * 
+ * @section Limitations
+ * 
+ * **HTML Support:**
+ * - Limited to HTML4 + CSS 2.1 subset (QTextEdit limitations)
+ * - No HTML5 features (semantic elements, canvas, video, audio)
+ * - No CSS3 features (flexbox, grid, transforms, animations)
+ * 
+ * **WYSIWYG Capabilities:**
+ * - Basic rich text formatting supported
+ * - Advanced layout features not available
+ * - Complex CSS styling may not render correctly in editor
+ * 
+ * @see PageManager
+ * @see qtextedit-wysiwyg-capabilities.adoc
  */
 class ContentEditor : public QWidget {
     Q_OBJECT

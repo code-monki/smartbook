@@ -68,6 +68,10 @@ private:
     void setupUI();
     void setupMenuBar();
     void loadLibrary();
+    void setThemeMenuSelection(const QString& theme);
+    void applyTheme();
+    
+    QActionGroup* m_themeGroup;
 
     LibraryView* m_libraryView;
     QList<ReaderViewWindow*> m_readerWindows;

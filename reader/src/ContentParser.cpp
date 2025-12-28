@@ -1,9 +1,50 @@
+/**
+ * @file ContentParser.cpp
+ * @brief Implementation of ContentParser for detecting embedded component markers
+ * 
+ * This file implements the ContentParser class, which analyzes HTML content to find
+ * markers for embedded components (QML apps and forms) and provides utilities to
+ * clean HTML by removing these markers before rendering.
+ * 
+ * @section Marker Detection
+ * 
+ * **QML App Markers:**
+ * - Pattern: `<div data-smartbook-qml-app="app_id"></div>`
+ * - Also supports self-closing: `<div data-smartbook-qml-app="app_id" />`
+ * - Uses QRegularExpression with case-insensitive matching
+ * 
+ * **Form Markers:**
+ * - Pattern: `<div data-smartbook-form="form_id"></div>`
+ * - Also supports self-closing: `<div data-smartbook-form="form_id" />`
+ * - Uses QRegularExpression with case-insensitive matching
+ * 
+ * @section Implementation Details
+ * 
+ * **Regex Patterns:**
+ * - Uses `QRegularExpression::DotMatchesEverythingOption` to match across newlines
+ * - Uses `QRegularExpression::CaseInsensitiveOption` for case-insensitive matching
+ * - Captures app/form ID from attribute value
+ * - Handles both opening/closing tags and self-closing tags
+ * 
+ * **Performance:**
+ * - All methods are const (stateless)
+ * - Regex patterns are compiled on each call (acceptable for typical content sizes)
+ * - For large content, consider caching compiled regex patterns
+ * 
+ * @see ContentParser.h
+ * @see ReaderView
+ */
+
 #include "smartbook/reader/ContentParser.h"
 #include <QRegularExpression>
 #include <QDebug>
 
 namespace smartbook {
 namespace reader {
+
+// ============================================================================
+// Public Methods - QML App Marker Parsing
+// ============================================================================
 
 QList<ContentParser::QmlAppMarker> ContentParser::parseContent(const QString& html) const
 {
@@ -26,9 +67,20 @@ QList<ContentParser::QmlAppMarker> ContentParser::parseContent(const QString& ht
 
 QString ContentParser::cleanHtml(const QString& html) const
 {
+    /**
+     * @brief Remove all embedded component markers from HTML
+     * 
+     * Removes both QML app markers and form markers from HTML content
+     * before rendering. This ensures markers don't appear in the rendered
+     * content (they are replaced with actual widgets).
+     * 
+     * @param html Original HTML content with markers
+     * @return HTML content with markers removed
+     */
+    
     QString cleaned = html;
     
-    // Use regex to find and remove QML app marker divs
+    // Remove QML app markers
     // Pattern: <div data-smartbook-qml-app="app_id"[^>]*>.*?</div>
     QString markerPattern = QStringLiteral("<div\\s+data-smartbook-qml-app=\"[^\"]*\"[^>]*>.*?</div>");
     QRegularExpression markerRegex(
@@ -80,8 +132,23 @@ QStringList ContentParser::extractAppIds(const QString& html) const
     return appIds;
 }
 
+// ============================================================================
+// Private Methods - Marker Detection
+// ============================================================================
+
 ContentParser::QmlAppMarker ContentParser::findNextMarker(const QString& html, int startPos) const
 {
+    /**
+     * @brief Find next QML app marker in HTML
+     * 
+     * Searches for QML app marker starting from startPos. Returns marker
+     * with appId, position, and length if found, or invalid marker if not found.
+     * 
+     * @param html HTML content to search
+     * @param startPos Starting position for search
+     * @return QmlAppMarker if found, or invalid marker (empty appId) if not found
+     */
+    
     QmlAppMarker marker;
     marker.position = -1;
     marker.length = 0;

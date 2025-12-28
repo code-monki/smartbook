@@ -11,10 +11,51 @@ namespace forms {
 class FormSchemaParser;
 
 /**
- * @brief Generator for form widgets from JSON schemas
+ * @brief Generator for complete form widgets from JSON schemas
  * 
- * Generates form widgets with styling and validation support.
- * Uses FormSchemaParser internally to parse schemas.
+ * FormWidgetGenerator creates complete, ready-to-use form widgets from JSON schemas.
+ * It uses FormSchemaParser internally to parse schemas and create form layouts,
+ * then wraps the layout in a container widget with basic styling.
+ * 
+ * @section Architecture
+ * 
+ * **Form Generation:**
+ * 1. Uses FormSchemaParser to parse JSON schema and create QFormLayout
+ * 2. Wraps layout in a QWidget container
+ * 3. Applies basic styling (optional stylesheet)
+ * 4. Returns complete form widget ready for use
+ * 
+ * **Styling:**
+ * - Basic default styling applied (background, border, padding)
+ * - Optional custom stylesheet can be provided
+ * - Styling uses Qt Widgets stylesheets (not CSS)
+ * 
+ * @section Usage
+ * 
+ * @code
+ * FormWidgetGenerator generator;
+ * QWidget* formWidget = generator.generateForm(jsonSchema);
+ * if (formWidget) {
+ *     // Form widget is ready to use
+ *     layout->addWidget(formWidget);
+ * } else {
+ *     QString error = generator.lastError();
+ *     // Handle error
+ * }
+ * @endcode
+ * 
+ * @section Integration
+ * 
+ * FormWidgetGenerator is typically used by:
+ * - FormEmbeddedWidget - Creates forms for embedding in content pages
+ * - FormBuilder (Creator Tool) - Preview forms during authoring
+ * 
+ * @note This class is a convenience wrapper around FormSchemaParser.
+ * For more control, use FormSchemaParser directly.
+ * 
+ * @see FormSchemaParser
+ * @see FormEmbeddedWidget
+ * @see qt-widgets-forms-guide.adoc
  */
 class FormWidgetGenerator {
 public:

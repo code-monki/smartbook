@@ -1,3 +1,53 @@
+/**
+ * @file QmlAppBridge.cpp
+ * @brief Implementation of QmlAppBridge for C++/QML communication
+ * 
+ * This file implements the QmlAppBridge class, which provides a secure communication
+ * channel between QML embedded applications and the C++ Reader application. It exposes
+ * a restricted API that allows QML apps to persist data and access sandboxed file system.
+ * 
+ * @section API Methods
+ * 
+ * **Form Data Persistence:**
+ * - saveFormData() - Save form data to cartridge User_Data table
+ * - loadFormData() - Load form data from cartridge User_Data table
+ * 
+ * **Sandbox File System:**
+ * - saveSandboxFile() - Save file to app's sandbox directory
+ * - loadSandboxFile() - Load file from sandbox
+ * - listSandboxFiles() - List all files in sandbox
+ * - deleteSandboxFile() - Delete file from sandbox
+ * 
+ * **Other:**
+ * - requestAppConsent() - Request user consent for app execution
+ * - logMessage() - Log message to application log
+ * 
+ * @section Security
+ * 
+ * **Sandbox Isolation:**
+ * - Each app has its own sandbox: `{cartridge_guid}/{app_id}/sandbox/`
+ * - Filename validation prevents directory traversal attacks
+ * - Apps cannot access files outside their sandbox
+ * 
+ * **Network Restrictions:**
+ * - QML apps have no network access
+ * - All network requests are blocked
+ * - Apps must use sandbox file system for data persistence
+ * 
+ * @section Signals
+ * 
+ * All operations emit signals to notify QML of completion:
+ * - formDataSaved() - Form save completed
+ * - formDataLoaded() - Form load completed
+ * - sandboxFileSaved() - File save completed
+ * - sandboxFileLoaded() - File load completed
+ * - And more...
+ * 
+ * @see QmlAppBridge.h
+ * @see QmlEmbeddedAppWidget
+ * @see qml-embedded-apps-guide.adoc
+ */
+
 #include "smartbook/reader/QmlAppBridge.h"
 #include "smartbook/common/database/CartridgeDBConnector.h"
 #include "smartbook/reader/ui/ConsentDialog.h"
@@ -15,6 +65,10 @@
 
 namespace smartbook {
 namespace reader {
+
+// ============================================================================
+// Constructor
+// ============================================================================
 
 QmlAppBridge::QmlAppBridge(QObject* parent)
     : QObject(parent)
@@ -37,10 +91,23 @@ void QmlAppBridge::setCartridgeGuid(const QString& guid)
     }
 }
 
+// ============================================================================
+// Public Slots - Form Data Persistence
+// ============================================================================
+
 void QmlAppBridge::saveFormData(const QString& formId, const QString& dataJson)
 {
-    // DDD Section: Form Data Persistence
-    // Save form data to cartridge database
+    /**
+     * @brief Save form data to cartridge database
+     * 
+     * Saves form data to User_Data table in cartridge database.
+     * Data is stored as JSON string with timestamp.
+     * 
+     * @param formId Form identifier (used as form_key in database)
+     * @param dataJson JSON string of form data
+     * 
+     * @note Emits formDataSaved() signal on completion (success or failure)
+     */
     
     if (m_cartridgePath.isEmpty()) {
         qWarning() << "Cannot save form data: no cartridge path set";
@@ -203,10 +270,25 @@ void QmlAppBridge::requestAppConsent(const QString& appId)
     }
 }
 
+// ============================================================================
+// Public Slots - Sandbox File System
+// ============================================================================
+
 void QmlAppBridge::saveSandboxFile(const QString& filename, const QString& data)
 {
-    // DDD Section: Sandbox File System API
-    // Save file to app's sandbox directory
+    /**
+     * @brief Save file to app's sandbox directory
+     * 
+     * Saves file to app's isolated sandbox directory. Filename is validated
+     * to prevent directory traversal attacks (no "..", "/", or "\" allowed).
+     * 
+     * Sandbox path: `{app_data_dir}/{cartridge_guid}/{app_id}/sandbox/`
+     * 
+     * @param filename Filename within sandbox (must not contain path separators)
+     * @param data File data as string
+     * 
+     * @note Emits sandboxFileSaved() signal on completion
+     */
     
     if (m_cartridgeGuid.isEmpty() || m_appId.isEmpty()) {
         qWarning() << "Cannot save sandbox file: cartridge GUID or app ID not set";
@@ -385,8 +467,20 @@ void QmlAppBridge::logMessage(const QString& level, const QString& message)
     }
 }
 
+// ============================================================================
+// Private Methods
+// ============================================================================
+
 QString QmlAppBridge::getSandboxPath() const
 {
+    /**
+     * @brief Get sandbox directory path for current app
+     * 
+     * Constructs sandbox path: `{app_data_dir}/{cartridge_guid}/{app_id}/sandbox/`
+     * Creates directory if it doesn't exist.
+     * 
+     * @return Sandbox directory path, or empty string on error
+     */
     // DDD Section: Sandbox File System API
     // Sandbox path: {AppData}/SmartBook/sandbox/{cartridge_guid}/{app_id}/
     

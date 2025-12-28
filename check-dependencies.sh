@@ -1,6 +1,45 @@
 #!/bin/bash
-# SmartBook Dependency Checker
-# Checks for required dependencies and provides installation guidance
+# ============================================================================
+# check-dependencies.sh - SmartBook Dependency Checker
+# ============================================================================
+#
+# Purpose:
+#   Checks for all required and optional dependencies needed to build SmartBook.
+#   Provides installation guidance for missing dependencies.
+#
+# Usage:
+#   ./check-dependencies.sh
+#
+# Dependencies Checked:
+#   Required:
+#     - CMake 3.20+
+#     - C++ compiler (clang on macOS, g++ on Linux)
+#     - Qt 6.2+ with components: Core, Gui, Widgets, Sql
+#     - SQLite 3.51+ (may be bundled with Qt)
+#
+#   Optional:
+#     - Qt6 WebEngine (deprecated, no longer required)
+#     - Qt6 WebChannel (deprecated, no longer required)
+#     - Qt6 Test (for unit tests)
+#     - Asciidoctor (for documentation generation)
+#     - Mermaid CLI (for diagram conversion)
+#
+# Output:
+#   - Color-coded status for each dependency
+#   - Installation instructions for missing dependencies
+#   - Summary of missing critical dependencies
+#
+# Exit Codes:
+#   0: All critical dependencies installed
+#   1: Missing critical dependencies
+#
+# Platform Support:
+#   - macOS (Darwin)
+#   - Linux (various distributions)
+#   - Windows (Git Bash, Cygwin)
+#
+# See Documentation/build-process.adoc for detailed dependency information.
+# ============================================================================
 
 set -e
 

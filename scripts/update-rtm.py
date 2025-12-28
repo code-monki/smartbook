@@ -1,7 +1,48 @@
 #!/usr/bin/env python3
-"""
-Update Requirements Traceability Matrix with all requirements and test cases.
-"""
+# ============================================================================
+# update-rtm.py - Requirements Traceability Matrix Updater
+# ============================================================================
+#
+# Purpose:
+#   Updates the Requirements Traceability Matrix (RTM) by extracting all
+#   requirements from the SRS and all test cases from the Test Plan, then
+#   generating a comprehensive traceability matrix showing which test cases
+#   cover which requirements.
+#
+# Usage:
+#   ./update-rtm.py
+#
+#   The script reads:
+#     - Documentation/srs.adoc (requirements)
+#     - Documentation/test-plan.adoc (test cases)
+#   And updates:
+#     - Documentation/requirements_traceability_matrix.adoc
+#
+# Requirements:
+#   - Python 3.x
+#   - Documentation/srs.adoc must exist
+#   - Documentation/test-plan.adoc must exist
+#
+# Process:
+#   1. Extracts all requirements from SRS (FR-*, NFR-*, etc.)
+#   2. Extracts all test cases from Test Plan (T-*)
+#   3. Maps test cases to requirements based on "Requirement Covered" field
+#   4. Generates RTM table with requirements and associated test cases
+#   5. Updates requirements_traceability_matrix.adoc
+#
+# Requirement Format:
+#   * **FR-X.Y.Z (Title):** Description
+#
+# Test Case Format:
+#   | **Test Case ID** | **T-XXX**
+#   | **Requirement Covered** | FR-X.Y.Z
+#
+# Exit Codes:
+#   0: Success
+#   1: Error (file not found, parsing error, etc.)
+#
+# See Documentation/requirements_traceability_matrix.adoc for output format.
+# ============================================================================
 
 import re
 from collections import defaultdict

@@ -5,6 +5,7 @@
 #include "smartbook/common/database/CartridgeDBConnector.h"
 #include "smartbook/common/database/LocalDBManager.h"
 #include "smartbook/common/manifest/ManifestManager.h"
+#include "smartbook/common/utils/ThemeManager.h"
 #include "smartbook/common/security/SignatureVerifier.h"
 #include "smartbook/common/security/TrustRegistry.h"
 #include "smartbook/common/manifest/ManifestManager.h"
@@ -20,6 +21,7 @@
 #include <QMenu>
 #include <QAction>
 #include <QActionGroup>
+#include <QKeySequence>
 #include <QDebug>
 
 namespace smartbook {
@@ -31,6 +33,7 @@ ReaderViewWindow::ReaderViewWindow(const QString& cartridgeGuid, QWidget* parent
     , m_readerView(nullptr)
     , m_signatureVerifier(new common::security::SignatureVerifier(this))
     , m_trustRegistry(new common::security::TrustRegistry(this))
+    , m_themeGroup(nullptr)
 {
     setupUI();
     restoreWindowState();
@@ -63,9 +66,13 @@ void ReaderViewWindow::setupUI() {
     QMenu* themeMenu = viewMenu->addMenu("Theme");
     QActionGroup* themeGroup = new QActionGroup(this);
     
+    QAction* autoAction = themeMenu->addAction("Auto");
+    autoAction->setCheckable(true);
+    autoAction->setData("auto");
+    themeGroup->addAction(autoAction);
+    
     QAction* lightAction = themeMenu->addAction("Light");
     lightAction->setCheckable(true);
-    lightAction->setChecked(true);
     lightAction->setData("light");
     themeGroup->addAction(lightAction);
     
@@ -79,26 +86,84 @@ void ReaderViewWindow::setupUI() {
     sepiaAction->setData("sepia");
     themeGroup->addAction(sepiaAction);
     
+    // Store theme group for later access
+    m_themeGroup = themeGroup;
+    
+    // Load saved theme preference and set menu selection
+    QString savedTheme = common::utils::ThemeManager::getInstance().getTheme();
+    setThemeMenuSelection(savedTheme);
+    
     // Connect theme actions
-    connect(themeGroup, &QActionGroup::triggered, this, [this](QAction* action) {
+    connect(themeGroup, &QActionGroup::triggered, this, [](QAction* action) {
         QString theme = action->data().toString();
         qDebug() << "ReaderViewWindow: Theme menu triggered, theme=" << theme;
+        
+        // Save global preference (shared across all apps)
+        // This will emit themeChanged signal, which we listen to below
+        common::utils::ThemeManager::getInstance().setTheme(theme);
+    });
+    
+    // Connect to theme change notifications (from any window)
+    connect(&common::utils::ThemeManager::getInstance(), &common::utils::ThemeManager::themeChanged,
+            this, [this](const QString& theme) {
+                qDebug() << "ReaderViewWindow: Theme changed to" << theme << ", updating UI";
+                setThemeMenuSelection(theme);
+                if (m_readerView) {
+                    m_readerView->setTheme(theme);
+                    qDebug() << "ReaderViewWindow: Theme applied to ReaderView";
+                } else {
+                    qWarning() << "ReaderViewWindow: m_readerView is null, cannot set theme";
+                }
+            });
+    
+    viewMenu->addSeparator();
+    
+    // Navigation actions
+    QAction* nextPageAction = viewMenu->addAction("Next Page");
+    nextPageAction->setShortcut(QKeySequence::MoveToNextPage);
+    connect(nextPageAction, &QAction::triggered, this, [this]() {
         if (m_readerView) {
-            m_readerView->setTheme(theme);
-            qDebug() << "ReaderViewWindow: Theme set successfully";
-        } else {
-            qWarning() << "ReaderViewWindow: m_readerView is null, cannot set theme";
+            int currentPage = m_readerView->getCurrentPageId();
+            if (currentPage >= 1) {
+                m_readerView->loadPage(currentPage + 1);
+            }
+        }
+    });
+    
+    QAction* prevPageAction = viewMenu->addAction("Previous Page");
+    prevPageAction->setShortcut(QKeySequence::MoveToPreviousPage);
+    connect(prevPageAction, &QAction::triggered, this, [this]() {
+        if (m_readerView) {
+            int currentPage = m_readerView->getCurrentPageId();
+            if (currentPage > 1) {
+                m_readerView->loadPage(currentPage - 1);
+            } else if (currentPage == -1) {
+                // If on first page (pageId -1), go to page 1 explicitly
+                m_readerView->loadPage(1);
+            }
+        }
+    });
+    
+    // Quick navigation to page 2 for testing
+    QAction* goToPage2Action = viewMenu->addAction("Go to Page 2 (Test Form)");
+    connect(goToPage2Action, &QAction::triggered, this, [this]() {
+        if (m_readerView) {
+            m_readerView->loadPage(2);
         }
     });
 }
 
 void ReaderViewWindow::loadCartridge() {
+    qDebug() << "ReaderViewWindow::loadCartridge: Starting, cartridgeGuid=" << m_cartridgeGuid;
+    
     // Get cartridge path from manifest
     common::database::LocalDBManager& dbManager = 
         common::database::LocalDBManager::getInstance();
     
     if (!dbManager.isOpen()) {
-        emit onError("Local database not open");
+        QString error = "Local database not open";
+        qWarning() << "ReaderViewWindow::loadCartridge:" << error;
+        emit onError(error);
         return;
     }
     
@@ -107,36 +172,55 @@ void ReaderViewWindow::loadCartridge() {
     query.prepare("SELECT local_path FROM Local_Library_Manifest WHERE cartridge_guid = ?");
     query.addBindValue(m_cartridgeGuid);
     
-    if (!query.exec() || !query.next()) {
-        emit onError("Cartridge not found in manifest: " + m_cartridgeGuid);
+    if (!query.exec()) {
+        QString error = "Failed to query manifest: " + query.lastError().text();
+        qWarning() << "ReaderViewWindow::loadCartridge:" << error;
+        emit onError(error);
+        return;
+    }
+    
+    if (!query.next()) {
+        QString error = "Cartridge not found in manifest: " + m_cartridgeGuid;
+        qWarning() << "ReaderViewWindow::loadCartridge:" << error;
+        emit onError(error);
         return;
     }
     
     QString cartridgePath = query.value(0).toString();
+    qDebug() << "ReaderViewWindow::loadCartridge: Found cartridge path:" << cartridgePath;
     
     if (cartridgePath.isEmpty()) {
-        emit onError("Cartridge path is empty for: " + m_cartridgeGuid);
+        QString error = "Cartridge path is empty for: " + m_cartridgeGuid;
+        qWarning() << "ReaderViewWindow::loadCartridge:" << error;
+        emit onError(error);
         return;
     }
     
     // Perform security verification
+    qDebug() << "ReaderViewWindow::loadCartridge: Performing security verification...";
     if (!performSecurityVerification(cartridgePath)) {
+        qWarning() << "ReaderViewWindow::loadCartridge: Security verification failed";
         // Security verification failed - error dialog already shown
         return;
     }
+    qDebug() << "ReaderViewWindow::loadCartridge: Security verification passed";
     
     // Update manifest (update hash and last_opened timestamp)
     updateManifest(cartridgePath);
     
     // Load content (with cartridge GUID for settings)
     if (m_readerView) {
+        qDebug() << "ReaderViewWindow::loadCartridge: Calling m_readerView->loadCartridge()";
         m_readerView->loadCartridge(cartridgePath, m_cartridgeGuid);
         
         // Restore reading position if available
         if (m_restoredPageId >= 0) {
+            qDebug() << "ReaderViewWindow::loadCartridge: Restoring page" << m_restoredPageId;
             m_readerView->loadPage(m_restoredPageId);
             // TODO: Restore scroll position and anchor (requires JavaScript bridge)
         }
+    } else {
+        qWarning() << "ReaderViewWindow::loadCartridge: m_readerView is null!";
     }
 }
 
@@ -329,11 +413,20 @@ void ReaderViewWindow::centerWindow() {
 
 bool ReaderViewWindow::performSecurityVerification(const QString& cartridgePath)
 {
+    qDebug() << "ReaderViewWindow::performSecurityVerification: Starting verification for" << cartridgePath;
+    
     // Step 1: Verify cartridge signature
     common::security::VerificationResult result = m_signatureVerifier->verifyCartridge(cartridgePath, m_cartridgeGuid);
     
+    qDebug() << "ReaderViewWindow::performSecurityVerification: Verification result:";
+    qDebug() << "  - Security Level:" << static_cast<int>(result.securityLevel);
+    qDebug() << "  - Effective Policy:" << static_cast<int>(result.effectivePolicy);
+    qDebug() << "  - Is Tampered:" << result.isTampered;
+    qDebug() << "  - Error Message:" << result.errorMessage;
+    
     // Step 2: Handle tampering detection
     if (result.isTampered) {
+        qWarning() << "ReaderViewWindow::performSecurityVerification: Tampering detected";
         handleSecurityError(ui::SecurityErrorType::TamperingDetected, 
                           "Content hash mismatch detected. H1 != H2");
         return false;
@@ -341,6 +434,7 @@ bool ReaderViewWindow::performSecurityVerification(const QString& cartridgePath)
     
     // Step 3: Handle rejected policy (invalid signature, fingerprint mismatch, etc.)
     if (result.effectivePolicy == common::security::TrustPolicy::REJECTED) {
+        qWarning() << "ReaderViewWindow::performSecurityVerification: Policy REJECTED";
         if (!result.errorMessage.isEmpty()) {
             handleSecurityError(ui::SecurityErrorType::SignatureInvalid, result.errorMessage);
         } else {
@@ -366,22 +460,44 @@ bool ReaderViewWindow::performSecurityVerification(const QString& cartridgePath)
     
     // Step 5: Handle consent requirement for L2/L3 cartridges
     if (result.effectivePolicy == common::security::TrustPolicy::CONSENT_REQUIRED) {
+        qDebug() << "ReaderViewWindow::performSecurityVerification: Consent required, showing dialog";
+        qDebug() << "ReaderViewWindow::performSecurityVerification: Cartridge title:" << cartridgeTitle << ", author:" << authorName;
+        
+        // Store trust decision before showing dialog to check after
+        auto trustBefore = m_trustRegistry->getTrustDecision(m_cartridgeGuid);
+        qDebug() << "ReaderViewWindow::performSecurityVerification: Trust decision before consent:" << static_cast<int>(trustBefore);
+        
         handleConsentRequired(result.securityLevel, cartridgeTitle, authorName);
         
-        // Check if window is still open (user didn't cancel)
-        // If window was closed, handleConsentRequired called close()
-        // We can check if the window is visible or if trust was revoked
-        if (!isVisible()) {
-            return false; // User cancelled, window was closed
+        // Check if trust was stored (user accepted) or if window was closed (user cancelled)
+        // Note: Window might not be visible yet if called during construction, so check trust decision instead
+        auto trustDecision = m_trustRegistry->getTrustDecision(m_cartridgeGuid);
+        qDebug() << "ReaderViewWindow::performSecurityVerification: Trust decision after consent:" << static_cast<int>(trustDecision);
+        
+        // If trust decision is still the same as before (and not PERSISTENT/SESSION), user cancelled
+        if (trustDecision == trustBefore && 
+            trustDecision != common::security::TrustRegistry::TrustPolicy::PERSISTENT &&
+            trustDecision != common::security::TrustRegistry::TrustPolicy::SESSION) {
+            qWarning() << "ReaderViewWindow::performSecurityVerification: No trust stored (user cancelled)";
+            return false; // User cancelled
         }
         
         // Check if trust was revoked after consent dialog
-        if (m_trustRegistry->getTrustDecision(m_cartridgeGuid) == 
-            common::security::TrustRegistry::TrustPolicy::REVOKED) {
+        if (trustDecision == common::security::TrustRegistry::TrustPolicy::REVOKED) {
+            qWarning() << "ReaderViewWindow::performSecurityVerification: Trust was revoked";
             return false; // Trust was revoked
         }
+        
+        // Also check if window was explicitly closed (user cancelled via close button)
+        if (!isVisible() && trustDecision == trustBefore) {
+            qWarning() << "ReaderViewWindow::performSecurityVerification: Window closed and no trust stored (user cancelled)";
+            return false; // User cancelled, window was closed
+        }
+        
+        qDebug() << "ReaderViewWindow::performSecurityVerification: Consent granted, proceeding";
     }
     
+    qDebug() << "ReaderViewWindow::performSecurityVerification: Verification successful";
     return true;
 }
 
@@ -414,13 +530,22 @@ void ReaderViewWindow::handleConsentRequired(
     const QString& cartridgeTitle,
     const QString& authorName)
 {
+    qDebug() << "ReaderViewWindow::handleConsentRequired: Showing consent dialog";
+    qDebug() << "ReaderViewWindow::handleConsentRequired: Level=" << static_cast<int>(level) 
+             << ", Title=" << cartridgeTitle << ", Author=" << authorName;
+    
     // Show consent dialog
     reader::ui::ConsentDialog consentDialog(level, cartridgeTitle, authorName, this);
     
+    qDebug() << "ReaderViewWindow::handleConsentRequired: Executing dialog...";
     int dialogResult = consentDialog.exec();
     reader::ui::ConsentDialog::ConsentResult userChoice = consentDialog.getResult();
     
+    qDebug() << "ReaderViewWindow::handleConsentRequired: Dialog result=" << dialogResult 
+             << ", User choice=" << static_cast<int>(userChoice);
+    
     if (dialogResult == QDialog::Accepted && userChoice != reader::ui::ConsentDialog::Cancel) {
+        qDebug() << "ReaderViewWindow::handleConsentRequired: User accepted, storing trust decision";
         // User chose to load the cartridge
         if (userChoice == reader::ui::ConsentDialog::LoadAndAlwaysTrust) {
             // Store persistent trust
@@ -428,16 +553,19 @@ void ReaderViewWindow::handleConsentRequired(
                 m_cartridgeGuid, 
                 common::security::TrustRegistry::TrustPolicy::PERSISTENT
             );
+            qDebug() << "ReaderViewWindow::handleConsentRequired: Stored PERSISTENT trust";
         } else if (userChoice == reader::ui::ConsentDialog::LoadForSessionOnly) {
             // Store session trust
             m_trustRegistry->storeTrustDecision(
                 m_cartridgeGuid,
                 common::security::TrustRegistry::TrustPolicy::SESSION
             );
+            qDebug() << "ReaderViewWindow::handleConsentRequired: Stored SESSION trust";
         }
         // Continue loading - return true (handled by caller)
     } else {
         // User cancelled or closed dialog - don't load cartridge
+        qWarning() << "ReaderViewWindow::handleConsentRequired: User cancelled or rejected, closing window";
         close();
     }
 }
@@ -496,6 +624,37 @@ void ReaderViewWindow::updateManifest(const QString& cartridgePath)
     
     // Note: last_opened timestamp would be updated here if we had that field
     // For now, we're updating the hash to detect tampering on next load
+}
+
+QString ReaderViewWindow::loadGlobalThemePreference()
+{
+    // Use ThemeManager for global theme preference
+    return common::utils::ThemeManager::getInstance().getTheme();
+}
+
+void ReaderViewWindow::saveGlobalThemePreference(const QString& theme)
+{
+    // Use ThemeManager for global theme preference
+    common::utils::ThemeManager::getInstance().setTheme(theme);
+}
+
+void ReaderViewWindow::setThemeMenuSelection(const QString& theme)
+{
+    if (!m_themeGroup) {
+        qWarning() << "ReaderViewWindow::setThemeMenuSelection: Theme group not initialized";
+        return;
+    }
+    
+    // Find action with matching data
+    for (QAction* action : m_themeGroup->actions()) {
+        if (action->data().toString() == theme) {
+            action->setChecked(true);
+            qDebug() << "ReaderViewWindow::setThemeMenuSelection: Set menu to" << theme;
+            return;
+        }
+    }
+    
+    qWarning() << "ReaderViewWindow::setThemeMenuSelection: Theme" << theme << "not found in menu";
 }
 
 } // namespace reader

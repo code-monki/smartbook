@@ -1,3 +1,43 @@
+# ============================================================================
+# SmartBook Common Library CMakeLists.txt
+# ============================================================================
+#
+# Build configuration for the SmartBook common shared library.
+# This library contains code shared between Reader, Creator, and future Server.
+#
+# Dependencies:
+#   - Qt6: Core, Gui, Widgets, Sql, Network
+#   - OpenSSL: Optional, for signature verification (if found)
+#
+# Qt Detection:
+#   - Automatically detects Qt installation in ~/Qt/6.x.x/ (Unix) or
+#     C:/Qt/6.x.x/ (Windows)
+#   - Falls back to system Qt if custom installation not found
+#
+# Output:
+#   - Shared library: libsmartbook_common.so (Linux)
+#   - Shared library: libsmartbook_common.dylib (macOS)
+#   - Shared library: smartbook_common.dll (Windows)
+#
+# Components:
+#   - Database: LocalDBManager, CartridgeDBConnector
+#   - Security: SignatureVerifier, TrustRegistry
+#   - Utils: PlatformUtils, ThemeManager, PathUtils, SearchSnippetGenerator
+#   - Metadata: MetadataExtractor
+#   - Manifest: ManifestManager
+#   - Settings: SettingsManager
+#   - Forms: FormSchemaParser, FormWidgetGenerator, FormValidator, FormDataSerializer
+#
+# Platform-Specific:
+#   - macOS: Sets RPATH and install name
+#   - Linux: Sets library version and SOVERSION
+#   - Windows: Standard DLL configuration
+#
+# Installation:
+#   - Library installed to lib/
+#   - Headers installed to include/smartbook/
+# ============================================================================
+
 cmake_minimum_required(VERSION 3.20)
 project(SmartBookCommon VERSION 1.0.0 LANGUAGES CXX)
 
@@ -110,6 +150,7 @@ set(COMMON_SOURCES
     src/security/SignatureVerifier.cpp
     src/security/TrustRegistry.cpp
     src/utils/PlatformUtils.cpp
+    src/utils/ThemeManager.cpp
     src/utils/PathUtils.cpp
     src/utils/SearchSnippetGenerator.cpp
     src/metadata/MetadataExtractor.cpp
@@ -128,6 +169,7 @@ set(COMMON_HEADERS
     include/smartbook/common/security/SignatureVerifier.h
     include/smartbook/common/security/TrustRegistry.h
     include/smartbook/common/utils/PlatformUtils.h
+    include/smartbook/common/utils/ThemeManager.h
     include/smartbook/common/utils/PathUtils.h
     include/smartbook/common/utils/SearchSnippetGenerator.h
     include/smartbook/common/metadata/MetadataExtractor.h

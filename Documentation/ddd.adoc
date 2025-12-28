@@ -3851,35 +3851,49 @@ Do you want to load this cartridge?
 |===
 // Removed Image placeholder
 
-== Qt WebEngine Configuration Implementation
+== Content Rendering Architecture Implementation
 
-This section specifies the detailed configuration of Qt WebEngine for the Reader and Creator Tool applications, including profile settings, security configuration, performance optimization, and standards compliance.
+**Status:** ✅ **MIGRATED** (as of 2025-12-27)
 
-=== Qt WebEngine Version Requirements
+**Note:** This section has been updated to reflect the migration from Qt WebEngine to QTextDocument + Qt Quick/QML architecture. See `content-rendering-decision-analysis.adoc` and `2025-12-26_content_rendering_architecture_decision.adoc` for the decision rationale.
+
+This section specifies the detailed implementation of content rendering using QTextDocument/QTextBrowser for HTML content and Qt Quick/QML for embedded applications in the Reader and Creator Tool applications.
+
+=== Qt Version Requirements
 
 **Minimum Qt Version:**
 
 * **Qt 6.2+** (recommended: Qt 6.5+)
-* **Qt WebEngine Module:** Required module, must be included in build configuration
+* **Required Modules:**
+  * `Qt6::Core` - Core functionality
+  * `Qt6::Widgets` - QTextBrowser, QTextEdit, form widgets
+  * `Qt6::Quick` - QML engine
+  * `Qt6::QuickWidgets` - QQuickWidget for embedding QML
+  * `Qt6::Qml` - QML type registration
+  * `Qt6::Network` - Network access (if needed)
 
-**Chromium Version:**
+**Note:** Qt WebEngine module is **NOT** required and has been removed from the build.
 
-* Qt WebEngine 6.2+ uses Chromium 91+
-* Qt WebEngine 6.5+ uses Chromium 108+
-* **Documentation Requirement:** Application SHALL document the exact Chromium version at build time (display in About dialog or log at startup)
+=== HTML/CSS Standards Support
 
-**V8 JavaScript Engine:**
+**HTML Support:**
 
-* V8 version is determined by Chromium version
-* Qt WebEngine 6.2+ uses V8 9.1+
-* Qt WebEngine 6.5+ uses V8 10.8+
-* **Documentation Requirement:** Application SHALL document the exact V8 version at build time
+* **HTML4 Subset:** QTextDocument supports HTML4 subset
+* **Supported Elements:** Basic HTML elements (headings, paragraphs, lists, links, images, tables, etc.)
+* **Not Supported:** HTML5 semantic elements, canvas, video, audio, Web Components
 
-**HTML/CSS Standards:**
+**CSS Support:**
 
-* **HTML5 Support:** Full support for HTML5 specification as implemented by Chromium version (typically 95%+ compliance)
-* **CSS3 Support:** Full support for CSS3 specification as implemented by Chromium version (typically 90%+ compliance)
-* **ECMAScript Support:** Full support for ECMAScript 2022 (ES13) and earlier versions
+* **CSS 2.1 Subset:** QTextDocument supports CSS 2.1 properties
+* **Supported Properties:** Basic styling (colors, fonts, margins, padding, borders, text-align, etc.)
+* **Not Supported:** CSS3 features (flexbox, grid, transforms, animations, transitions, CSS variables)
+
+**Limitations:**
+
+* No JavaScript execution in content
+* No dynamic content updates
+* Limited CSS support compared to modern browsers
+* Content must be HTML4 + CSS 2.1 compliant
 
 === WebEngine Profile Configuration
 
@@ -4269,43 +4283,36 @@ void ReaderViewInstance::showRecoveryDialog() {
 
 **Memory Usage:**
 
-* Each `QWebEngineView` instance uses approximately 50-100MB RAM
-* Monitor memory usage for multiple simultaneous views
-* Implement view lifecycle management (destroy unused views)
-* Set memory warnings if system memory is low
+* `QTextBrowser` instances use minimal memory (~5-10MB per instance)
+* `QQuickWidget` instances use moderate memory (~20-30MB per QML app)
+* Qt Widgets forms use minimal memory (~1-2MB per form)
+* **Total:** Much lower memory footprint than WebEngine (no Chromium process)
 
 **View Lifecycle:**
 
 * Create views on-demand (lazy loading)
 * Destroy views when cartridge is closed
-* Reuse views when possible (but maintain isolation for embedded apps)
+* QML apps are isolated per instance (no shared state)
 
 **Memory Monitoring:**
 
-* Track memory usage per view
-* Display warning if total memory usage exceeds threshold (e.g., 500MB)
+* Monitor total memory usage across all windows
+* Display warning if total memory usage exceeds threshold (e.g., 200MB)
 * Offer to close other cartridges to free memory
 
-==== Cache Configuration
+==== Rendering Performance
 
-**HTTP Cache:**
+**Synchronous Rendering:**
 
-* **Content Rendering:** 50MB disk cache
-* **Creator Tool:** 100MB disk cache
-* **Embedded Apps:** No cache (prevents service workers)
+* QTextBrowser renders HTML synchronously (no async loading delays)
+* Theme changes are instant (no flash) - palette-based styling
+* QML apps load asynchronously but are isolated from content rendering
 
-**Cache Location:**
+**Optimization:**
 
-* Platform-specific cache directories:
-  * Windows: `%LOCALAPPDATA%\SmartBook\cache\`
-  * macOS: `~/Library/Caches/SmartBook/`
-  * Linux: `~/.cache/SmartBook/`
-
-**Cache Cleanup:**
-
-* Clear cache on application exit (optional, user preference)
-* Clear cache on cartridge deletion (if cartridge-specific cache)
-* Manual cache clear option in settings
+* Content is rendered once (no re-rendering on theme change)
+* QML apps are cached in memory after first load
+* Form widgets are lightweight and fast to render
 
 === HTML/CSS Standards Support
 

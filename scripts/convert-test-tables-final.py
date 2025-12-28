@@ -1,13 +1,56 @@
 #!/usr/bin/env python3
-"""
-Convert test case tables from wide format to individual two-column tables.
-Each test case becomes its own table with label/content format.
-
-The AsciiDoc table format for test cases is:
-| cell1 | cell2 | a|
-content (can span multiple lines)
-| cell4 |
-"""
+# ============================================================================
+# convert-test-tables-final.py - Test Case Table Format Converter
+# ============================================================================
+#
+# Purpose:
+#   Converts test case tables from wide multi-column format to individual
+#   two-column tables (label/content format). Each test case becomes its
+#   own separate table for better readability in documentation.
+#
+# Usage:
+#   ./convert-test-tables-final.py <input.adoc> [output.adoc]
+#
+#   Arguments:
+#     input.adoc:   AsciiDoc file containing test case tables
+#     output.adoc:  Output file (default: overwrites input file)
+#
+# Requirements:
+#   - Python 3.x
+#
+# Process:
+#   1. Scans AsciiDoc file for test case tables (identified by "Test Case ID" header)
+#   2. Converts each wide table to individual two-column tables
+#   3. Each test case becomes: | Label | Content |
+#   4. Preserves all table content and formatting
+#
+# Input Format (Wide Table):
+#   [cols="1,3,2"]
+#   |===
+#   | **Test Case ID** | **Description** | **Requirement Covered**
+#   | T-001 | Test description | FR-1.2.3
+#   |===
+#
+# Output Format (Individual Tables):
+#   |===
+#   | **Test Case ID**
+#   | T-001
+#   |===
+#   |===
+#   | **Description**
+#   | Test description
+#   |===
+#   |===
+#   | **Requirement Covered**
+#   | FR-1.2.3
+#   |===
+#
+# Exit Codes:
+#   0: Success
+#   1: Error (file not found, parsing error, etc.)
+#
+# See Documentation/test-plan.adoc for example usage.
+# ============================================================================
 
 import re
 import sys

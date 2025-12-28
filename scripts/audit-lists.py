@@ -1,8 +1,53 @@
 #!/usr/bin/env python3
-"""
-Comprehensive audit of all lists in AsciiDoc files to find missing blank lines.
-Table cells are excluded as they handle lists differently.
-"""
+# ============================================================================
+# audit-lists.py - AsciiDoc List Formatting Auditor
+# ============================================================================
+#
+# Purpose:
+#   Audits all AsciiDoc files to find list formatting issues (missing blank
+#   lines before lists). This is a read-only audit tool that reports issues
+#   without making changes. Use fix-asciidoc-lists.py to fix the issues.
+#
+# Usage:
+#   ./audit-lists.py [directory]
+#
+#   Arguments:
+#     directory:    Directory to audit (default: Documentation/)
+#
+# Requirements:
+#   - Python 3.x
+#
+# Process:
+#   1. Scans all .adoc files in specified directory
+#   2. Identifies list formatting issues:
+#      - Lists immediately after non-blank lines
+#      - Lists following bold text without blank line
+#      - Lists following text ending with colon without blank line
+#   3. Excludes table cells (tables handle lists differently)
+#   4. Reports issues with file name and line number
+#
+# Issues Reported:
+#   - List immediately after non-blank line (not in table)
+#   - Bold text followed by list without blank line
+#   - Text ending with colon followed by list without blank line
+#
+# Output:
+#   Reports each issue with:
+#     - File path
+#     - Line number
+#     - Issue description
+#     - Context (surrounding lines)
+#
+# Exit Codes:
+#   0: Success (issues may be found, but script completed successfully)
+#   1: Error (file not found, etc.)
+#
+# Note:
+#   This is a read-only audit tool. Use fix-asciidoc-lists.py to automatically
+#   fix the issues found by this script.
+#
+# See Documentation/build-process.adoc for documentation maintenance workflow.
+# ============================================================================
 
 import re
 import glob

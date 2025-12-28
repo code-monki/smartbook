@@ -1,7 +1,45 @@
 #!/usr/bin/env python3
-"""
-Update Requirements Traceability Matrix with test case IDs.
-"""
+# ============================================================================
+# update-rtm-with-tests.py - RTM Updater with Test Case IDs
+# ============================================================================
+#
+# Purpose:
+#   Updates the Requirements Traceability Matrix (RTM) by extracting test case
+#   IDs from the Test Plan and mapping them to requirements. This is a simpler
+#   version that focuses on test case ID extraction.
+#
+# Usage:
+#   ./update-rtm-with-tests.py
+#
+#   The script reads:
+#     - Documentation/test-plan.adoc (test cases)
+#   And updates:
+#     - Documentation/requirements_traceability_matrix.adoc
+#
+# Requirements:
+#   - Python 3.x
+#   - Documentation/test-plan.adoc must exist
+#
+# Process:
+#   1. Extracts test case IDs from Test Plan tables
+#   2. Extracts requirement IDs from "Requirement Covered" field
+#   3. Maps test cases to requirements
+#   4. Updates RTM with test case IDs
+#
+# Test Case Format:
+#   | **Test Case ID** | **T-XXX**
+#   | **Requirement Covered** | FR-X.Y.Z
+#
+# Exit Codes:
+#   0: Success
+#   1: Error (file not found, parsing error, etc.)
+#
+# Note:
+#   This is a simpler version of update-rtm.py that focuses on test case
+#   extraction. Use update-rtm.py for full requirement and test case extraction.
+#
+# See Documentation/requirements_traceability_matrix.adoc for output format.
+# ============================================================================
 
 import re
 from collections import defaultdict

@@ -1,0 +1,453 @@
+= QML Embedded Applications Developer Guide
+:author: AI Assistant
+:revdate: 2025-12-28
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+
+== Overview
+
+This guide explains how to develop QML embedded applications for SmartBook cartridges. QML embedded applications are interactive applications that run within cartridge content pages, providing rich user experiences beyond static HTML content.
+
+**Key Concepts:**
+
+* QML embedded apps replace JavaScript SPAs (Single Page Applications)
+* Apps run in isolated `QQuickWidget` instances
+* Apps communicate with C++ via `QmlAppBridge` (registered as `SmartbookBridge` in QML)
+* Apps have no network access (local-only, sandboxed)
+* Apps can persist data via sandbox file system and form data APIs
+
+== Architecture
+
+=== Component Overview
+
+**Reader Side:**
+
+* `QmlEmbeddedAppWidget` - Widget that hosts QML apps
+* `QmlAppBridge` - C++/QML communication bridge
+* `ContentParser` - Parses HTML for QML app markers
+
+**QML Side:**
+
+* QML code stored in `Embedded_Apps.qml_code` column
+* QML apps use `SmartbookBridge` for C++ communication
+* QML module: `SmartBook 1.0`
+
+=== App Loading Flow
+
+1. Content page contains QML app marker: `<div data-smartbook-qml-app="app_id"></div>`
+2. `ContentParser` detects marker and extracts `app_id`
+3. `ReaderView` creates `QmlEmbeddedAppWidget` instance
+4. Widget loads QML code from `Embedded_Apps` table
+5. QML code is written to temporary file and loaded via `QQuickWidget::setSource()`
+6. `QmlAppBridge` is exposed to QML context as `SmartbookBridge`
+7. QML app runs in isolated context
+
+== QML App Development
+
+=== Basic QML App Structure
+
+[source,qml]
+----
+import QtQuick 2.15
+import SmartBook 1.0
+
+Rectangle {
+    id: root
+    width: 400
+    height: 300
+    color: "#f0f0f0"
+    
+    // Access SmartbookBridge
+    property var bridge: SmartbookBridge
+    
+    // App initialization
+    Component.onCompleted: {
+        console.log("QML app loaded");
+        // Load saved data, initialize UI, etc.
+    }
+    
+    // Your app UI here
+    Text {
+        anchors.centerIn: parent
+        text: "Hello from QML!"
+        font.pixelSize: 24
+    }
+}
+----
+
+=== Accessing SmartbookBridge
+
+**Context Property Approach (Recommended):**
+
+The bridge is automatically exposed as a context property:
+
+[source,qml]
+----
+import QtQuick 2.15
+import SmartBook 1.0
+
+Item {
+    // Access bridge via context property
+    property var bridge: SmartbookBridge
+    
+    Component.onCompleted: {
+        // Use bridge methods
+        bridge.saveFormData("my_form", '{"key": "value"}');
+    }
+}
+----
+
+**QML Type Approach (Alternative):**
+
+You can also instantiate the bridge as a QML type:
+
+[source,qml]
+----
+import QtQuick 2.15
+import SmartBook 1.0
+
+Item {
+    SmartbookBridge {
+        id: bridge
+        // Bridge is ready to use
+    }
+    
+    Component.onCompleted: {
+        bridge.saveFormData("my_form", '{"key": "value"}');
+    }
+}
+----
+
+=== SmartbookBridge API
+
+==== Properties
+
+* `cartridgePath` (read-only) - Path to cartridge file
+* `cartridgeGuid` (read-only) - Cartridge GUID
+
+==== Methods
+
+**Form Data Persistence:**
+
+* `saveFormData(formId, dataJson)` - Save form data to cartridge
+* `loadFormData(formId)` - Load form data from cartridge
+
+**Sandbox File Operations:**
+
+* `saveSandboxFile(filename, data)` - Save file to app's sandbox directory
+* `loadSandboxFile(filename)` - Load file from sandbox
+* `listSandboxFiles()` - List all files in sandbox
+* `deleteSandboxFile(filename)` - Delete file from sandbox
+
+**App Consent:**
+
+* `requestAppConsent(appId)` - Request user consent (if needed)
+
+**Logging:**
+
+* `logMessage(level, message)` - Log message (debug, info, warn, error)
+
+==== Signals
+
+**Form Data:**
+
+* `formDataSaved(formId, success, error)` - Emitted after save operation
+* `formDataLoaded(formId, dataJson, error)` - Emitted after load operation
+
+**Sandbox Files:**
+
+* `sandboxFileSaved(filename, success, error)` - Emitted after save
+* `sandboxFileLoaded(filename, data, error)` - Emitted after load
+* `sandboxFilesListed(files, error)` - Emitted after list
+* `sandboxFileDeleted(filename, success, error)` - Emitted after delete
+
+**App Consent:**
+
+* `appConsentGranted(appId)` - User granted consent
+* `appConsentDenied(appId)` - User denied consent
+
+=== Example: Form Data Persistence
+
+[source,qml]
+----
+import QtQuick 2.15
+import SmartBook 1.0
+import QtQuick.Controls 2.15
+
+Rectangle {
+    property var bridge: SmartbookBridge
+    
+    Column {
+        anchors.centerIn: parent
+        spacing: 10
+        
+        TextField {
+            id: nameField
+            placeholderText: "Enter name"
+        }
+        
+        TextField {
+            id: emailField
+            placeholderText: "Enter email"
+        }
+        
+        Button {
+            text: "Save"
+            onClicked: {
+                var data = {
+                    "name": nameField.text,
+                    "email": emailField.text
+                };
+                bridge.saveFormData("contact_form", JSON.stringify(data));
+            }
+        }
+        
+        Button {
+            text: "Load"
+            onClicked: {
+                bridge.loadFormData("contact_form");
+            }
+        }
+    }
+    
+    // Handle form data loaded
+    Connections {
+        target: bridge
+        function onFormDataLoaded(formId, dataJson, error) {
+            if (error) {
+                console.error("Failed to load:", error);
+                return;
+            }
+            
+            var data = JSON.parse(dataJson);
+            nameField.text = data.name || "";
+            emailField.text = data.email || "";
+        }
+    }
+    
+    // Load data on startup
+    Component.onCompleted: {
+        bridge.loadFormData("contact_form");
+    }
+}
+----
+
+=== Example: Sandbox File Operations
+
+[source,qml]
+----
+import QtQuick 2.15
+import SmartBook 1.0
+import QtQuick.Controls 2.15
+
+Rectangle {
+    property var bridge: SmartbookBridge
+    
+    Column {
+        anchors.centerIn: parent
+        spacing: 10
+        
+        TextArea {
+            id: editor
+            width: 400
+            height: 200
+            placeholderText: "Enter text to save"
+        }
+        
+        Button {
+            text: "Save to Sandbox"
+            onClicked: {
+                bridge.saveSandboxFile("notes.txt", editor.text);
+            }
+        }
+        
+        Button {
+            text: "Load from Sandbox"
+            onClicked: {
+                bridge.loadSandboxFile("notes.txt");
+            }
+        }
+        
+        Button {
+            text: "List Files"
+            onClicked: {
+                bridge.listSandboxFiles();
+            }
+        }
+    }
+    
+    // Handle sandbox file operations
+    Connections {
+        target: bridge
+        
+        function onSandboxFileSaved(filename, success, error) {
+            if (success) {
+                console.log("File saved:", filename);
+            } else {
+                console.error("Save failed:", error);
+            }
+        }
+        
+        function onSandboxFileLoaded(filename, data, error) {
+            if (error) {
+                console.error("Load failed:", error);
+                return;
+            }
+            editor.text = data;
+        }
+        
+        function onSandboxFilesListed(files, error) {
+            if (error) {
+                console.error("List failed:", error);
+                return;
+            }
+            console.log("Sandbox files:", files);
+        }
+    }
+    
+    // Load saved file on startup
+    Component.onCompleted: {
+        bridge.loadSandboxFile("notes.txt");
+    }
+}
+----
+
+== Content Integration
+
+=== Adding QML App to Content
+
+In your HTML content, add a QML app marker:
+
+[source,html]
+----
+<div data-smartbook-qml-app="my_app_id"></div>
+----
+
+The `app_id` must match an entry in the `Embedded_Apps` table.
+
+=== App Placement
+
+Currently, QML apps are placed below the HTML content in a vertical layout. Future versions may support inline positioning using anchor positions.
+
+== Security Model
+
+=== Isolation
+
+* Each QML app runs in its own `QQuickWidget` instance
+* Apps cannot access each other's data or state
+* Apps cannot access the host file system directly
+
+=== Network Restrictions
+
+* QML apps have **no network access**
+* All network requests are blocked
+* Apps must use sandbox file system for data persistence
+
+=== Sandbox File System
+
+* Each app has its own sandbox directory: `{cartridge_guid}/{app_id}/sandbox/`
+* Apps can only access files within their sandbox
+* Sandbox is cleared when cartridge is deleted (optional: user preference)
+
+== Best Practices
+
+=== Error Handling
+
+Always handle errors from bridge operations:
+
+[source,qml]
+----
+Connections {
+    target: bridge
+    
+    function onFormDataSaved(formId, success, error) {
+        if (!success) {
+            // Show error to user
+            errorLabel.text = "Save failed: " + error;
+        }
+    }
+}
+----
+
+=== Data Validation
+
+Validate data before saving:
+
+[source,qml]
+----
+function saveData() {
+    if (nameField.text.trim() === "") {
+        errorLabel.text = "Name is required";
+        return;
+    }
+    
+    var data = {
+        "name": nameField.text,
+        "email": emailField.text
+    };
+    bridge.saveFormData("form_id", JSON.stringify(data));
+}
+----
+
+=== Performance
+
+* Keep QML apps lightweight
+* Avoid heavy computations in QML (consider C++ if needed)
+* Use asynchronous operations for file I/O
+
+=== UI Design
+
+* Design apps to work with different themes (light, dark, sepia)
+* Use Qt Quick Controls 2.15 for consistent UI
+* Test with different window sizes
+
+== Limitations
+
+=== QML Version
+
+* QML apps use Qt Quick 2.15
+* Limited JavaScript runtime (not full ECMAScript)
+* No DOM API (QML has its own object model)
+
+=== No Network Access
+
+* Apps cannot make HTTP/HTTPS requests
+* Apps cannot use WebSocket
+* All data must be local (sandbox or form data)
+
+=== File System Access
+
+* Apps can only access sandbox directory
+* No direct file system access
+* No access to other cartridges' data
+
+== Troubleshooting
+
+=== App Not Loading
+
+* Check that `app_id` in marker matches `Embedded_Apps.app_id`
+* Verify QML code is valid (check QML errors in console)
+* Ensure `qml_code` column is not empty
+
+=== Bridge Not Available
+
+* Ensure `import SmartBook 1.0` is present
+* Check that bridge is accessed after `Component.onCompleted`
+* Verify QML module registration (should be automatic)
+
+=== Sandbox Operations Failing
+
+* Check that `appId` is set on bridge (should be automatic)
+* Verify cartridge path is set
+* Check file permissions (should be automatic)
+
+== References
+
+* Qt Quick/QML Documentation: https://doc.qt.io/qt-6/qtquick-index.html
+* QQuickWidget: https://doc.qt.io/qt-6/qquickwidget.html
+* Qt Quick Controls 2.15: https://doc.qt.io/qt-6/qtquickcontrols2-index.html
+* Content Rendering Architecture: `content-rendering-decision-analysis.adoc`
+* Architecture Decision Record: `2025-12-26_content_rendering_architecture_decision.adoc`
+

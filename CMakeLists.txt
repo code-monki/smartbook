@@ -1,3 +1,31 @@
+# ============================================================================
+# SmartBook Top-Level CMakeLists.txt
+# ============================================================================
+#
+# This is the top-level CMake build configuration file for the SmartBook project.
+# It sets up the build system, compiler options, and includes all subdirectories.
+#
+# Build System:
+#   - CMake 3.20+ required
+#   - C++17 standard
+#   - Warnings treated as errors (code quality enforcement)
+#
+# Components:
+#   - common: Shared library (smartbook_common)
+#   - reader: Reader application (smartbook-reader)
+#   - creator: Creator Tool application (smartbook-creator)
+#   - test: Test suite
+#   - tools: Optional build utilities
+#   - poc: Optional Proof of Concept applications (BUILD_POC option)
+#
+# Usage:
+#   mkdir build && cd build
+#   cmake ..
+#   cmake --build .
+#
+# See Documentation/build-process.adoc for detailed build instructions.
+# ============================================================================
+
 cmake_minimum_required(VERSION 3.20)
 project(SmartBook VERSION 1.0.0 LANGUAGES CXX)
 

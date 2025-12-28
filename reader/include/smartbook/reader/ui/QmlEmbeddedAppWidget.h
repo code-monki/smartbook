@@ -17,8 +17,65 @@ class QmlAppBridge;
 /**
  * @brief Widget for embedding QML applications in content pages
  * 
- * Loads QML code from Embedded_Apps table and renders it using QQuickWidget.
- * Provides C++/QML communication via QmlAppBridge.
+ * QmlEmbeddedAppWidget hosts a QML embedded application within a cartridge content page.
+ * It loads QML code from the cartridge database (Embedded_Apps table) and renders it
+ * using QQuickWidget, providing a seamless integration with HTML content.
+ * 
+ * @section Architecture
+ * 
+ * **QML Loading:**
+ * - QML code is stored in `Embedded_Apps.qml_code` column
+ * - Code is written to a temporary file and loaded via `QQuickWidget::setSource()`
+ * - Each app runs in its own isolated QQuickWidget instance
+ * 
+ * **C++/QML Communication:**
+ * - QmlAppBridge is exposed to QML context as "SmartbookBridge"
+ * - Bridge provides access to cartridge database and sandbox file system
+ * - All communication is synchronous (no async JavaScript bridge)
+ * 
+ * **Lifecycle:**
+ * - Apps are loaded when content page is displayed
+ * - Apps are unloaded when page changes or widget is destroyed
+ * - Each app instance is independent (no shared state)
+ * 
+ * @section Usage
+ * 
+ * @code
+ * QmlEmbeddedAppWidget* widget = new QmlEmbeddedAppWidget(parent);
+ * widget->setCartridgeInfo(cartridgePath, cartridgeGuid);
+ * bool loaded = widget->loadApp(cartridgePath, "my_app_id");
+ * if (loaded) {
+ *     // App is ready to use
+ * }
+ * @endcode
+ * 
+ * @section Security
+ * 
+ * **Isolation:**
+ * - Each app runs in its own QQuickWidget instance
+ * - Apps cannot access each other's data or state
+ * - Apps cannot access the host file system directly
+ * 
+ * **Network Restrictions:**
+ * - QML apps have no network access
+ * - All network requests are blocked
+ * - Apps must use sandbox file system for data persistence
+ * 
+ * @section Error Handling
+ * 
+ * If QML code fails to load or compile:
+ * - `hasError()` returns true
+ * - `errorMessage()` contains error details
+ * - `appLoadError()` signal is emitted
+ * - Widget remains empty (no crash)
+ * 
+ * @note This widget is created automatically by ReaderView when it detects
+ * QML app markers in HTML content. Manual instantiation is rarely needed.
+ * 
+ * @see ReaderView
+ * @see QmlAppBridge
+ * @see ContentParser
+ * @see qml-embedded-apps-guide.adoc
  */
 class QmlEmbeddedAppWidget : public QWidget {
     Q_OBJECT
